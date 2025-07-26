@@ -162,7 +162,9 @@ export default function Markets() {
                         </div>
                         <div className="flex-1">
                           <h3 className="font-medium text-gray-900">{symbol}</h3>
-                          <p className="text-sm text-gray-500 truncate">{symbolInfo.name}</p>
+                          <p className="text-xs text-gray-500 truncate">
+                            {symbolInfo.name.length > 30 ? `${symbolInfo.name.substring(0, 30)}...` : symbolInfo.name}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -207,15 +209,18 @@ export default function Markets() {
         </div>
       )}
 
-      {/* All Symbols Section */}
-      <div className="px-4 pb-24">
-        <h2 className="text-sm font-medium text-gray-700 mb-3">Tüm Semboller</h2>
-        <div className="space-y-2">
-          {filteredSymbols.map(symbol => {
-            const isFollowed = followedSymbols.includes(symbol.symbol);
-            const marketInfo = getSymbolData(symbol.symbol);
+      {/* Search Results Section */}
+      {searchQuery && (
+        <div className="px-4 pb-24">
+          <h2 className="text-sm font-medium text-gray-700 mb-3">
+            Arama Sonuçları ({filteredSymbols.length})
+          </h2>
+          <div className="space-y-2">
+            {filteredSymbols.map(symbol => {
+              const isFollowed = followedSymbols.includes(symbol.symbol);
+              const marketInfo = getSymbolData(symbol.symbol);
 
-            return (
+              return (
               <Card key={symbol.symbol} className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
@@ -227,7 +232,9 @@ export default function Markets() {
                       </div>
                       <div className="flex-1">
                         <h3 className="font-medium text-gray-900">{symbol.symbol}</h3>
-                        <p className="text-sm text-gray-500 truncate">{symbol.name}</p>
+                        <p className="text-xs text-gray-500 truncate">
+                          {symbol.name.length > 30 ? `${symbol.name.substring(0, 30)}...` : symbol.name}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -271,9 +278,82 @@ export default function Markets() {
                 </div>
               </Card>
             );
-          })}
+            })}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* All Symbols Section - Only show when no search */}
+      {!searchQuery && (
+        <div className="px-4 pb-24">
+          <h2 className="text-sm font-medium text-gray-700 mb-3">Popüler BIST Sembolleri</h2>
+          <div className="space-y-2">
+            {BIST_SYMBOLS.slice(0, 10).map(symbol => {
+              const isFollowed = followedSymbols.includes(symbol.symbol);
+              const marketInfo = getSymbolData(symbol.symbol);
+
+              return (
+                <Card key={symbol.symbol} className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                          <span className="text-white font-semibold text-xs">
+                            {symbol.symbol.substring(0, 3)}
+                          </span>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-medium text-gray-900">{symbol.symbol}</h3>
+                          <p className="text-xs text-gray-500 truncate">
+                            {symbol.name.length > 30 ? `${symbol.name.substring(0, 30)}...` : symbol.name}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="text-right flex items-center space-x-3">
+                      {marketInfo ? (
+                        <div className="text-right">
+                          <p className="font-semibold text-gray-900">
+                            ₺{formatTurkishPrice(marketInfo.price)}
+                          </p>
+                          <div className={`flex items-center text-sm ${
+                            parseFloat(marketInfo.changePercent) >= 0 ? 'text-green-600' : 'text-red-600'
+                          }`}>
+                            {parseFloat(marketInfo.changePercent) >= 0 ? (
+                              <TrendingUp className="w-4 h-4 mr-1" />
+                            ) : (
+                              <TrendingDown className="w-4 h-4 mr-1" />
+                            )}
+                            {formatTurkishPercent(parseFloat(marketInfo.changePercent))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-right">
+                          <p className="text-sm text-gray-400">Fiyat yükleniyor...</p>
+                        </div>
+                      )}
+                      
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleToggleFollow(symbol.symbol)}
+                        className={`p-2 rounded-full ${
+                          isFollowed 
+                            ? 'text-red-600 hover:bg-red-50' 
+                            : 'text-green-600 hover:bg-green-50'
+                        }`}
+                      >
+                        {isFollowed ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

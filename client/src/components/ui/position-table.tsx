@@ -87,7 +87,7 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
   const handleClosePosition = async (position: Position, e: React.MouseEvent) => {
     e.stopPropagation();
     setShowCloseModal({ show: true, position });
-    setSellPrice(position.currentPrice || '');
+    setSellPrice(position.currentPrice ? parseFloat(position.currentPrice).toFixed(2).replace('.', ',') : '0,00');
   };
 
   const handleConfirmClose = async () => {
@@ -100,9 +100,20 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
       return;
     }
 
+    // Convert Turkish format to decimal format
+    const numericPrice = parseFloat(sellPrice.replace(',', '.'));
+    if (isNaN(numericPrice) || numericPrice <= 0) {
+      toast({
+        title: "Hata",
+        description: "Geçerli bir satış fiyatı giriniz.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const closeData = {
-        sellPrice: sellPrice,
+        sellPrice: numericPrice.toString(),
         sellDate: sellDate,
       };
 
@@ -317,8 +328,12 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
                 id="sellPrice"
                 type="text"
                 value={sellPrice}
-                onChange={(e) => setSellPrice(e.target.value)}
-                placeholder="22,94"
+                onChange={(e) => {
+                  // Only allow digits and comma
+                  const value = e.target.value.replace(/[^\d,]/g, '');
+                  setSellPrice(value);
+                }}
+                placeholder="0,00"
                 className="font-mono"
               />
             </div>

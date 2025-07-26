@@ -146,11 +146,13 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
             Pozisyon Detayı
             {!isEditing && (
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
+                className="px-3 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg border border-gray-200"
                 onClick={() => setIsEditing(true)}
               >
-                <Edit className="h-4 w-4" />
+                <Edit className="w-4 h-4 mr-2" />
+                Düzenle
               </Button>
             )}
           </DialogTitle>

@@ -87,9 +87,20 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
       return;
     }
 
+    // Convert Turkish format to decimal format
+    const numericPrice = parseFloat(sellPrice.replace(',', '.'));
+    if (isNaN(numericPrice) || numericPrice <= 0) {
+      toast({
+        title: "Hata",
+        description: "Geçerli bir satış fiyatı giriniz.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       await apiRequest('POST', `/api/positions/${position.id}/close`, {
-        sellPrice,
+        sellPrice: numericPrice.toString(),
         sellDate,
       });
       onRefresh();
@@ -188,7 +199,14 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={() => setShowCloseDialog(true)} className="py-3">
+                <DropdownMenuItem 
+                  onClick={() => {
+                    setShowCloseDialog(true);
+                    setSellPrice(position.currentPrice ? parseFloat(position.currentPrice).toFixed(2).replace('.', ',') : '0,00');
+                    setSellDate(new Date().toISOString().split('T')[0]);
+                  }} 
+                  className="py-3"
+                >
                   Pozisyonu Kapat
                 </DropdownMenuItem>
                 <DropdownMenuItem 
@@ -232,12 +250,14 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
               <Label htmlFor="sellPrice">Satış Fiyatı (₺)</Label>
               <Input
                 id="sellPrice"
-                type="number"
-                step="0.01"
-                min="0"
+                type="text"
                 value={sellPrice}
-                onChange={(e) => setSellPrice(e.target.value)}
-                placeholder="0.00"
+                onChange={(e) => {
+                  // Only allow digits and comma
+                  const value = e.target.value.replace(/[^\d,]/g, '');
+                  setSellPrice(value);
+                }}
+                placeholder="0,00"
                 className="font-mono"
               />
             </div>
