@@ -196,6 +196,16 @@ export default function Portfolio() {
         </div>
       </div>
 
+      {/* Add Position Button - Header */}
+      <div className="px-4 pb-3">
+        <Button 
+          onClick={() => setShowAddModal(true)}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-medium text-lg shadow-sm"
+        >
+          + Pozisyon Ekle
+        </Button>
+      </div>
+
       {/* Main Content */}
       <main className="pb-24">
         {activeTab === 'active' && (
@@ -222,9 +232,9 @@ export default function Portfolio() {
                 {!searchQuery && (
                   <Button 
                     onClick={() => setShowAddModal(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-medium text-lg"
                   >
-                    Pozisyon Ekle
+                    + Pozisyon Ekle
                   </Button>
                 )}
               </div>
@@ -358,17 +368,7 @@ export default function Portfolio() {
         )}
       </main>
 
-      {/* Add Position Button */}
-      <div className="fixed bottom-20 right-4 z-50">
-        <Button
-          onClick={() => setShowAddModal(true)}
-          className="w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-        </Button>
-      </div>
+
 
       {/* Add Position Modal */}
       <AddPositionModal

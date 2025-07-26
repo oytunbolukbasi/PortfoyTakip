@@ -8,7 +8,8 @@ This is a Turkish investment portfolio tracking application built for Turkish in
 - Removed Markets tab/page initially to focus on portfolio management
 - Added back bottom navigation with two tabs: "Portföy" (Portfolio) and "Analiz" (Analytics)
 - Created Analytics page with profit/loss analysis and performance metrics
-- Replaced floating action button with fixed add position button
+- Removed floating action button per user preference
+- Added prominent "Pozisyon Ekle" button at top of portfolio page
 
 ## User Preferences
 
