@@ -151,6 +151,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Price monitor endpoints
+  app.post("/api/price-monitor/update-all", async (req, res) => {
+    try {
+      const userId = "demo-user";
+      const positions = await storage.getPositions(userId);
+      
+      const results = [];
+      
+      for (const position of positions) {
+        try {
+          const price = await priceService.getPrice(position.symbol, position.type as 'stock' | 'fund');
+          await storage.updatePosition(position.id, {
+            currentPrice: price.toString(),
+            lastUpdated: new Date(),
+          });
+          
+          console.log(`Updated ${position.symbol}: ${price} TL`);
+          results.push({ symbol: position.symbol, success: true, price });
+        } catch (error) {
+          console.warn(`Failed to update price for ${position.symbol}:`, error);
+          results.push({ symbol: position.symbol, success: false, error: error.message });
+        }
+      }
+
+      console.log(`Price update completed: ${results.filter(r => r.success).length}/${results.length} positions updated successfully`);
+      res.json({ success: true, results });
+    } catch (error) {
+      console.error('Price monitor update error:', error);
+      res.status(500).json({ error: "Failed to update prices" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

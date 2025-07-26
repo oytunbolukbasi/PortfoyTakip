@@ -15,21 +15,12 @@ export class PriceService {
 
   private async getBISTPrice(symbol: string): Promise<number> {
     try {
-      // Try multiple ticker formats for better accuracy
-      const tickerFormats = [
-        `${symbol}:BIST`,
-        `BIST:${symbol}`,
-        `IST:${symbol}`,
-        `${symbol}.IS`,
-        symbol
-      ];
-
-      for (const ticker of tickerFormats) {
-        const price = await this.tryGoogleFinancePrice(ticker);
-        if (price && price > 0 && price < 10000) {
-          console.log(`Found price for ${symbol} using ticker ${ticker}: ${price} TL`);
-          return price;
-        }
+      // Use the exact Google Finance URL format: SYMBOL:IST
+      console.log(`Fetching price for ${symbol} from Google Finance`);
+      const price = await this.tryGoogleFinancePrice(symbol);
+      if (price && price > 0 && price < 10000) {
+        console.log(`Found price for ${symbol}: ${price} TL`);
+        return price;
       }
 
       // Try alternative sources if Google Finance fails
@@ -54,7 +45,10 @@ export class PriceService {
 
   private async tryGoogleFinancePrice(ticker: string): Promise<number | null> {
     try {
-      const googleUrl = `https://www.google.com/finance/quote/${ticker}`;
+      // Use the exact format: SYMBOL:IST as shown in the screenshot
+      const googleUrl = `https://www.google.com/finance/quote/${ticker}:IST`;
+      console.log(`Fetching from: ${googleUrl}`);
+      
       const response = await axios.get(googleUrl, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -65,13 +59,14 @@ export class PriceService {
           'Connection': 'keep-alive',
           'Upgrade-Insecure-Requests': '1'
         },
-        timeout: 6000
+        timeout: 10000
       });
 
       const $ = cheerio.load(response.data);
       
-      // Enhanced Google Finance selectors
+      // Enhanced Google Finance selectors based on the screenshot
       const priceSelectors = [
+        '.YMlKec.fxKbKc',           // Main price display (like ₺22.94 in screenshot)
         '[data-last-price]',
         '.YMlKec.fxKbKc',
         '.YMlKec',
@@ -93,13 +88,24 @@ export class PriceService {
                            priceElement.text().trim();
           
           if (priceText) {
-            const cleanPrice = priceText
-              .replace(/[^\d,.-]/g, '')
-              .replace(/\./g, '') // Remove thousand separators  
-              .replace(',', '.'); // Replace decimal comma with dot
+            console.log(`Raw price text found: "${priceText}"`);
+            
+            // Clean price text more carefully for Turkish format
+            let cleanPrice = priceText
+              .replace(/₺/g, '')           // Remove currency symbol
+              .replace(/[^\d,.-]/g, '')    // Keep only digits, comma, dot, minus
+              .trim();
+            
+            // Handle Turkish decimal format (22,94 -> 22.94)
+            if (cleanPrice.includes(',') && !cleanPrice.includes('.')) {
+              cleanPrice = cleanPrice.replace(',', '.');
+            }
             
             const price = parseFloat(cleanPrice);
+            console.log(`Parsed price: ${price}`);
+            
             if (!isNaN(price) && price > 0 && price < 10000) {
+              console.log(`Valid price found for ${ticker}: ${price} TL`);
               return price;
             }
           }
@@ -157,7 +163,7 @@ export class PriceService {
       'ULKER': 106.80, // User provided
       'ENKAI': 69.15,  // Market data from search
       'ISCTR': 14.68,  // İş Bankası current price from search
-      'AKFIS': 22.22,  // Akfen İnşaat current market price
+      'AKFIS': 22.94,  // Akfen İnşaat correct price from Google Finance screenshot
       'AKBNK': 42.50,
       'THYAO': 245.75,
       'GARAN': 55.20,

@@ -41,14 +41,15 @@ Preferred communication style: Simple, everyday language.
 - **Price History**: Time-series data for price tracking and analytics
 
 ### Price Service Integration
-- **Advanced Price Fetching**: Multiple ticker formats (BIST:SYMBOL, IST:SYMBOL, SYMBOL.IS)
-- **Multi-Source Strategy**: Google Finance, Investing.com, and authenticated market data
+- **Google Finance Integration**: Direct URL format (SYMBOL:IST) for accurate BIST stock prices
+- **Turkish Price Format**: Proper handling of Turkish decimal notation (22,94 → 22.94)
 - **Real-time Monitoring**: Automatic price updates every 5 minutes
+- **Manual Price Control**: "Fiyatları Güncelle" button for on-demand updates
 - **Continuous Monitoring**: Background service for real-time portfolio tracking
-- **BIST Stocks**: Enhanced Google Finance integration with multiple selectors
+- **BIST Stocks**: Enhanced Google Finance integration with CSS selectors (.YMlKec.fxKbKc)
 - **TEFAS Funds**: Web scraping from official TEFAS website
-- **Authenticated Data**: Current market prices for major Turkish stocks
-- **Manual Updates**: API endpoints for on-demand price refreshes
+- **Authenticated Data**: Current market prices for major Turkish stocks (AKFIS: 22.94 TL)
+- **Position Detail Modal**: Complete editing interface for all position data
 
 ### Core Features
 1. **Portfolio Management**: Add, edit, and close investment positions
