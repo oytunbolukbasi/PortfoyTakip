@@ -69,7 +69,7 @@ export default function PortfolioSummary({ positions }: PortfolioSummaryProps) {
               : 'bg-red-100 text-red-800'
           }`}>
             {isVisible 
-              ? `${summary.dailyPL >= 0 ? '+' : ''}₺${formatTurkishPrice(Math.abs(summary.dailyPL))} bugün`
+              ? `${summary.dailyPL >= 0 ? '+' : '-'}₺${formatTurkishPrice(Math.abs(summary.dailyPL))} bugün`
               : "***,** bugün"
             }
           </div>
@@ -82,7 +82,7 @@ export default function PortfolioSummary({ positions }: PortfolioSummaryProps) {
             <p className={`text-lg font-semibold ${
               summary.totalReturn >= 0 ? 'text-green-600' : 'text-red-600'
             }`}>
-              {isVisible ? formatTurkishPercent(summary.totalReturn) : "**,**%"}
+              {isVisible ? `${summary.totalReturn >= 0 ? '+' : '-'}${formatTurkishPercent(Math.abs(summary.totalReturn))}` : "**,**%"}
             </p>
           </div>
           <div className="text-center p-4 bg-gray-50 rounded-xl">
@@ -91,7 +91,7 @@ export default function PortfolioSummary({ positions }: PortfolioSummaryProps) {
               summary.totalPL >= 0 ? 'text-green-600' : 'text-red-600'
             }`}>
               {isVisible 
-                ? `${summary.totalPL >= 0 ? '+' : ''}₺${formatTurkishPrice(Math.abs(summary.totalPL))}`
+                ? `${summary.totalPL >= 0 ? '+' : '-'}₺${formatTurkishPrice(Math.abs(summary.totalPL))}`
                 : "***.***.***,**"
               }
             </p>

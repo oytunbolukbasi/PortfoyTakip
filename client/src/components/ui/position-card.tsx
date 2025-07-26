@@ -181,10 +181,10 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-500">K/Z:</span>
               <span className={`font-semibold ${pl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {pl >= 0 ? '+' : ''}₺{formatTurkishPrice(Math.abs(pl))}
+                {pl >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(pl))}
               </span>
               <span className={`text-sm ${plPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                ({formatTurkishPercent(plPercent)})
+                ({plPercent >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(plPercent))})
               </span>
             </div>
             <div className="flex items-center space-x-2">

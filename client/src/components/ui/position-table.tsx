@@ -279,12 +279,12 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
                   <td className={`px-3 py-4 whitespace-nowrap text-right text-sm font-medium ${
                     pl >= 0 ? 'text-green-600' : 'text-red-600'
                   }`}>
-                    {pl >= 0 ? '+' : ''}₺{formatTurkishPrice(Math.abs(pl))}
+                    {pl >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(pl))}
                   </td>
                   <td className={`px-3 py-4 whitespace-nowrap text-right text-sm font-medium ${
                     plPercent >= 0 ? 'text-green-600' : 'text-red-600'
                   }`}>
-                    {formatTurkishPercent(plPercent)}
+                    {plPercent >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(plPercent))}
                   </td>
                   <td className="px-3 py-4 whitespace-nowrap text-center">
                     <div className="flex items-center justify-center space-x-1">

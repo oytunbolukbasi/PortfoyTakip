@@ -294,13 +294,13 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
                 <div>
                   <Label>Kar/Zarar</Label>
                   <div className={`text-lg font-semibold ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {profit >= 0 ? '+' : ''}{formatTurkishPrice(profit)} TL
+                    {profit >= 0 ? '+' : '-'}{formatTurkishPrice(Math.abs(profit))} TL
                   </div>
                 </div>
                 <div>
                   <Label>Getiri</Label>
                   <div className={`text-lg font-semibold ${profitPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {profitPercent >= 0 ? '+' : ''}%{profitPercent.toFixed(2)}
+                    {profitPercent >= 0 ? '+' : '-'}%{Math.abs(profitPercent).toFixed(2)}
                   </div>
                 </div>
               </div>
