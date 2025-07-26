@@ -1,4 +1,5 @@
 import { Position } from "@shared/schema";
+import { formatTurkishCurrency, formatTurkishPercent, formatTurkishPrice } from "@/lib/format";
 
 interface PortfolioSummaryProps {
   positions: Position[];
@@ -46,14 +47,14 @@ export default function PortfolioSummary({ positions }: PortfolioSummaryProps) {
         <div className="text-center mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-2">Portföy Değeri</h2>
           <p className="text-4xl font-bold text-gray-900 mb-1">
-            ₺{summary.totalValue.toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+            {formatTurkishCurrency(summary.totalValue)}
           </p>
           <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
             summary.dailyPL >= 0 
               ? 'bg-green-100 text-green-800' 
               : 'bg-red-100 text-red-800'
           }`}>
-            {summary.dailyPL >= 0 ? '+' : ''}₺{Math.abs(summary.dailyPL).toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} bugün
+            {summary.dailyPL >= 0 ? '+' : ''}₺{formatTurkishPrice(Math.abs(summary.dailyPL))} bugün
           </div>
         </div>
         
@@ -64,7 +65,7 @@ export default function PortfolioSummary({ positions }: PortfolioSummaryProps) {
             <p className={`text-lg font-semibold ${
               summary.totalReturn >= 0 ? 'text-green-600' : 'text-red-600'
             }`}>
-              {summary.totalReturn >= 0 ? '+' : ''}{summary.totalReturn.toFixed(2)}%
+              {formatTurkishPercent(summary.totalReturn)}
             </p>
           </div>
           <div className="text-center p-4 bg-gray-50 rounded-xl">
@@ -72,7 +73,7 @@ export default function PortfolioSummary({ positions }: PortfolioSummaryProps) {
             <p className={`text-lg font-semibold ${
               summary.totalPL >= 0 ? 'text-green-600' : 'text-red-600'
             }`}>
-              {summary.totalPL >= 0 ? '+' : ''}₺{Math.abs(summary.totalPL).toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+              {summary.totalPL >= 0 ? '+' : ''}₺{formatTurkishPrice(Math.abs(summary.totalPL))}
             </p>
           </div>
         </div>

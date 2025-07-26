@@ -22,7 +22,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/positions", async (req, res) => {
     try {
-      const validatedData = insertPositionSchema.parse(req.body);
+      const rawData = req.body;
+      
+      // Convert Turkish number format to standard format for validation
+      if (rawData.buyPrice && typeof rawData.buyPrice === 'string') {
+        // Convert 1.234,56 or 234,56 to 1234.56 or 234.56
+        const normalizedPrice = rawData.buyPrice
+          .replace(/\./g, '') // Remove thousand separators
+          .replace(',', '.'); // Replace decimal comma with dot
+        rawData.buyPrice = normalizedPrice;
+      }
+      
+      const validatedData = insertPositionSchema.parse(rawData);
       const userId = "demo-user";
       
       // Fetch current price for the new position

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Position } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { MoreVertical } from "lucide-react";
+import { formatTurkishCurrency, formatTurkishPrice, formatTurkishPercent, parseTurkishPrice } from "@/lib/format";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -125,11 +126,11 @@ export default function PositionCard({ position, onRefresh }: PositionCardProps)
               </div>
             </div>
             <div className="text-right">
-              <p className="text-xl font-bold text-gray-900">₺{currentPrice.toFixed(2)}</p>
+              <p className="text-xl font-bold text-gray-900">₺{formatTurkishPrice(currentPrice)}</p>
               <div className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${
                 change >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
               }`}>
-                {change >= 0 ? '+' : ''}{change.toFixed(2)}%
+                {formatTurkishPercent(change)}
               </div>
             </div>
           </div>
@@ -141,11 +142,11 @@ export default function PositionCard({ position, onRefresh }: PositionCardProps)
             </div>
             <div className="text-center p-3 bg-gray-50 rounded-xl">
               <p className="text-xs text-gray-500 mb-1">Alış</p>
-              <p className="font-semibold text-gray-900">₺{parseFloat(position.buyPrice).toFixed(2)}</p>
+              <p className="font-semibold text-gray-900">₺{formatTurkishPrice(position.buyPrice)}</p>
             </div>
             <div className="text-center p-3 bg-gray-50 rounded-xl">
               <p className="text-xs text-gray-500 mb-1">Değer</p>
-              <p className="font-semibold text-gray-900">₺{value.toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
+              <p className="font-semibold text-gray-900">{formatTurkishCurrency(value)}</p>
             </div>
           </div>
           
@@ -153,10 +154,10 @@ export default function PositionCard({ position, onRefresh }: PositionCardProps)
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-500">K/Z:</span>
               <span className={`font-semibold ${pl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {pl >= 0 ? '+' : ''}₺{Math.abs(pl).toFixed(0)}
+                {pl >= 0 ? '+' : ''}₺{formatTurkishPrice(Math.abs(pl))}
               </span>
               <span className={`text-sm ${plPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                ({plPercent >= 0 ? '+' : ''}{plPercent.toFixed(2)}%)
+                ({formatTurkishPercent(plPercent)})
               </span>
             </div>
             <DropdownMenu>

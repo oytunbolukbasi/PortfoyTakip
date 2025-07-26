@@ -208,13 +208,21 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                   <FormControl>
                     <Input
                       {...field}
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      placeholder="0.00"
+                      type="text"
+                      placeholder="106,80"
                       className="font-mono"
+                      onChange={(e) => {
+                        // Allow Turkish format with comma as decimal separator
+                        const value = e.target.value;
+                        // Only allow numbers, comma, and thousand separator dot
+                        const cleaned = value.replace(/[^0-9,.]/g, '');
+                        field.onChange(cleaned);
+                      }}
                     />
                   </FormControl>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Örnek: 106,80 veya 1.205,50
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
