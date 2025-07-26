@@ -22,43 +22,84 @@ export default function Analytics() {
     queryKey: ['/api/closed-positions'],
   });
 
-  // Filter closed positions based on selected date range
-  const getFilteredClosedPositions = () => {
+  // Filter positions based on selected date range
+  const getFilteredData = () => {
+    let filteredClosed = [];
+    let filteredActive = [];
+    
     if (timeRange === 'custom' && startDate && endDate) {
       const start = new Date(startDate);
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999); // Include the entire end date
       
-      return closedPositions.filter(position => {
+      // Filter closed positions by sell date within range
+      filteredClosed = closedPositions.filter(position => {
         const sellDate = new Date(position.sellDate);
         return sellDate >= start && sellDate <= end;
       });
+      
+      // Filter active positions by buy date within range (for portfolio metrics)
+      filteredActive = positions.filter(position => {
+        const buyDate = new Date(position.buyDate);
+        return buyDate >= start && buyDate <= end;
+      });
+      
     } else if (timeRange === 'daily') {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
       
-      return closedPositions.filter(position => {
+      // Filter closed positions sold today
+      filteredClosed = closedPositions.filter(position => {
         const sellDate = new Date(position.sellDate);
         return sellDate >= today && sellDate < tomorrow;
       });
+      
+      // Filter active positions bought today
+      filteredActive = positions.filter(position => {
+        const buyDate = new Date(position.buyDate);
+        return buyDate >= today && buyDate < tomorrow;
+      });
+      
     } else if (timeRange === 'monthly') {
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
       
-      return closedPositions.filter(position => {
+      // Filter closed positions sold this month
+      filteredClosed = closedPositions.filter(position => {
         const sellDate = new Date(position.sellDate);
         return sellDate >= startOfMonth && sellDate <= endOfMonth;
       });
+      
+      // Filter active positions bought this month
+      filteredActive = positions.filter(position => {
+        const buyDate = new Date(position.buyDate);
+        return buyDate >= startOfMonth && buyDate <= endOfMonth;
+      });
+    } else {
+      filteredClosed = closedPositions;
+      filteredActive = positions;
     }
-    return closedPositions;
+    
+    return { filteredClosed, filteredActive };
   };
 
-  const filteredClosedPositions = getFilteredClosedPositions();
+  const { filteredClosed: filteredClosedPositions, filteredActive: filteredActivePositions } = getFilteredData();
 
-  // Calculate portfolio metrics
+  // Calculate portfolio metrics for filtered period
+  const filteredTotalValue = filteredActivePositions.reduce((sum, pos) => {
+    return sum + (parseFloat(pos.currentPrice || '0') * pos.quantity);
+  }, 0);
+
+  const filteredTotalCost = filteredActivePositions.reduce((sum, pos) => {
+    return sum + (parseFloat(pos.buyPrice) * pos.quantity);
+  }, 0);
+
+  const filteredProfit = filteredTotalValue - filteredTotalCost;
+  
+  // Overall portfolio metrics (all positions)
   const totalValue = positions.reduce((sum, pos) => {
     return sum + (parseFloat(pos.currentPrice || '0') * pos.quantity);
   }, 0);
@@ -164,7 +205,27 @@ export default function Analytics() {
             <p className="text-sm text-blue-800">
               <CalendarDays className="w-4 h-4 inline mr-2" />
               Seçili dönem: {new Date(startDate).toLocaleDateString('tr-TR')} - {new Date(endDate).toLocaleDateString('tr-TR')}
-              ({filteredClosedPositions.length} işlem)
+            </p>
+            <p className="text-xs text-blue-600 mt-1">
+              • {filteredActivePositions.length} pozisyon açıldı • {filteredClosedPositions.length} pozisyon kapatıldı
+            </p>
+          </div>
+        )}
+        
+        {timeRange === 'daily' && (
+          <div className="mt-3 p-3 bg-green-50 rounded-lg">
+            <p className="text-sm text-green-800">
+              <CalendarDays className="w-4 h-4 inline mr-2" />
+              Bugün: {filteredActivePositions.length} pozisyon açıldı, {filteredClosedPositions.length} pozisyon kapatıldı
+            </p>
+          </div>
+        )}
+        
+        {timeRange === 'monthly' && (
+          <div className="mt-3 p-3 bg-purple-50 rounded-lg">
+            <p className="text-sm text-purple-800">
+              <CalendarDays className="w-4 h-4 inline mr-2" />
+              Bu ay: {filteredActivePositions.length} pozisyon açıldı, {filteredClosedPositions.length} pozisyon kapatıldı
             </p>
           </div>
         )}
@@ -186,31 +247,86 @@ export default function Analytics() {
                 <h3 className="font-semibold text-gray-900 flex items-center">
                   <DollarSign className="w-5 h-5 mr-2 text-blue-600" />
                   Portföy Durumu
+                  {timeRange === 'custom' && startDate && endDate && (
+                    <span className="text-xs text-gray-500 ml-2">
+                      (Dönem: {filteredActivePositions.length} pozisyon)
+                    </span>
+                  )}
+                  {timeRange === 'daily' && (
+                    <span className="text-xs text-gray-500 ml-2">(Bugün alınan: {filteredActivePositions.length})</span>
+                  )}
+                  {timeRange === 'monthly' && (
+                    <span className="text-xs text-gray-500 ml-2">(Bu ay alınan: {filteredActivePositions.length})</span>
+                  )}
                 </h3>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              
+              {/* Show filtered period data if custom date range is selected */}
+              {timeRange === 'custom' && startDate && endDate ? (
                 <div>
-                  <p className="text-sm text-gray-600">Toplam Değer</p>
-                  <p className="text-xl font-bold text-gray-900">₺{formatTurkishPrice(totalValue)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Toplam Maliyet</p>
-                  <p className="text-xl font-bold text-gray-900">₺{formatTurkishPrice(totalCost)}</p>
-                </div>
-              </div>
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Gerçekleşmemiş K/Z:</span>
-                  <div className="text-right">
-                    <span className={`font-bold ${totalProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {totalProfit >= 0 ? '+' : ''}₺{formatTurkishPrice(Math.abs(totalProfit))}
-                    </span>
-                    <span className={`text-sm ml-2 ${totalProfitPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      ({totalProfitPercent >= 0 ? '+' : ''}{formatTurkishPercent(totalProfitPercent)})
-                    </span>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Dönem Değer</p>
+                      <p className="text-xl font-bold text-gray-900">₺{formatTurkishPrice(filteredTotalValue)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Dönem Maliyet</p>
+                      <p className="text-xl font-bold text-gray-900">₺{formatTurkishPrice(filteredTotalCost)}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Dönem K/Z:</span>
+                      <div className="text-right">
+                        <span className={`font-bold ${filteredProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {filteredProfit >= 0 ? '+' : ''}₺{formatTurkishPrice(Math.abs(filteredProfit))}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <p className="text-xs text-gray-500 mb-2">Genel Portföy:</p>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-600">Toplam Değer</p>
+                        <p className="text-lg font-bold text-gray-900">₺{formatTurkishPrice(totalValue)}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Toplam K/Z</p>
+                        <span className={`text-lg font-bold ${totalProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {totalProfit >= 0 ? '+' : ''}₺{formatTurkishPrice(Math.abs(totalProfit))}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Toplam Değer</p>
+                      <p className="text-xl font-bold text-gray-900">₺{formatTurkishPrice(totalValue)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Toplam Maliyet</p>
+                      <p className="text-xl font-bold text-gray-900">₺{formatTurkishPrice(totalCost)}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Gerçekleşmemiş K/Z:</span>
+                      <div className="text-right">
+                        <span className={`font-bold ${totalProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {totalProfit >= 0 ? '+' : ''}₺{formatTurkishPrice(Math.abs(totalProfit))}
+                        </span>
+                        <span className={`text-sm ml-2 ${totalProfitPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          ({totalProfitPercent >= 0 ? '+' : ''}{formatTurkishPercent(totalProfitPercent)})
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </Card>
 
             {/* Profit/Loss Summary */}
@@ -278,8 +394,18 @@ export default function Analytics() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-600">Aktif Pozisyon</p>
+                  <p className="text-sm text-gray-600">
+                    Aktif Pozisyon
+                    {timeRange === 'custom' && startDate && endDate && ' (Genel)'}
+                    {timeRange === 'daily' && ' (Genel)'}
+                    {timeRange === 'monthly' && ' (Genel)'}
+                  </p>
                   <p className="text-2xl font-bold text-blue-600">{positions.length}</p>
+                  {(timeRange === 'custom' && startDate && endDate) || timeRange === 'daily' || timeRange === 'monthly' ? (
+                    <p className="text-xs text-gray-500">
+                      Dönem: {filteredActivePositions.length}
+                    </p>
+                  ) : null}
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">
@@ -289,8 +415,13 @@ export default function Analytics() {
                     {timeRange === 'monthly' && ' (Bu Ay)'}
                   </p>
                   <p className="text-2xl font-bold text-gray-600">
-                    {timeRange === 'custom' && startDate && endDate ? filteredClosedPositions.length : closedPositions.length}
+                    {filteredClosedPositions.length}
                   </p>
+                  {timeRange === 'custom' && startDate && endDate && (
+                    <p className="text-xs text-gray-500">
+                      Toplam: {closedPositions.length}
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="mt-4 pt-4 border-t border-gray-100">
