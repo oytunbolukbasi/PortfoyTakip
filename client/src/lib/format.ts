@@ -34,12 +34,8 @@ export function formatTurkishPercent(percent: number | string | null): string {
   const numPercent = typeof percent === 'string' ? parseFloat(percent) : percent;
   if (isNaN(numPercent)) return '—';
   
-  // Format with Turkish locale
-  return new Intl.NumberFormat('tr-TR', {
-    style: 'percent',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(numPercent / 100);
+  const sign = numPercent >= 0 ? '+' : '';
+  return `${sign}${formatTurkishPrice(numPercent)}%`;
 }
 
 export function parseTurkishPrice(priceStr: string): number {

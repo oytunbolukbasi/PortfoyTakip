@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 
 interface BottomNavigationProps {
-  activeTab: string;
+  activeTab?: string;
 }
 
 export default function BottomNavigation({ activeTab }: BottomNavigationProps) {
@@ -38,24 +38,26 @@ export default function BottomNavigation({ activeTab }: BottomNavigationProps) {
     <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200/60 z-40 safe-area-pb">
       <div className="grid grid-cols-4 h-20 pt-2 pb-6">
         {navItems.map((item) => {
-          const isActive = activeTab === item.id;
+          const isActive = location === item.href;
           
           return (
-            <Link
-              key={item.id}
-              href={item.href}
-              className={`flex flex-col items-center justify-center space-y-1 transition-colors ${
-                isActive ? 'text-blue-600' : 'text-gray-400'
-              }`}
-            >
-              <svg 
-                viewBox="0 0 24 24" 
-                fill="currentColor" 
-                className="w-6 h-6"
-              >
-                <path d={item.icon} />
-              </svg>
-              <span className="text-xs font-medium">{item.label}</span>
+            <Link key={item.id} href={item.href}>
+              <div className={`flex flex-col items-center justify-center py-1 px-2 transition-colors ${
+                isActive ? 'text-blue-600' : 'text-gray-500'
+              }`}>
+                <div className="w-8 h-8 mb-1 flex items-center justify-center">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="w-6 h-6"
+                  >
+                    <path d={item.icon} />
+                  </svg>
+                </div>
+                <span className="text-xs font-medium">{item.label}</span>
+              </div>
             </Link>
           );
         })}

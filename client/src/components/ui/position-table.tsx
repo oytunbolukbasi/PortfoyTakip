@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { ChevronUp, ChevronDown, X, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface PositionTableProps {
   positions: Position[];
@@ -74,13 +77,24 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
     return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
   });
 
+  const [showCloseModal, setShowCloseModal] = useState<{ show: boolean; position: Position | null }>({
+    show: false,
+    position: null,
+  });
+  const [sellPrice, setSellPrice] = useState('');
+  const [sellDate, setSellDate] = useState(new Date().toISOString().split('T')[0]);
+
   const handleClosePosition = async (position: Position, e: React.MouseEvent) => {
     e.stopPropagation();
-    
-    if (!position.currentPrice) {
+    setShowCloseModal({ show: true, position });
+    setSellPrice(position.currentPrice || '');
+  };
+
+  const handleConfirmClose = async () => {
+    if (!showCloseModal.position || !sellPrice) {
       toast({
         title: "Hata",
-        description: "Güncel fiyat bulunamadı. Lütfen önce fiyatları güncelleyin.",
+        description: "Satış fiyatı girmelisiniz.",
         variant: "destructive",
       });
       return;
@@ -88,11 +102,11 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
 
     try {
       const closeData = {
-        sellPrice: position.currentPrice,
-        sellDate: new Date().toISOString().split('T')[0],
+        sellPrice: sellPrice,
+        sellDate: sellDate,
       };
 
-      const response = await fetch(`/api/positions/${position.id}/close`, {
+      const response = await fetch(`/api/positions/${showCloseModal.position.id}/close`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -106,10 +120,17 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
 
       toast({
         title: "Pozisyon Kapatıldı",
-        description: `${position.symbol} pozisyonu başarıyla kapatıldı`,
+        description: `${showCloseModal.position.symbol} pozisyonu başarıyla kapatıldı`,
       });
 
+      setShowCloseModal({ show: false, position: null });
+      setSellPrice('');
       onRefresh();
+      
+      // Auto-refresh closed positions  
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('refreshClosedPositions'));
+      }, 1000);
     } catch (error) {
       console.error('Close position error:', error);
       toast({
@@ -282,6 +303,48 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
           </tbody>
         </table>
       </div>
+
+      {/* Close Position Modal */}
+      <Dialog open={showCloseModal.show} onOpenChange={(open) => setShowCloseModal({ show: open, position: null })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Pozisyonu Kapat - {showCloseModal.position?.symbol}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="sellPrice">Satış Fiyatı (₺)</Label>
+              <Input
+                id="sellPrice"
+                type="text"
+                value={sellPrice}
+                onChange={(e) => setSellPrice(e.target.value)}
+                placeholder="22,94"
+                className="font-mono"
+              />
+            </div>
+            <div>
+              <Label htmlFor="sellDate">Satış Tarihi</Label>
+              <Input
+                id="sellDate"
+                type="date"
+                value={sellDate}
+                onChange={(e) => setSellDate(e.target.value)}
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowCloseModal({ show: false, position: null })}
+              >
+                İptal
+              </Button>
+              <Button onClick={handleConfirmClose}>
+                Pozisyonu Kapat
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

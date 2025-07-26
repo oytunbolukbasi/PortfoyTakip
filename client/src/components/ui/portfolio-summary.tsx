@@ -1,11 +1,15 @@
+import { useState } from "react";
 import { Position } from "@shared/schema";
 import { formatTurkishCurrency, formatTurkishPercent, formatTurkishPrice } from "@/lib/format";
+import { Button } from "@/components/ui/button";
+import { Eye, EyeOff } from "lucide-react";
 
 interface PortfolioSummaryProps {
   positions: Position[];
 }
 
 export default function PortfolioSummary({ positions }: PortfolioSummaryProps) {
+  const [isVisible, setIsVisible] = useState(true);
   const calculateSummary = () => {
     let totalValue = 0;
     let totalCost = 0;
@@ -45,16 +49,29 @@ export default function PortfolioSummary({ positions }: PortfolioSummaryProps) {
       {/* Main Portfolio Value Card */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
         <div className="text-center mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Portföy Değeri</h2>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <h2 className="text-lg font-semibold text-gray-900">Portföy Değeri</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsVisible(!isVisible)}
+              className="p-1 h-auto text-gray-400 hover:text-gray-600"
+            >
+              {isVisible ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+            </Button>
+          </div>
           <p className="text-4xl font-bold text-gray-900 mb-1">
-            {formatTurkishCurrency(summary.totalValue)}
+            {isVisible ? formatTurkishCurrency(summary.totalValue) : "***.***.***,**"}
           </p>
           <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
             summary.dailyPL >= 0 
               ? 'bg-green-100 text-green-800' 
               : 'bg-red-100 text-red-800'
           }`}>
-            {summary.dailyPL >= 0 ? '+' : ''}₺{formatTurkishPrice(Math.abs(summary.dailyPL))} bugün
+            {isVisible 
+              ? `${summary.dailyPL >= 0 ? '+' : ''}₺${formatTurkishPrice(Math.abs(summary.dailyPL))} bugün`
+              : "***,** bugün"
+            }
           </div>
         </div>
         
@@ -65,7 +82,7 @@ export default function PortfolioSummary({ positions }: PortfolioSummaryProps) {
             <p className={`text-lg font-semibold ${
               summary.totalReturn >= 0 ? 'text-green-600' : 'text-red-600'
             }`}>
-              {formatTurkishPercent(summary.totalReturn)}
+              {isVisible ? formatTurkishPercent(summary.totalReturn) : "**,**%"}
             </p>
           </div>
           <div className="text-center p-4 bg-gray-50 rounded-xl">
@@ -73,7 +90,10 @@ export default function PortfolioSummary({ positions }: PortfolioSummaryProps) {
             <p className={`text-lg font-semibold ${
               summary.totalPL >= 0 ? 'text-green-600' : 'text-red-600'
             }`}>
-              {summary.totalPL >= 0 ? '+' : ''}₺{formatTurkishPrice(Math.abs(summary.totalPL))}
+              {isVisible 
+                ? `${summary.totalPL >= 0 ? '+' : ''}₺${formatTurkishPrice(Math.abs(summary.totalPL))}`
+                : "***.***.***,**"
+              }
             </p>
           </div>
         </div>

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { formatTurkishPrice, parseTurkishPrice } from "@/lib/format";
-import { Edit3, Save, X, RefreshCw } from "lucide-react";
+import { Edit, Save, X, RefreshCw } from "lucide-react";
 
 interface PositionDetailModalProps {
   position: Position | null;
@@ -150,7 +150,7 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
                 size="sm"
                 onClick={() => setIsEditing(true)}
               >
-                <Edit3 className="h-4 w-4" />
+                <Edit className="h-4 w-4" />
               </Button>
             )}
           </DialogTitle>

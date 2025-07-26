@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Position, ClosedPosition } from "@shared/schema";
 import PortfolioSummary from "@/components/ui/portfolio-summary";
@@ -29,9 +29,19 @@ export default function Portfolio() {
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  const { data: closedPositions = [], isLoading: closedLoading } = useQuery<ClosedPosition[]>({
+  const { data: closedPositions = [], isLoading: closedLoading, refetch: refetchClosedPositions } = useQuery<ClosedPosition[]>({
     queryKey: ['/api/closed-positions'],
   });
+
+  // Listen for auto-refresh closed positions event
+  useEffect(() => {
+    const handleRefreshClosedPositions = () => {
+      refetchClosedPositions();
+    };
+
+    window.addEventListener('refreshClosedPositions', handleRefreshClosedPositions);
+    return () => window.removeEventListener('refreshClosedPositions', handleRefreshClosedPositions);
+  }, [refetchClosedPositions]);
 
   const filteredPositions = positions.filter(position =>
     position.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -76,7 +86,7 @@ export default function Portfolio() {
       });
 
       // Refresh closed positions
-      window.location.reload();
+      refetchClosedPositions();
     } catch (error) {
       console.error('Delete closed position error:', error);
       toast({
@@ -158,7 +168,10 @@ export default function Portfolio() {
                 ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-600'
             }`}
-            onClick={() => setActiveTab('closed')}
+            onClick={() => {
+              setActiveTab('closed');
+              refetchClosedPositions();
+            }}
           >
             Tamamlanan
           </button>

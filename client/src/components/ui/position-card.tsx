@@ -97,6 +97,11 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
         title: "Pozisyon kapatıldı",
         description: `${position.symbol} pozisyonu başarıyla kapatıldı.`,
       });
+      
+      // Auto-refresh closed positions
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('refreshClosedPositions'));
+      }, 1000);
     } catch (error) {
       toast({
         title: "Hata",
@@ -112,7 +117,14 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
     <>
       <div 
         className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mx-4 mb-3 cursor-pointer hover:shadow-md transition-shadow"
-        onClick={onClick}
+        onClick={(e) => {
+          // Don't trigger onClick if clicking on the dropdown menu or its trigger
+          const target = e.target as HTMLElement;
+          const dropdown = target.closest('[data-dropdown]');
+          if (!dropdown) {
+            onClick?.();
+          }
+        }}
       >
         <div className="p-4">
           <div className="flex justify-between items-start mb-4">
@@ -166,7 +178,12 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg"
+                  data-dropdown="true"
+                >
                   <MoreVertical className="w-5 h-5" />
                 </Button>
               </DropdownMenuTrigger>

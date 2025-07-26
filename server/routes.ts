@@ -115,6 +115,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Market data endpoint
+  app.get("/api/market-data", async (req, res) => {
+    try {
+      const marketData = await priceService.getBISTMarketData();
+      res.json(marketData);
+    } catch (error) {
+      console.error('Market data fetch error:', error);
+      res.status(500).json({ error: "Failed to fetch market data" });
+    }
+  });
+
   // Price update endpoint
   app.post("/api/prices/refresh", async (req, res) => {
     try {
