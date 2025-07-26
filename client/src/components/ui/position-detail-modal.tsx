@@ -141,21 +141,24 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md mx-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
+        <DialogHeader className="text-center pb-4">
+          <DialogTitle className="text-lg font-semibold">
             Pozisyon Detayı
-            {!isEditing && (
+          </DialogTitle>
+          <p className="text-sm text-gray-600">{position.symbol}</p>
+          {!isEditing && (
+            <div className="pt-2">
               <Button
                 variant="outline"
                 size="sm"
-                className="px-3 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg border border-gray-200"
+                className="px-4 py-2 text-blue-600 border-blue-200 hover:bg-blue-50"
                 onClick={() => setIsEditing(true)}
               >
                 <Edit className="w-4 h-4 mr-2" />
                 Düzenle
               </Button>
-            )}
-          </DialogTitle>
+            </div>
+          )}
         </DialogHeader>
 
         <div className="space-y-4">

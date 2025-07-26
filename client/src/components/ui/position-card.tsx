@@ -187,67 +187,75 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
                 ({formatTurkishPercent(plPercent)})
               </span>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg"
-                  data-dropdown="true"
-                >
-                  <MoreVertical className="w-5 h-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem 
-                  onClick={() => {
-                    setShowCloseDialog(true);
-                    setSellPrice(position.currentPrice ? parseFloat(position.currentPrice).toFixed(2).replace('.', ',') : '0,00');
-                    setSellDate(new Date().toISOString().split('T')[0]);
-                  }} 
-                  className="py-3"
-                >
-                  Pozisyonu Kapat
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => setShowDeleteDialog(true)}
-                  className="text-red-600 py-3"
-                >
-                  Pozisyonu Sil
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onClick?.()}
+                className="px-3 py-1 text-xs text-blue-600 border-blue-200 hover:bg-blue-50"
+              >
+                Düzenle
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowCloseDialog(true);
+                  setSellPrice(position.currentPrice ? parseFloat(position.currentPrice).toFixed(2).replace('.', ',') : '0,00');
+                  setSellDate(new Date().toISOString().split('T')[0]);
+                }}
+                className="px-3 py-1 text-xs text-orange-600 border-orange-200 hover:bg-orange-50"
+              >
+                Kapat
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowDeleteDialog(true);
+                }}
+                className="px-3 py-1 text-xs text-red-600 border-red-200 hover:bg-red-50"
+              >
+                Sil
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Delete Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Pozisyonu sil?</AlertDialogTitle>
-            <AlertDialogDescription>
+        <AlertDialogContent className="max-w-sm mx-auto">
+          <AlertDialogHeader className="text-center">
+            <AlertDialogTitle className="text-lg font-semibold">Pozisyonu Sil</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600 mt-2">
               {position.symbol} pozisyonunu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>İptal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-error text-white hover:bg-error/90">
-              Sil
+          <AlertDialogFooter className="flex-col space-y-2 mt-6">
+            <AlertDialogAction 
+              onClick={handleDelete} 
+              className="w-full bg-red-600 text-white hover:bg-red-700 py-3"
+            >
+              Evet, Sil
             </AlertDialogAction>
+            <AlertDialogCancel className="w-full py-3">İptal</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       {/* Close Position Dialog */}
       <Dialog open={showCloseDialog} onOpenChange={setShowCloseDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Pozisyonu Kapat - {position.symbol}</DialogTitle>
+        <DialogContent className="max-w-sm mx-auto">
+          <DialogHeader className="text-center pb-4">
+            <DialogTitle className="text-lg font-semibold">Pozisyonu Kapat</DialogTitle>
+            <p className="text-sm text-gray-600">{position.symbol}</p>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="sellPrice">Satış Fiyatı (₺)</Label>
+              <Label htmlFor="sellPrice" className="text-sm font-medium">Satış Fiyatı (₺)</Label>
               <Input
                 id="sellPrice"
                 type="text"
@@ -258,24 +266,25 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
                   setSellPrice(value);
                 }}
                 placeholder="0,00"
-                className="font-mono"
+                className="font-mono mt-1"
               />
             </div>
             <div>
-              <Label htmlFor="sellDate">Satış Tarihi</Label>
+              <Label htmlFor="sellDate" className="text-sm font-medium">Satış Tarihi</Label>
               <Input
                 id="sellDate"
                 type="date"
                 value={sellDate}
                 onChange={(e) => setSellDate(e.target.value)}
+                className="mt-1"
               />
             </div>
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setShowCloseDialog(false)}>
-                İptal
-              </Button>
-              <Button onClick={handleClose}>
+            <div className="flex flex-col space-y-2 pt-4">
+              <Button onClick={handleClose} className="w-full py-3">
                 Pozisyonu Kapat
+              </Button>
+              <Button variant="outline" onClick={() => setShowCloseDialog(false)} className="w-full py-3">
+                İptal
               </Button>
             </div>
           </div>

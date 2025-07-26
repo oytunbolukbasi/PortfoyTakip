@@ -88,6 +88,23 @@ export const closePositionSchema = z.object({
   sellDate: z.string().refine((val) => !isNaN(Date.parse(val)), "Geçerli bir tarih giriniz"),
 });
 
+// BIST symbols table for market data
+export const bistSymbols = pgTable("bist_symbols", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  symbol: text("symbol").notNull().unique(),
+  name: text("name").notNull(),
+  sector: text("sector"),
+  marketCap: text("market_cap"),
+  createdAt: timestamp("created_at").default(sql`now()`),
+  updatedAt: timestamp("updated_at").default(sql`now()`),
+});
+
+export const insertBistSymbolSchema = createInsertSchema(bistSymbols).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type Position = typeof positions.$inferSelect;
@@ -95,3 +112,5 @@ export type InsertPosition = z.infer<typeof insertPositionSchema>;
 export type ClosedPosition = typeof closedPositions.$inferSelect;
 export type ClosePosition = z.infer<typeof closePositionSchema>;
 export type PriceHistory = typeof priceHistory.$inferSelect;
+export type BistSymbol = typeof bistSymbols.$inferSelect;
+export type InsertBistSymbol = z.infer<typeof insertBistSymbolSchema>;

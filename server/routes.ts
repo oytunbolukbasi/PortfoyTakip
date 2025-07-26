@@ -1,8 +1,11 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPositionSchema, closePositionSchema } from "@shared/schema";
+import { insertPositionSchema, closePositionSchema, insertBistSymbolSchema } from "@shared/schema";
 import { PriceService } from "./services/price-service";
+import { db } from "./db";
+import { bistSymbols } from "@shared/schema";
+import { ilike } from "drizzle-orm";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const priceService = new PriceService();
@@ -79,12 +82,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/positions/:id/close", async (req, res) => {
     try {
-      const validatedData = closePositionSchema.parse(req.body);
+      const positionId = req.params.id;
+      const rawData = req.body;
+      
+      console.log('Close position request:', { positionId, rawData });
+      
+      // Convert Turkish number format to standard format for validation
+      if (rawData.sellPrice && typeof rawData.sellPrice === 'string') {
+        // Handle Turkish decimal format: "22,94" -> "22.94"
+        let normalizedPrice = rawData.sellPrice.trim();
+        
+        // If there's a comma but no dot, it's Turkish decimal format
+        if (normalizedPrice.includes(',') && !normalizedPrice.includes('.')) {
+          normalizedPrice = normalizedPrice.replace(',', '.');
+        }
+        // If there are both dots and comma, assume dot is thousand separator
+        else if (normalizedPrice.includes('.') && normalizedPrice.includes(',')) {
+          normalizedPrice = normalizedPrice.replace(/\./g, '').replace(',', '.');
+        }
+        
+        rawData.sellPrice = normalizedPrice;
+        console.log('Normalized sell price:', normalizedPrice);
+      }
+      
+      const validatedData = closePositionSchema.parse(rawData);
       const userId = "demo-user";
       
-      const closedPosition = await storage.closePosition(req.params.id, userId, validatedData);
+      const closedPosition = await storage.closePosition(positionId, userId, validatedData);
       res.json(closedPosition);
     } catch (error) {
+      console.error('Close position error:', error);
       if (error instanceof Error) {
         res.status(400).json({ error: error.message });
       } else {
@@ -193,7 +220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           results.push({ symbol: position.symbol, success: true, price });
         } catch (error) {
           console.warn(`Failed to update price for ${position.symbol}:`, error);
-          results.push({ symbol: position.symbol, success: false, error: error.message });
+          results.push({ symbol: position.symbol, success: false, error: String(error) });
         }
       }
 
@@ -202,6 +229,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Price monitor update error:', error);
       res.status(500).json({ error: "Failed to update prices" });
+    }
+  });
+
+  // BIST symbols endpoints
+  app.get("/api/bist-symbols/search", async (req, res) => {
+    try {
+      const query = req.query.q as string;
+      if (!query || query.length < 2) {
+        return res.json([]);
+      }
+
+      const symbols = await db.select()
+        .from(bistSymbols)
+        .where(ilike(bistSymbols.symbol, `%${query.toUpperCase()}%`))
+        .limit(20);
+
+      res.json(symbols);
+    } catch (error) {
+      console.error('BIST symbol search error:', error);
+      res.status(500).json({ error: "Failed to search symbols" });
+    }
+  });
+
+  app.post("/api/bist-symbols/populate", async (req, res) => {
+    try {
+      // Sample BIST symbols - in production, this would fetch from Google Finance
+      const sampleSymbols = [
+        { symbol: "AKBNK", name: "Akbank T.A.Ş.", sector: "Bankacılık" },
+        { symbol: "GARAN", name: "Türkiye Garanti Bankası A.Ş.", sector: "Bankacılık" },
+        { symbol: "ISCTR", name: "Türkiye İş Bankası A.Ş.", sector: "Bankacılık" },
+        { symbol: "HALKB", name: "Türkiye Halk Bankası A.Ş.", sector: "Bankacılık" },
+        { symbol: "VAKBN", name: "Türkiye Vakıflar Bankası T.A.O.", sector: "Bankacılık" },
+        { symbol: "YKBNK", name: "Yapı ve Kredi Bankası A.Ş.", sector: "Bankacılık" },
+        { symbol: "ARCLK", name: "Arçelik A.Ş.", sector: "Beyaz Eşya" },
+        { symbol: "BIMAS", name: "BİM Birleşik Mağazalar A.Ş.", sector: "Perakende" },
+        { symbol: "ULKER", name: "Ülker Bisküvi Sanayi A.Ş.", sector: "Gıda" },
+        { symbol: "CCOLA", name: "Coca-Cola İçecek A.Ş.", sector: "İçecek" },
+        { symbol: "MIGRS", name: "Migros T.A.Ş.", sector: "Perakende" },
+        { symbol: "SAHOL", name: "Hacı Ömer Sabancı Holding A.Ş.", sector: "Holding" },
+        { symbol: "KCHOL", name: "Koç Holding A.Ş.", sector: "Holding" },
+        { symbol: "ASELS", name: "Aselsan Elektronik San. ve Tic. A.Ş.", sector: "Savunma" },
+        { symbol: "TUPRS", name: "Tüpraş-Türkiye Petrol Rafinerileri A.Ş.", sector: "Petrol" },
+        { symbol: "EREGL", name: "Ereğli Demir ve Çelik Fab. T.A.Ş.", sector: "Metal" },
+        { symbol: "FROTO", name: "Ford Otomotiv San. A.Ş.", sector: "Otomotiv" },
+        { symbol: "OTKAR", name: "Otokar Otomotiv ve Savunma Sanayi A.Ş.", sector: "Otomotiv" },
+        { symbol: "SISE", name: "Türkiye Şişe ve Cam Fab. A.Ş.", sector: "Cam" },
+        { symbol: "TKFEN", name: "Tekfen Holding A.Ş.", sector: "Holding" },
+        { symbol: "TCELL", name: "Turkcell İletişim Hizmetleri A.Ş.", sector: "Telekomünikasyon" },
+        { symbol: "PGSUS", name: "Pegasus Hava Taşımacılığı A.Ş.", sector: "Havayolu" },
+        { symbol: "TAVHL", name: "TAV Havalimanları Holding A.Ş.", sector: "Havalimanı" },
+        { symbol: "VESTL", name: "Vestel Elektronik San. ve Tic. A.Ş.", sector: "Elektronik" },
+        { symbol: "SASA", name: "Sasa Polyester San. A.Ş.", sector: "Kimya" },
+        { symbol: "AKFIS", name: "Akdeniz Güvenlik Hizm. ve Tic. A.Ş.", sector: "Güvenlik" },
+        { symbol: "ENKAI", name: "Enka İnşaat ve Sanayi A.Ş.", sector: "İnşaat" },
+        { symbol: "PETKM", name: "Petkim Petrokimya Holding A.Ş.", sector: "Kimya" },
+        { symbol: "DOHOL", name: "Doğan Holding A.Ş.", sector: "Holding" },
+        { symbol: "EKGYO", name: "Emlak Konut Gayrimenkul Yat. Ort. A.Ş.", sector: "GYO" },
+        { symbol: "ALARK", name: "Alarko Holding A.Ş.", sector: "Holding" },
+        { symbol: "KRDMD", name: "Kardemir Karabük Demir Çelik San. T.A.Ş.", sector: "Metal" },
+        { symbol: "TOASO", name: "Tofaş Türk Otomobil Fab. A.Ş.", sector: "Otomotiv" }
+      ];
+
+      // Clear existing symbols and insert new ones
+      await db.delete(bistSymbols);
+      
+      for (const symbolData of sampleSymbols) {
+        await db.insert(bistSymbols).values(symbolData);
+      }
+
+      res.json({ message: "BIST symbols populated successfully", count: sampleSymbols.length });
+    } catch (error) {
+      console.error('BIST symbol population error:', error);
+      res.status(500).json({ error: "Failed to populate symbols" });
     }
   });
 

@@ -77,10 +77,16 @@ export default function Markets() {
     refetchInterval: 60000, // Refresh every minute
   });
 
-  const filteredSymbols = BIST_SYMBOLS.filter(symbol =>
-    symbol.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    symbol.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Search BIST symbols from database
+  const { data: searchResults = [], isLoading: isSearching } = useQuery({
+    queryKey: ['/api/bist-symbols/search', searchQuery],
+    enabled: searchQuery.length >= 2,
+    queryFn: async () => {
+      const response = await fetch(`/api/bist-symbols/search?q=${encodeURIComponent(searchQuery)}`);
+      if (!response.ok) throw new Error('Search failed');
+      return response.json();
+    },
+  });
 
   const handleToggleFollow = (symbol: string) => {
     if (followedSymbols.includes(symbol)) {
@@ -213,10 +219,10 @@ export default function Markets() {
       {searchQuery && (
         <div className="px-4 pb-24">
           <h2 className="text-sm font-medium text-gray-700 mb-3">
-            Arama Sonuçları ({filteredSymbols.length})
+            Arama Sonuçları ({searchResults.length})
           </h2>
           <div className="space-y-2">
-            {filteredSymbols.map(symbol => {
+            {searchResults.map((symbol: any) => {
               const isFollowed = followedSymbols.includes(symbol.symbol);
               const marketInfo = getSymbolData(symbol.symbol);
 
