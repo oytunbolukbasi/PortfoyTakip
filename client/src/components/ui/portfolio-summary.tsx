@@ -40,40 +40,41 @@ export default function PortfolioSummary({ positions }: PortfolioSummaryProps) {
   const summary = calculateSummary();
 
   return (
-    <section className="p-4 bg-surface shadow-sm border-b border-gray-200">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="text-center">
-          <p className="text-text-secondary text-sm">Toplam Değer</p>
-          <p className="font-mono text-xl font-medium text-text-primary">
-            ₺{summary.totalValue.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+    <section className="mx-4 mt-3 mb-4">
+      {/* Main Portfolio Value Card */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <div className="text-center mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Portföy Değeri</h2>
+          <p className="text-4xl font-bold text-gray-900 mb-1">
+            ₺{summary.totalValue.toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
           </p>
-        </div>
-        <div className="text-center">
-          <p className="text-text-secondary text-sm">Günlük P/L</p>
-          <p className={`font-mono text-xl font-medium ${
-            summary.dailyPL >= 0 ? 'text-success' : 'text-error'
+          <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+            summary.dailyPL >= 0 
+              ? 'bg-green-100 text-green-800' 
+              : 'bg-red-100 text-red-800'
           }`}>
-            {summary.dailyPL >= 0 ? '+' : ''}₺{Math.abs(summary.dailyPL).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </p>
+            {summary.dailyPL >= 0 ? '+' : ''}₺{Math.abs(summary.dailyPL).toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} bugün
+          </div>
         </div>
-      </div>
-      
-      <div className="mt-4 bg-gray-50 rounded-lg p-3">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-text-secondary text-sm">Toplam Getiri</span>
-          <span className={`font-mono text-sm font-medium ${
-            summary.totalReturn >= 0 ? 'text-success' : 'text-error'
-          }`}>
-            {summary.totalReturn >= 0 ? '+' : ''}{summary.totalReturn.toFixed(2)}%
-          </span>
-        </div>
-        <div className="flex justify-between items-center">
-          <span className="text-text-secondary text-sm">Toplam P/L</span>
-          <span className={`font-mono text-sm font-medium ${
-            summary.totalPL >= 0 ? 'text-success' : 'text-error'
-          }`}>
-            {summary.totalPL >= 0 ? '+' : ''}₺{Math.abs(summary.totalPL).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </span>
+        
+        {/* Performance Metrics */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="text-center p-4 bg-gray-50 rounded-xl">
+            <p className="text-sm text-gray-600 mb-1">Toplam Getiri</p>
+            <p className={`text-lg font-semibold ${
+              summary.totalReturn >= 0 ? 'text-green-600' : 'text-red-600'
+            }`}>
+              {summary.totalReturn >= 0 ? '+' : ''}{summary.totalReturn.toFixed(2)}%
+            </p>
+          </div>
+          <div className="text-center p-4 bg-gray-50 rounded-xl">
+            <p className="text-sm text-gray-600 mb-1">Net K/Z</p>
+            <p className={`text-lg font-semibold ${
+              summary.totalPL >= 0 ? 'text-green-600' : 'text-red-600'
+            }`}>
+              {summary.totalPL >= 0 ? '+' : ''}₺{Math.abs(summary.totalPL).toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+            </p>
+          </div>
         </div>
       </div>
     </section>

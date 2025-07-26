@@ -83,16 +83,16 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
-          <DialogTitle className="text-lg font-medium">Yeni Pozisyon Ekle</DialogTitle>
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-6">
+          <DialogTitle className="text-xl font-semibold text-gray-900">Yeni Pozisyon</DialogTitle>
           <Button
             variant="ghost"
             size="sm"
             onClick={handleClose}
-            className="p-2 text-text-secondary hover:text-text-primary"
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </Button>
         </DialogHeader>
 
@@ -169,6 +169,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                   <FormControl>
                     <Input
                       {...field}
+                      value={field.value || ''}
                       placeholder={assetType === 'stock' ? 'Örn: Garanti BBVA' : 'Örn: TEFAS Fon'}
                     />
                   </FormControl>
@@ -249,7 +250,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                   </FormLabel>
                   <FormControl>
                     <Switch
-                      checked={field.value}
+                      checked={field.value || false}
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>

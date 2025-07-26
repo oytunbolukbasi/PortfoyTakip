@@ -55,33 +55,29 @@ export default function Portfolio() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Top App Bar */}
-      <header className="bg-primary text-white shadow-md sticky top-0 z-50">
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-6 h-6 flex items-center justify-center">
-              <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
-              </svg>
-            </div>
-            <h1 className="text-lg font-medium">Portföy Takip</h1>
+    <div className="min-h-screen bg-gray-50">
+      {/* iPhone-style Navigation Bar */}
+      <header className="bg-white/95 backdrop-blur-md border-b border-gray-200/60 sticky top-0 z-50">
+        <div className="flex items-center justify-between px-4 h-11">
+          <div className="flex items-center space-x-2">
+            <h1 className="text-lg font-semibold text-gray-900">Portföy</h1>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
             <Button 
               variant="ghost" 
               size="sm" 
-              className="p-2 text-white hover:bg-primary-dark"
+              className="p-2 text-blue-600 hover:bg-blue-50 rounded-full"
               onClick={handleRefresh}
             >
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className="w-5 h-5" />
             </Button>
             <Button 
               variant="ghost" 
               size="sm" 
-              className="p-2 text-white hover:bg-primary-dark"
+              className="p-2 text-blue-600 hover:bg-blue-50 rounded-full font-medium"
+              onClick={() => setShowAddModal(true)}
             >
-              <Settings className="w-4 h-4" />
+              <span className="text-lg">+</span>
             </Button>
           </div>
         </div>
@@ -90,82 +86,82 @@ export default function Portfolio() {
       {/* Portfolio Summary */}
       <PortfolioSummary positions={positions} />
 
-      {/* Tab Navigation */}
-      <nav className="bg-surface border-b border-gray-200">
-        <div className="flex">
+      {/* iPhone-style Segmented Control */}
+      <div className="px-4 pt-3 pb-2">
+        <div className="bg-gray-100 rounded-lg p-1 flex">
           <button
-            className={`flex-1 py-3 px-4 text-center border-b-2 font-medium ${
+            className={`flex-1 py-2 px-3 text-center text-sm font-medium rounded-md transition-all ${
               activeTab === 'active'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-text-secondary'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600'
             }`}
             onClick={() => setActiveTab('active')}
           >
-            Aktif Pozisyonlar
+            Aktif
           </button>
           <button
-            className={`flex-1 py-3 px-4 text-center border-b-2 font-medium ${
+            className={`flex-1 py-2 px-3 text-center text-sm font-medium rounded-md transition-all ${
               activeTab === 'closed'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-text-secondary'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600'
             }`}
             onClick={() => setActiveTab('closed')}
           >
-            Kapalı Pozisyonlar
+            Tamamlanan
           </button>
         </div>
-      </nav>
+      </div>
 
-      {/* Search and Filter */}
-      <div className="p-4 pb-0">
-        <div className="flex space-x-2">
-          <div className="flex-1 relative">
-            <Input
-              type="text"
-              placeholder="Varlık ara..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-            <Search className="absolute left-3 top-3 w-4 h-4 text-text-secondary" />
+      {/* iPhone-style Search Bar */}
+      <div className="px-4 pb-3">
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-4 w-4 text-gray-400" />
           </div>
-          <Button variant="outline" size="icon">
-            <Filter className="w-4 h-4" />
-          </Button>
+          <Input
+            type="text"
+            placeholder="Arama"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 pr-4 py-2 bg-gray-100 border-0 rounded-lg text-gray-900 placeholder-gray-500 focus:bg-white focus:ring-2 focus:ring-blue-500"
+          />
         </div>
       </div>
 
       {/* Main Content */}
-      <main className="p-4 pb-20">
+      <main className="pb-24">
         {activeTab === 'active' && (
           <>
             {positionsLoading ? (
-              <div className="space-y-3">
+              <div className="space-y-3 px-4">
                 {[...Array(3)].map((_, i) => (
-                  <Skeleton key={i} className="h-40 w-full rounded-lg" />
+                  <Skeleton key={i} className="h-32 w-full rounded-2xl" />
                 ))}
               </div>
             ) : filteredPositions.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-text-secondary">
+              <div className="text-center py-16">
+                <div className="w-20 h-20 bg-gray-100 rounded-full mx-auto mb-6 flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-10 h-10 text-gray-400">
                     <path d="M11,2V22C5.9,21.5 2,17.2 2,12S5.9,2.5 11,2M13,2V11H22C22,6.8 18.2,3 13,2M13,13V22C18.1,21.5 22,17.2 22,13H13Z"/>
                   </svg>
                 </div>
-                <h3 className="text-lg font-medium text-text-primary mb-2">
-                  {searchQuery ? 'Arama sonucu bulunamadı' : 'Henüz pozisyon yok'}
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  {searchQuery ? 'Sonuç Bulunamadı' : 'Henüz Pozisyon Yok'}
                 </h3>
-                <p className="text-text-secondary mb-6">
+                <p className="text-gray-500 mb-8 text-base">
                   {searchQuery ? 'Farklı anahtar kelimeler deneyin' : 'İlk yatırımınızı ekleyerek başlayın'}
                 </p>
                 {!searchQuery && (
-                  <Button onClick={() => setShowAddModal(true)}>
+                  <Button 
+                    onClick={() => setShowAddModal(true)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium"
+                  >
                     Pozisyon Ekle
                   </Button>
                 )}
               </div>
             ) : (
-              <div className="space-y-3">
+              <div>
                 {filteredPositions.map((position) => (
                   <PositionCard
                     key={position.id}
@@ -272,10 +268,7 @@ export default function Portfolio() {
       {/* Bottom Navigation */}
       <BottomNavigation activeTab="portfolio" />
 
-      {/* Floating Action Button */}
-      {activeTab === 'active' && (
-        <FloatingActionButton onClick={() => setShowAddModal(true)} />
-      )}
+
 
       {/* Add Position Modal */}
       <AddPositionModal

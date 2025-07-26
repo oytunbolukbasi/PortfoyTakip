@@ -36,8 +36,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const position = await storage.createPosition({
         ...validatedData,
         userId,
-        currentPrice: currentPrice?.toString() || null,
       });
+
+      // Update with current price if available
+      if (currentPrice !== null) {
+        await storage.updatePosition(position.id, {
+          currentPrice: currentPrice.toString(),
+          lastUpdated: new Date(),
+        });
+      }
 
       res.json(position);
     } catch (error) {
@@ -94,7 +101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const updatePromises = positions.map(async (position) => {
         try {
-          const price = await priceService.getPrice(position.symbol, position.type);
+          const price = await priceService.getPrice(position.symbol, position.type as 'stock' | 'fund');
           await storage.updatePosition(position.id, {
             currentPrice: price.toString(),
             lastUpdated: new Date(),
@@ -126,7 +133,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/price/:symbol/:type", async (req, res) => {
     try {
       const { symbol, type } = req.params;
-      const price = await priceService.getPrice(symbol, type);
+      const price = await priceService.getPrice(symbol, type as 'stock' | 'fund');
       res.json({ symbol, type, price });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch price" });

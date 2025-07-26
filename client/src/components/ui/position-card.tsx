@@ -108,68 +108,70 @@ export default function PositionCard({ position, onRefresh }: PositionCardProps)
 
   return (
     <>
-      <div className="bg-surface rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mx-4 mb-3">
         <div className="p-4">
-          <div className="flex justify-between items-start mb-3">
+          <div className="flex justify-between items-start mb-4">
             <div className="flex items-center space-x-3">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                position.type === 'stock' ? 'bg-primary' : 'bg-secondary'
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                position.type === 'stock' ? 'bg-blue-500' : 'bg-green-500'
               }`}>
-                <span className="text-white font-medium text-sm">
-                  {position.symbol.substring(0, 2).toUpperCase()}
+                <span className="text-white font-semibold text-sm">
+                  {position.symbol.substring(0, 3).toUpperCase()}
                 </span>
               </div>
               <div>
-                <h3 className="font-medium text-text-primary">{position.symbol}</h3>
-                <p className="text-sm text-text-secondary">{position.name || position.symbol}</p>
+                <h3 className="font-semibold text-gray-900 text-base">{position.symbol}</h3>
+                <p className="text-sm text-gray-500">{position.name || position.symbol}</p>
               </div>
             </div>
             <div className="text-right">
-              <p className="font-mono text-lg font-medium">₺{currentPrice.toFixed(2)}</p>
-              <p className={`font-mono text-sm ${change >= 0 ? 'text-success' : 'text-error'}`}>
+              <p className="text-xl font-bold text-gray-900">₺{currentPrice.toFixed(2)}</p>
+              <div className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${
+                change >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+              }`}>
                 {change >= 0 ? '+' : ''}{change.toFixed(2)}%
-              </p>
+              </div>
             </div>
           </div>
           
-          <div className="grid grid-cols-3 gap-4 text-sm">
-            <div>
-              <p className="text-text-secondary">{position.type === 'fund' ? 'Pay' : 'Adet'}</p>
-              <p className="font-mono font-medium">{position.quantity.toLocaleString('tr-TR')}</p>
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            <div className="text-center p-3 bg-gray-50 rounded-xl">
+              <p className="text-xs text-gray-500 mb-1">{position.type === 'fund' ? 'Pay' : 'Adet'}</p>
+              <p className="font-semibold text-gray-900">{position.quantity.toLocaleString('tr-TR')}</p>
             </div>
-            <div>
-              <p className="text-text-secondary">Alış</p>
-              <p className="font-mono font-medium">₺{parseFloat(position.buyPrice).toFixed(2)}</p>
+            <div className="text-center p-3 bg-gray-50 rounded-xl">
+              <p className="text-xs text-gray-500 mb-1">Alış</p>
+              <p className="font-semibold text-gray-900">₺{parseFloat(position.buyPrice).toFixed(2)}</p>
             </div>
-            <div>
-              <p className="text-text-secondary">Değer</p>
-              <p className="font-mono font-medium">₺{value.toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
+            <div className="text-center p-3 bg-gray-50 rounded-xl">
+              <p className="text-xs text-gray-500 mb-1">Değer</p>
+              <p className="font-semibold text-gray-900">₺{value.toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
             </div>
           </div>
           
-          <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center">
-            <div>
-              <span className="text-text-secondary text-sm">P/L: </span>
-              <span className={`font-mono text-sm font-medium ${pl >= 0 ? 'text-success' : 'text-error'}`}>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-500">K/Z:</span>
+              <span className={`font-semibold ${pl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {pl >= 0 ? '+' : ''}₺{Math.abs(pl).toFixed(0)}
               </span>
-              <span className={`font-mono text-sm ml-1 ${plPercent >= 0 ? 'text-success' : 'text-error'}`}>
+              <span className={`text-sm ${plPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 ({plPercent >= 0 ? '+' : ''}{plPercent.toFixed(2)}%)
               </span>
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="p-2 text-text-secondary hover:text-primary">
-                  <MoreVertical className="w-4 h-4" />
+                <Button variant="ghost" size="sm" className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg">
+                  <MoreVertical className="w-5 h-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setShowCloseDialog(true)}>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => setShowCloseDialog(true)} className="py-3">
                   Pozisyonu Kapat
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={() => setShowDeleteDialog(true)}
-                  className="text-error"
+                  className="text-red-600 py-3"
                 >
                   Pozisyonu Sil
                 </DropdownMenuItem>
