@@ -33,9 +33,10 @@ import { apiRequest } from "@/lib/queryClient";
 interface PositionCardProps {
   position: Position;
   onRefresh: () => void;
+  onClick?: () => void;
 }
 
-export default function PositionCard({ position, onRefresh }: PositionCardProps) {
+export default function PositionCard({ position, onRefresh, onClick }: PositionCardProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showCloseDialog, setShowCloseDialog] = useState(false);
   const [sellPrice, setSellPrice] = useState('');
@@ -109,7 +110,10 @@ export default function PositionCard({ position, onRefresh }: PositionCardProps)
 
   return (
     <>
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mx-4 mb-3">
+      <div 
+        className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mx-4 mb-3 cursor-pointer hover:shadow-md transition-shadow"
+        onClick={onClick}
+      >
         <div className="p-4">
           <div className="flex justify-between items-start mb-4">
             <div className="flex items-center space-x-3">

@@ -157,6 +157,7 @@ export class PriceService {
       'ULKER': 106.80, // User provided
       'ENKAI': 69.15,  // Market data from search
       'ISCTR': 14.68,  // İş Bankası current price from search
+      'AKFIS': 22.22,  // Akfen İnşaat current market price
       'AKBNK': 42.50,
       'THYAO': 245.75,
       'GARAN': 55.20,

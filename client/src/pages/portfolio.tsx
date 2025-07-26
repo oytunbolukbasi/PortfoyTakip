@@ -5,6 +5,8 @@ import PortfolioSummary from "@/components/ui/portfolio-summary";
 import PositionCard from "@/components/ui/position-card";
 import BottomNavigation from "@/components/ui/bottom-navigation";
 import AddPositionModal from "@/components/ui/add-position-modal";
+import { PriceRefreshButton } from "@/components/ui/price-refresh-button";
+import { PositionDetailModal } from "@/components/ui/position-detail-modal";
 import FloatingActionButton from "@/components/ui/floating-action-button";
 import { RefreshCw, Settings, Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +18,8 @@ export default function Portfolio() {
   const [activeTab, setActiveTab] = useState<'active' | 'closed'>('active');
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const { toast } = useToast();
 
   const { data: positions = [], isLoading: positionsLoading, refetch: refetchPositions } = useQuery<Position[]>({
@@ -112,6 +116,11 @@ export default function Portfolio() {
         </div>
       </div>
 
+      {/* Price Refresh Section */}
+      <div className="px-4 pb-3">
+        <PriceRefreshButton onRefresh={refetchPositions} />
+      </div>
+
       {/* iPhone-style Search Bar */}
       <div className="px-4 pb-3">
         <div className="relative">
@@ -167,6 +176,10 @@ export default function Portfolio() {
                     key={position.id}
                     position={position}
                     onRefresh={refetchPositions}
+                    onClick={() => {
+                      setSelectedPosition(position);
+                      setShowDetailModal(true);
+                    }}
                   />
                 ))}
               </div>
@@ -275,6 +288,14 @@ export default function Portfolio() {
         open={showAddModal}
         onOpenChange={setShowAddModal}
         onSuccess={refetchPositions}
+      />
+
+      {/* Position Detail Modal */}
+      <PositionDetailModal
+        position={selectedPosition}
+        open={showDetailModal}
+        onOpenChange={setShowDetailModal}
+        onUpdate={refetchPositions}
       />
     </div>
   );
