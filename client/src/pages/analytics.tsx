@@ -22,6 +22,42 @@ export default function Analytics() {
     queryKey: ['/api/closed-positions'],
   });
 
+  // Filter closed positions based on selected date range
+  const getFilteredClosedPositions = () => {
+    if (timeRange === 'custom' && startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999); // Include the entire end date
+      
+      return closedPositions.filter(position => {
+        const sellDate = new Date(position.sellDate);
+        return sellDate >= start && sellDate <= end;
+      });
+    } else if (timeRange === 'daily') {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      return closedPositions.filter(position => {
+        const sellDate = new Date(position.sellDate);
+        return sellDate >= today && sellDate < tomorrow;
+      });
+    } else if (timeRange === 'monthly') {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+      
+      return closedPositions.filter(position => {
+        const sellDate = new Date(position.sellDate);
+        return sellDate >= startOfMonth && sellDate <= endOfMonth;
+      });
+    }
+    return closedPositions;
+  };
+
+  const filteredClosedPositions = getFilteredClosedPositions();
+
   // Calculate portfolio metrics
   const totalValue = positions.reduce((sum, pos) => {
     return sum + (parseFloat(pos.currentPrice || '0') * pos.quantity);
@@ -34,12 +70,17 @@ export default function Analytics() {
   const totalProfit = totalValue - totalCost;
   const totalProfitPercent = totalCost > 0 ? (totalProfit / totalCost) * 100 : 0;
 
-  const realizedProfit = closedPositions.reduce((sum, pos) => {
+  const realizedProfit = filteredClosedPositions.reduce((sum, pos) => {
+    return sum + parseFloat(pos.pl);
+  }, 0);
+
+  const realizedProfitTotal = closedPositions.reduce((sum, pos) => {
     return sum + parseFloat(pos.pl);
   }, 0);
 
   const unrealizedProfit = totalProfit;
   const netProfit = realizedProfit + unrealizedProfit;
+  const netProfitTotal = realizedProfitTotal + unrealizedProfit;
 
   const isLoading = positionsLoading || closedLoading;
 
@@ -100,6 +141,7 @@ export default function Analytics() {
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 className="mt-1"
+                max={endDate || undefined}
               />
             </div>
             <div>
@@ -110,8 +152,20 @@ export default function Analytics() {
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 className="mt-1"
+                min={startDate || undefined}
+                max={new Date().toISOString().split('T')[0]}
               />
             </div>
+          </div>
+        )}
+        
+        {timeRange === 'custom' && startDate && endDate && (
+          <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <CalendarDays className="w-4 h-4 inline mr-2" />
+              Seçili dönem: {new Date(startDate).toLocaleDateString('tr-TR')} - {new Date(endDate).toLocaleDateString('tr-TR')}
+              ({filteredClosedPositions.length} işlem)
+            </p>
           </div>
         )}
       </div>
@@ -165,11 +219,24 @@ export default function Analytics() {
                 <h3 className="font-semibold text-gray-900 flex items-center">
                   <Percent className="w-5 h-5 mr-2 text-green-600" />
                   Kar/Zarar Özeti
+                  {timeRange === 'custom' && startDate && endDate && (
+                    <span className="text-xs text-gray-500 ml-2">
+                      ({new Date(startDate).toLocaleDateString('tr-TR')} - {new Date(endDate).toLocaleDateString('tr-TR')})
+                    </span>
+                  )}
+                  {timeRange === 'daily' && (
+                    <span className="text-xs text-gray-500 ml-2">(Bugün)</span>
+                  )}
+                  {timeRange === 'monthly' && (
+                    <span className="text-xs text-gray-500 ml-2">(Bu Ay)</span>
+                  )}
                 </h3>
               </div>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Gerçekleşen K/Z:</span>
+                  <span className="text-sm text-gray-600">
+                    Gerçekleşen K/Z {timeRange !== 'custom' || !startDate || !endDate ? '(Seçili Dönem)' : ''}:
+                  </span>
                   <span className={`font-semibold ${realizedProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {realizedProfit >= 0 ? '+' : ''}₺{formatTurkishPrice(Math.abs(realizedProfit))}
                   </span>
@@ -180,9 +247,19 @@ export default function Analytics() {
                     {unrealizedProfit >= 0 ? '+' : ''}₺{formatTurkishPrice(Math.abs(unrealizedProfit))}
                   </span>
                 </div>
+                {timeRange === 'custom' && startDate && endDate && (
+                  <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+                    <span className="text-sm text-gray-600">Toplam Gerçekleşen K/Z:</span>
+                    <span className={`font-semibold ${realizedProfitTotal >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {realizedProfitTotal >= 0 ? '+' : ''}₺{formatTurkishPrice(Math.abs(realizedProfitTotal))}
+                    </span>
+                  </div>
+                )}
                 <div className="pt-3 border-t border-gray-100">
                   <div className="flex justify-between items-center">
-                    <span className="font-medium text-gray-900">Net K/Z:</span>
+                    <span className="font-medium text-gray-900">
+                      {timeRange === 'custom' && startDate && endDate ? 'Dönem Net K/Z:' : 'Net K/Z:'}
+                    </span>
                     <span className={`font-bold text-lg ${netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {netProfit >= 0 ? '+' : ''}₺{formatTurkishPrice(Math.abs(netProfit))}
                     </span>
@@ -205,22 +282,39 @@ export default function Analytics() {
                   <p className="text-2xl font-bold text-blue-600">{positions.length}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Kapatılan Pozisyon</p>
-                  <p className="text-2xl font-bold text-gray-600">{closedPositions.length}</p>
+                  <p className="text-sm text-gray-600">
+                    Kapatılan Pozisyon
+                    {timeRange === 'custom' && startDate && endDate && ' (Dönem)'}
+                    {timeRange === 'daily' && ' (Bugün)'}
+                    {timeRange === 'monthly' && ' (Bu Ay)'}
+                  </p>
+                  <p className="text-2xl font-bold text-gray-600">
+                    {timeRange === 'custom' && startDate && endDate ? filteredClosedPositions.length : closedPositions.length}
+                  </p>
                 </div>
               </div>
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-600">Kazanan İşlem</p>
+                    <p className="text-sm text-gray-600">
+                      Kazanan İşlem
+                      {timeRange === 'custom' && startDate && endDate && ' (Dönem)'}
+                      {timeRange === 'daily' && ' (Bugün)'}
+                      {timeRange === 'monthly' && ' (Bu Ay)'}
+                    </p>
                     <p className="text-lg font-semibold text-green-600">
-                      {closedPositions.filter(p => parseFloat(p.pl) > 0).length}
+                      {filteredClosedPositions.filter(p => parseFloat(p.pl) > 0).length}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Kaybeden İşlem</p>
+                    <p className="text-sm text-gray-600">
+                      Kaybeden İşlem
+                      {timeRange === 'custom' && startDate && endDate && ' (Dönem)'}
+                      {timeRange === 'daily' && ' (Bugün)'}
+                      {timeRange === 'monthly' && ' (Bu Ay)'}
+                    </p>
                     <p className="text-lg font-semibold text-red-600">
-                      {closedPositions.filter(p => parseFloat(p.pl) < 0).length}
+                      {filteredClosedPositions.filter(p => parseFloat(p.pl) < 0).length}
                     </p>
                   </div>
                 </div>
