@@ -10,6 +10,9 @@ This is a Turkish investment portfolio tracking application built for Turkish in
 - Created Analytics page with profit/loss analysis and performance metrics
 - Removed floating action button per user preference
 - Added prominent "Pozisyon Ekle" button at top of portfolio page
+- Fixed date filtering in Analytics to work with position open/close dates
+- Implemented proper minus (-) sign display for all loss positions across the app
+- Completed comprehensive profit/loss formatting with consistent negative value display
 
 ## User Preferences
 
