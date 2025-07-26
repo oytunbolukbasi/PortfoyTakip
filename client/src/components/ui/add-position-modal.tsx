@@ -43,7 +43,6 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
       quantity: 1,
       buyPrice: '',
       buyDate: new Date().toISOString().split('T')[0],
-      includeCommission: false,
     },
   });
 
@@ -239,24 +238,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
               )}
             />
 
-            {/* Commission Toggle */}
-            <FormField
-              control={form.control}
-              name="includeCommission"
-              render={({ field }) => (
-                <FormItem className="flex items-center justify-between">
-                  <FormLabel className="text-sm font-medium text-text-primary">
-                    Komisyon dahil et
-                  </FormLabel>
-                  <FormControl>
-                    <Switch
-                      checked={field.value || false}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+
 
             {/* Submit Button */}
             <Button 

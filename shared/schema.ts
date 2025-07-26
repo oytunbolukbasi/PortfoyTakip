@@ -20,7 +20,6 @@ export const positions = pgTable("positions", {
   buyDate: timestamp("buy_date").notNull(),
   currentPrice: decimal("current_price", { precision: 10, scale: 4 }),
   lastUpdated: timestamp("last_updated").default(sql`now()`),
-  includeCommission: boolean("include_commission").default(false),
   createdAt: timestamp("created_at").default(sql`now()`),
 });
 

@@ -84,15 +84,18 @@ export class PriceService {
   }
 
   private getMockPrice(symbol: string, type: 'stock' | 'fund'): number {
-    // Generate deterministic mock prices based on symbol for demo purposes
+    // Generate realistic mock prices for Turkish markets
     const hash = symbol.split('').reduce((a, b) => {
       a = ((a << 5) - a) + b.charCodeAt(0);
       return a & a;
     }, 0);
     
-    const basePrice = type === 'stock' ? 50 : 2;
+    // Turkish stock prices typically range from 5-200 TL
+    // Fund prices typically range from 0.5-5 TL
+    const basePrice = type === 'stock' ? 25 : 1.5;
     const variation = (Math.abs(hash) % 100) / 100;
-    const price = basePrice + (variation * basePrice);
+    const multiplier = type === 'stock' ? 8 : 3; // Higher variation for stocks
+    const price = basePrice + (variation * multiplier);
     
     return Math.round(price * 100) / 100;
   }

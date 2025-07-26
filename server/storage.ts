@@ -114,10 +114,8 @@ export class DatabaseStorage implements IStorage {
     const pl = (sellPrice - buyPrice) * quantity;
     const plPercent = ((sellPrice - buyPrice) / buyPrice) * 100;
     
-    // Calculate commission (BIST: 0.07% on both buy and sell)
-    const commission = position.includeCommission 
-      ? ((buyPrice * quantity) + (sellPrice * quantity)) * 0.0007
-      : 0;
+    // No commission calculation needed anymore
+    const commission = 0;
 
     const [closedPosition] = await db
       .insert(closedPositions)
