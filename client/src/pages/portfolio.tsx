@@ -7,7 +7,7 @@ import PositionCard from "@/components/ui/position-card";
 import AddPositionModal from "@/components/ui/add-position-modal";
 import { PositionDetailModal } from "@/components/ui/position-detail-modal";
 import { PositionTable } from "@/components/ui/position-table";
-import FloatingActionButton from "@/components/ui/floating-action-button";
+
 import { RefreshCw, Search, LayoutGrid, Table2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -358,11 +358,17 @@ export default function Portfolio() {
         )}
       </main>
 
-      {/* Floating Action Button */}
-      <FloatingActionButton
-        onClick={() => setShowAddModal(true)}
-        className="fixed bottom-6 right-4 z-50"
-      />
+      {/* Add Position Button */}
+      <div className="fixed bottom-20 right-4 z-50">
+        <Button
+          onClick={() => setShowAddModal(true)}
+          className="w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+        </Button>
+      </div>
 
       {/* Add Position Modal */}
       <AddPositionModal

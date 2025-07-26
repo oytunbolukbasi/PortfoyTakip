@@ -4,7 +4,11 @@
 
 This is a Turkish investment portfolio tracking application built for Turkish investors to monitor their positions in BIST (Borsa Istanbul) stocks and TEFAS mutual funds. The application provides real-time portfolio tracking, profit/loss calculations, and position management capabilities.
 
-**Recent Change (January 2025):** Simplified the application by removing the Markets tab/page to focus solely on portfolio management functionality. The app now has a single-page design with enhanced position tracking features.
+**Recent Changes (January 2025):** 
+- Removed Markets tab/page initially to focus on portfolio management
+- Added back bottom navigation with two tabs: "Portföy" (Portfolio) and "Analiz" (Analytics)
+- Created Analytics page with profit/loss analysis and performance metrics
+- Replaced floating action button with fixed add position button
 
 ## User Preferences
 
@@ -32,7 +36,7 @@ Preferred communication style: Simple, everyday language.
 ### Mobile-First Design
 - **Responsive**: Mobile-first approach with iPhone-style native UX/UI
 - **Components**: Touch-friendly UI components optimized for mobile devices
-- **Single Page App**: Simplified design focusing only on portfolio management
+- **Two-Tab Navigation**: Portfolio management and Analytics with bottom navigation
 - **PWA Ready**: Structure supports Progressive Web App features
 
 ## Key Components
@@ -58,11 +62,13 @@ Preferred communication style: Simple, everyday language.
 1. **Portfolio Management**: Add, edit, and close investment positions
 2. **Real-time Tracking**: Automatic price updates and P/L calculations
 3. **Performance Analytics**: Portfolio summary with total returns and daily changes
-4. **Dual View Modes**: Card view for detailed display, table view for compact overview
-5. **Direct Action Buttons**: Edit, Close, and Delete buttons directly on position cards
-6. **Position Detail Modal**: Complete editing interface accessible via position clicks
-7. **Historical Records**: Complete trade history with performance metrics
-8. **Turkish Number Format**: Proper handling of Turkish decimal notation (comma instead of dot)
+4. **Analytics Dashboard**: Dedicated analytics page with P/L analysis, performance metrics, and time-based filtering
+5. **Dual View Modes**: Card view for detailed display, table view for compact overview
+6. **Direct Action Buttons**: Edit, Close, and Delete buttons directly on position cards
+7. **Position Detail Modal**: Complete editing interface accessible via position clicks
+8. **Historical Records**: Complete trade history with performance metrics
+9. **Turkish Number Format**: Proper handling of Turkish decimal notation (comma instead of dot)
+10. **Two-Tab Navigation**: Bottom navigation between Portfolio and Analytics sections
 
 ## Data Flow
 
