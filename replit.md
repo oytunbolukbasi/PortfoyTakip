@@ -55,8 +55,10 @@ Preferred communication style: Simple, everyday language.
 1. **Portfolio Management**: Add, edit, and close investment positions
 2. **Real-time Tracking**: Automatic price updates and P/L calculations
 3. **Performance Analytics**: Portfolio summary with total returns and daily changes
-4. **Commission Calculations**: Optional commission and fee tracking
-5. **Historical Records**: Complete trade history with performance metrics
+4. **Dual View Modes**: Card view for detailed display, table view for compact overview
+5. **Mobile-First Navigation**: Large, touch-friendly header icons for easy interaction
+6. **Position Detail Modal**: Complete editing interface accessible via position clicks
+7. **Historical Records**: Complete trade history with performance metrics
 
 ## Data Flow
 

@@ -5,10 +5,10 @@ import PortfolioSummary from "@/components/ui/portfolio-summary";
 import PositionCard from "@/components/ui/position-card";
 import BottomNavigation from "@/components/ui/bottom-navigation";
 import AddPositionModal from "@/components/ui/add-position-modal";
-import { PriceRefreshButton } from "@/components/ui/price-refresh-button";
 import { PositionDetailModal } from "@/components/ui/position-detail-modal";
+import { PositionTable } from "@/components/ui/position-table";
 import FloatingActionButton from "@/components/ui/floating-action-button";
-import { RefreshCw, Settings, Search, Filter } from "lucide-react";
+import { RefreshCw, Search, LayoutGrid, Table2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,6 +20,7 @@ export default function Portfolio() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
   const { toast } = useToast();
 
   const { data: positions = [], isLoading: positionsLoading, refetch: refetchPositions } = useQuery<Position[]>({
@@ -62,26 +63,46 @@ export default function Portfolio() {
     <div className="min-h-screen bg-gray-50">
       {/* iPhone-style Navigation Bar */}
       <header className="bg-white/95 backdrop-blur-md border-b border-gray-200/60 sticky top-0 z-50">
-        <div className="flex items-center justify-between px-4 h-11">
+        <div className="flex items-center justify-between px-4 h-12">
           <div className="flex items-center space-x-2">
             <h1 className="text-lg font-semibold text-gray-900">Portföy</h1>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1">
             <Button 
               variant="ghost" 
               size="sm" 
-              className="p-2 text-blue-600 hover:bg-blue-50 rounded-full"
+              className="p-3 text-blue-600 hover:bg-blue-50 rounded-full"
               onClick={handleRefresh}
             >
-              <RefreshCw className="w-5 h-5" />
+              <RefreshCw className="w-6 h-6" />
             </Button>
             <Button 
               variant="ghost" 
               size="sm" 
-              className="p-2 text-blue-600 hover:bg-blue-50 rounded-full font-medium"
+              className={`p-3 rounded-full ${
+                viewMode === 'card' ? 'text-blue-600 bg-blue-50' : 'text-gray-500 hover:bg-gray-50'
+              }`}
+              onClick={() => setViewMode('card')}
+            >
+              <LayoutGrid className="w-6 h-6" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className={`p-3 rounded-full ${
+                viewMode === 'table' ? 'text-blue-600 bg-blue-50' : 'text-gray-500 hover:bg-gray-50'
+              }`}
+              onClick={() => setViewMode('table')}
+            >
+              <Table2 className="w-6 h-6" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="p-3 text-blue-600 hover:bg-blue-50 rounded-full font-medium"
               onClick={() => setShowAddModal(true)}
             >
-              <span className="text-lg">+</span>
+              <span className="text-xl">+</span>
             </Button>
           </div>
         </div>
@@ -116,10 +137,7 @@ export default function Portfolio() {
         </div>
       </div>
 
-      {/* Price Refresh Section */}
-      <div className="px-4 pb-3">
-        <PriceRefreshButton onRefresh={refetchPositions} />
-      </div>
+
 
       {/* iPhone-style Search Bar */}
       <div className="px-4 pb-3">
@@ -171,17 +189,27 @@ export default function Portfolio() {
               </div>
             ) : (
               <div>
-                {filteredPositions.map((position) => (
-                  <PositionCard
-                    key={position.id}
-                    position={position}
-                    onRefresh={refetchPositions}
-                    onClick={() => {
+                {viewMode === 'card' ? (
+                  filteredPositions.map((position) => (
+                    <PositionCard
+                      key={position.id}
+                      position={position}
+                      onRefresh={refetchPositions}
+                      onClick={() => {
+                        setSelectedPosition(position);
+                        setShowDetailModal(true);
+                      }}
+                    />
+                  ))
+                ) : (
+                  <PositionTable
+                    positions={filteredPositions}
+                    onRowClick={(position) => {
                       setSelectedPosition(position);
                       setShowDetailModal(true);
                     }}
                   />
-                ))}
+                )}
               </div>
             )}
           </>
