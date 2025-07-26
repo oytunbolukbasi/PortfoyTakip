@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Position, ClosedPosition } from "@shared/schema";
 import PortfolioSummary from "@/components/ui/portfolio-summary";
 import PositionCard from "@/components/ui/position-card";
-import BottomNavigation from "@/components/ui/bottom-navigation";
+
 import AddPositionModal from "@/components/ui/add-position-modal";
 import { PositionDetailModal } from "@/components/ui/position-detail-modal";
 import { PositionTable } from "@/components/ui/position-table";
@@ -358,10 +358,11 @@ export default function Portfolio() {
         )}
       </main>
 
-      {/* Bottom Navigation */}
-      <BottomNavigation activeTab="portfolio" />
-
-
+      {/* Floating Action Button */}
+      <FloatingActionButton
+        onClick={() => setShowAddModal(true)}
+        className="fixed bottom-6 right-4 z-50"
+      />
 
       {/* Add Position Modal */}
       <AddPositionModal
@@ -374,7 +375,12 @@ export default function Portfolio() {
       <PositionDetailModal
         position={selectedPosition}
         open={showDetailModal}
-        onOpenChange={setShowDetailModal}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowDetailModal(false);
+            setSelectedPosition(null);
+          }
+        }}
         onUpdate={refetchPositions}
       />
     </div>

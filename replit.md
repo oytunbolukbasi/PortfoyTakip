@@ -4,6 +4,8 @@
 
 This is a Turkish investment portfolio tracking application built for Turkish investors to monitor their positions in BIST (Borsa Istanbul) stocks and TEFAS mutual funds. The application provides real-time portfolio tracking, profit/loss calculations, and position management capabilities.
 
+**Recent Change (January 2025):** Simplified the application by removing the Markets tab/page to focus solely on portfolio management functionality. The app now has a single-page design with enhanced position tracking features.
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -28,8 +30,9 @@ Preferred communication style: Simple, everyday language.
 - **Validation**: Zod schemas shared between client and server
 
 ### Mobile-First Design
-- **Responsive**: Mobile-first approach with bottom navigation
+- **Responsive**: Mobile-first approach with iPhone-style native UX/UI
 - **Components**: Touch-friendly UI components optimized for mobile devices
+- **Single Page App**: Simplified design focusing only on portfolio management
 - **PWA Ready**: Structure supports Progressive Web App features
 
 ## Key Components
@@ -56,9 +59,10 @@ Preferred communication style: Simple, everyday language.
 2. **Real-time Tracking**: Automatic price updates and P/L calculations
 3. **Performance Analytics**: Portfolio summary with total returns and daily changes
 4. **Dual View Modes**: Card view for detailed display, table view for compact overview
-5. **Mobile-First Navigation**: Large, touch-friendly header icons for easy interaction
+5. **Direct Action Buttons**: Edit, Close, and Delete buttons directly on position cards
 6. **Position Detail Modal**: Complete editing interface accessible via position clicks
 7. **Historical Records**: Complete trade history with performance metrics
+8. **Turkish Number Format**: Proper handling of Turkish decimal notation (comma instead of dot)
 
 ## Data Flow
 
