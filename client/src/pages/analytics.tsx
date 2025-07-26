@@ -279,7 +279,7 @@ export default function Analytics() {
                       <span className="text-sm text-gray-600">Dönem K/Z:</span>
                       <div className="text-right">
                         <span className={`font-bold ${filteredProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {filteredProfit >= 0 ? '+' : ''}₺{formatTurkishPrice(Math.abs(filteredProfit))}
+                          {filteredProfit >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(filteredProfit))}
                         </span>
                       </div>
                     </div>
@@ -294,7 +294,7 @@ export default function Analytics() {
                       <div>
                         <p className="text-sm text-gray-600">Toplam K/Z</p>
                         <span className={`text-lg font-bold ${totalProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {totalProfit >= 0 ? '+' : ''}₺{formatTurkishPrice(Math.abs(totalProfit))}
+                          {totalProfit >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(totalProfit))}
                         </span>
                       </div>
                     </div>
@@ -317,10 +317,10 @@ export default function Analytics() {
                       <span className="text-sm text-gray-600">Gerçekleşmemiş K/Z:</span>
                       <div className="text-right">
                         <span className={`font-bold ${totalProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {totalProfit >= 0 ? '+' : ''}₺{formatTurkishPrice(Math.abs(totalProfit))}
+                          {totalProfit >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(totalProfit))}
                         </span>
                         <span className={`text-sm ml-2 ${totalProfitPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          ({totalProfitPercent >= 0 ? '+' : ''}{formatTurkishPercent(totalProfitPercent)})
+                          ({totalProfitPercent >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(totalProfitPercent))})
                         </span>
                       </div>
                     </div>
@@ -354,20 +354,20 @@ export default function Analytics() {
                     Gerçekleşen K/Z {timeRange !== 'custom' || !startDate || !endDate ? '(Seçili Dönem)' : ''}:
                   </span>
                   <span className={`font-semibold ${realizedProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {realizedProfit >= 0 ? '+' : ''}₺{formatTurkishPrice(Math.abs(realizedProfit))}
+                    {realizedProfit >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(realizedProfit))}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Gerçekleşmemiş K/Z:</span>
                   <span className={`font-semibold ${unrealizedProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {unrealizedProfit >= 0 ? '+' : ''}₺{formatTurkishPrice(Math.abs(unrealizedProfit))}
+                    {unrealizedProfit >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(unrealizedProfit))}
                   </span>
                 </div>
                 {timeRange === 'custom' && startDate && endDate && (
                   <div className="flex justify-between items-center pt-2 border-t border-gray-100">
                     <span className="text-sm text-gray-600">Toplam Gerçekleşen K/Z:</span>
                     <span className={`font-semibold ${realizedProfitTotal >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {realizedProfitTotal >= 0 ? '+' : ''}₺{formatTurkishPrice(Math.abs(realizedProfitTotal))}
+                      {realizedProfitTotal >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(realizedProfitTotal))}
                     </span>
                   </div>
                 )}
@@ -377,7 +377,7 @@ export default function Analytics() {
                       {timeRange === 'custom' && startDate && endDate ? 'Dönem Net K/Z:' : 'Net K/Z:'}
                     </span>
                     <span className={`font-bold text-lg ${netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {netProfit >= 0 ? '+' : ''}₺{formatTurkishPrice(Math.abs(netProfit))}
+                      {netProfit >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(netProfit))}
                     </span>
                   </div>
                 </div>
