@@ -104,6 +104,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete closed position endpoint
+  app.delete("/api/closed-positions/:id", async (req, res) => {
+    try {
+      const userId = "demo-user";
+      await storage.deleteClosedPosition(req.params.id, userId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete closed position" });
+    }
+  });
+
   // Price update endpoint
   app.post("/api/prices/refresh", async (req, res) => {
     try {

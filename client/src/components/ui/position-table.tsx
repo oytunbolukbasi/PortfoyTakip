@@ -1,12 +1,166 @@
 import { Position } from "@shared/schema";
 import { formatTurkishCurrency, formatTurkishPrice, formatTurkishPercent } from "@/lib/format";
+import { Button } from "@/components/ui/button";
+import { ChevronUp, ChevronDown, X, Check } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 interface PositionTableProps {
   positions: Position[];
   onRowClick: (position: Position) => void;
+  onRefresh: () => void;
 }
 
-export function PositionTable({ positions, onRowClick }: PositionTableProps) {
+export function PositionTable({ positions, onRowClick, onRefresh }: PositionTableProps) {
+  const [sortField, setSortField] = useState<'symbol' | 'quantity' | 'buyPrice' | 'currentPrice' | 'value' | 'pl' | 'plPercent'>('symbol');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const { toast } = useToast();
+
+  const handleSort = (field: typeof sortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortedPositions = [...positions].sort((a, b) => {
+    let aValue: any, bValue: any;
+    
+    switch (sortField) {
+      case 'symbol':
+        aValue = a.symbol;
+        bValue = b.symbol;
+        break;
+      case 'quantity':
+        aValue = a.quantity;
+        bValue = b.quantity;
+        break;
+      case 'buyPrice':
+        aValue = parseFloat(a.buyPrice);
+        bValue = parseFloat(b.buyPrice);
+        break;
+      case 'currentPrice':
+        aValue = a.currentPrice ? parseFloat(a.currentPrice) : parseFloat(a.buyPrice);
+        bValue = b.currentPrice ? parseFloat(b.currentPrice) : parseFloat(b.buyPrice);
+        break;
+      case 'value':
+        const aCurrentPrice = a.currentPrice ? parseFloat(a.currentPrice) : parseFloat(a.buyPrice);
+        const bCurrentPrice = b.currentPrice ? parseFloat(b.currentPrice) : parseFloat(b.buyPrice);
+        aValue = aCurrentPrice * a.quantity;
+        bValue = bCurrentPrice * b.quantity;
+        break;
+      case 'pl':
+        const aPL = (a.currentPrice ? parseFloat(a.currentPrice) : parseFloat(a.buyPrice) - parseFloat(a.buyPrice)) * a.quantity;
+        const bPL = (b.currentPrice ? parseFloat(b.currentPrice) : parseFloat(b.buyPrice) - parseFloat(b.buyPrice)) * b.quantity;
+        aValue = aPL;
+        bValue = bPL;
+        break;
+      case 'plPercent':
+        const aPLPercent = a.currentPrice ? ((parseFloat(a.currentPrice) - parseFloat(a.buyPrice)) / parseFloat(a.buyPrice)) * 100 : 0;
+        const bPLPercent = b.currentPrice ? ((parseFloat(b.currentPrice) - parseFloat(b.buyPrice)) / parseFloat(b.buyPrice)) * 100 : 0;
+        aValue = aPLPercent;
+        bValue = bPLPercent;
+        break;
+      default:
+        return 0;
+    }
+    
+    if (typeof aValue === 'string') {
+      return sortDirection === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+    }
+    
+    return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+  });
+
+  const handleClosePosition = async (position: Position, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!position.currentPrice) {
+      toast({
+        title: "Hata",
+        description: "Güncel fiyat bulunamadı. Lütfen önce fiyatları güncelleyin.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const closeData = {
+        sellPrice: position.currentPrice,
+        sellDate: new Date().toISOString().split('T')[0],
+      };
+
+      const response = await fetch(`/api/positions/${position.id}/close`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(closeData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Pozisyon kapatma başarısız');
+      }
+
+      toast({
+        title: "Pozisyon Kapatıldı",
+        description: `${position.symbol} pozisyonu başarıyla kapatıldı`,
+      });
+
+      onRefresh();
+    } catch (error) {
+      console.error('Close position error:', error);
+      toast({
+        title: "Hata",
+        description: "Pozisyon kapatılırken bir hata oluştu",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeletePosition = async (position: Position, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    try {
+      const response = await fetch(`/api/positions/${position.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Pozisyon silme başarısız');
+      }
+
+      toast({
+        title: "Pozisyon Silindi",
+        description: `${position.symbol} pozisyonu başarıyla silindi`,
+      });
+
+      onRefresh();
+    } catch (error) {
+      console.error('Delete position error:', error);
+      toast({
+        title: "Hata",
+        description: "Pozisyon silinirken bir hata oluştu",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const SortButton = ({ field, children }: { field: typeof sortField; children: React.ReactNode }) => (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="h-auto p-0 font-medium text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1"
+      onClick={() => handleSort(field)}
+    >
+      {children}
+      {sortField === field && (
+        sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+      )}
+    </Button>
+  );
   const calculatePL = (position: Position) => {
     const buyPrice = parseFloat(position.buyPrice);
     const currentPrice = position.currentPrice ? parseFloat(position.currentPrice) : buyPrice;
@@ -22,34 +176,37 @@ export function PositionTable({ positions, onRowClick }: PositionTableProps) {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mx-4 mb-3 overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[700px]">
+        <table className="w-full min-w-[800px]">
           <thead className="bg-gray-50">
             <tr>
               <th className="sticky left-0 bg-gray-50 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[140px] z-10 border-r border-gray-200">
-                Varlık
+                <SortButton field="symbol">Varlık</SortButton>
               </th>
               <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[70px]">
-                Adet
+                <SortButton field="quantity">Adet</SortButton>
               </th>
               <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[90px]">
-                Alış
+                <SortButton field="buyPrice">Alış</SortButton>
               </th>
               <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[90px]">
-                Güncel
+                <SortButton field="currentPrice">Güncel</SortButton>
               </th>
               <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">
-                Değer
+                <SortButton field="value">Değer</SortButton>
               </th>
               <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">
-                K/Z
+                <SortButton field="pl">K/Z</SortButton>
               </th>
               <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[70px]">
-                K/Z %
+                <SortButton field="plPercent">K/Z %</SortButton>
+              </th>
+              <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">
+                İşlemler
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {positions.map((position) => {
+            {sortedPositions.map((position) => {
               const { pl, plPercent, value, currentPrice } = calculatePL(position);
               
               return (
@@ -96,6 +253,28 @@ export function PositionTable({ positions, onRowClick }: PositionTableProps) {
                     plPercent >= 0 ? 'text-green-600' : 'text-red-600'
                   }`}>
                     {formatTurkishPercent(plPercent)}
+                  </td>
+                  <td className="px-3 py-4 whitespace-nowrap text-center">
+                    <div className="flex items-center justify-center space-x-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="p-1.5 text-green-600 hover:bg-green-50 rounded-full"
+                        onClick={(e) => handleClosePosition(position, e)}
+                        title="Pozisyonu Kapat"
+                      >
+                        <Check className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-full"
+                        onClick={(e) => handleDeletePosition(position, e)}
+                        title="Pozisyonu Sil"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               );

@@ -8,11 +8,12 @@ import AddPositionModal from "@/components/ui/add-position-modal";
 import { PositionDetailModal } from "@/components/ui/position-detail-modal";
 import { PositionTable } from "@/components/ui/position-table";
 import FloatingActionButton from "@/components/ui/floating-action-button";
-import { RefreshCw, Search, LayoutGrid, Table2 } from "lucide-react";
+import { RefreshCw, Search, LayoutGrid, Table2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { formatTurkishPrice } from "@/lib/format";
 
 export default function Portfolio() {
   const [activeTab, setActiveTab] = useState<'active' | 'closed'>('active');
@@ -54,6 +55,33 @@ export default function Portfolio() {
       toast({
         title: "Güncelleme hatası",
         description: "Fiyatlar güncellenirken bir hata oluştu.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteClosedPosition = async (positionId: string) => {
+    try {
+      const response = await fetch(`/api/closed-positions/${positionId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Kapalı pozisyon silme başarısız');
+      }
+
+      toast({
+        title: "Pozisyon Silindi",
+        description: "Kapalı pozisyon başarıyla silindi",
+      });
+
+      // Refresh closed positions
+      window.location.reload();
+    } catch (error) {
+      console.error('Delete closed position error:', error);
+      toast({
+        title: "Hata",
+        description: "Kapalı pozisyon silinirken bir hata oluştu",
         variant: "destructive",
       });
     }
@@ -208,6 +236,7 @@ export default function Portfolio() {
                       setSelectedPosition(position);
                       setShowDetailModal(true);
                     }}
+                    onRefresh={refetchPositions}
                   />
                 )}
               </div>
@@ -259,7 +288,7 @@ export default function Portfolio() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-mono text-lg font-medium">₺{parseFloat(position.sellPrice).toFixed(2)}</p>
+                        <p className="font-mono text-lg font-medium">₺{formatTurkishPrice(position.sellPrice)}</p>
                         <p className="text-sm text-text-secondary">
                           {new Date(position.sellDate).toLocaleDateString('tr-TR')}
                         </p>
@@ -273,11 +302,11 @@ export default function Portfolio() {
                       </div>
                       <div>
                         <p className="text-text-secondary">Alış</p>
-                        <p className="font-mono font-medium">₺{parseFloat(position.buyPrice).toFixed(2)}</p>
+                        <p className="font-mono font-medium">₺{formatTurkishPrice(position.buyPrice)}</p>
                       </div>
                       <div>
                         <p className="text-text-secondary">Satış</p>
-                        <p className="font-mono font-medium">₺{parseFloat(position.sellPrice).toFixed(2)}</p>
+                        <p className="font-mono font-medium">₺{formatTurkishPrice(position.sellPrice)}</p>
                       </div>
                     </div>
                     
@@ -288,7 +317,7 @@ export default function Portfolio() {
                           <span className={`font-mono text-sm font-medium ${
                             parseFloat(position.pl) >= 0 ? 'text-success' : 'text-error'
                           }`}>
-                            {parseFloat(position.pl) >= 0 ? '+' : ''}₺{parseFloat(position.pl).toFixed(2)}
+                            {parseFloat(position.pl) >= 0 ? '+' : ''}₺{formatTurkishPrice(Math.abs(parseFloat(position.pl)))}
                           </span>
                           <span className={`font-mono text-sm ml-1 ${
                             parseFloat(position.plPercent) >= 0 ? 'text-success' : 'text-error'
@@ -296,6 +325,16 @@ export default function Portfolio() {
                             ({parseFloat(position.plPercent) >= 0 ? '+' : ''}{parseFloat(position.plPercent).toFixed(2)}%)
                           </span>
                         </div>
+                      </div>
+                      <div className="flex justify-end mt-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:bg-red-50 p-1 h-auto"
+                          onClick={() => handleDeleteClosedPosition(position.id)}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
                   </div>

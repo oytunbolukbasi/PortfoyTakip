@@ -45,10 +45,23 @@ export function formatTurkishPercent(percent: number | string | null): string {
 export function parseTurkishPrice(priceStr: string): number {
   if (!priceStr || typeof priceStr !== 'string') return 0;
   
+  // Handle various Turkish price formats
+  const cleaned = priceStr.trim();
+  
+  // If already in decimal format (contains dot but no comma)
+  if (cleaned.includes('.') && !cleaned.includes(',')) {
+    return parseFloat(cleaned) || 0;
+  }
+  
   // Convert Turkish format (1.234,56) to standard format (1234.56)
-  const normalized = priceStr
+  const normalized = cleaned
     .replace(/\./g, '') // Remove thousand separators
     .replace(',', '.'); // Replace decimal comma with dot
   
   return parseFloat(normalized) || 0;
+}
+
+export function formatTurkishInput(value: string): string {
+  // Allow typing Turkish decimal format with comma
+  return value.replace(/[^\d,]/g, ''); // Only allow digits and comma
 }

@@ -30,6 +30,7 @@ export interface IStorage {
   // Closed positions
   getClosedPositions(userId: string): Promise<ClosedPosition[]>;
   closePosition(positionId: string, userId: string, closeData: ClosePosition): Promise<ClosedPosition>;
+  deleteClosedPosition(id: string, userId: string): Promise<void>;
   
   // Price history
   savePriceHistory(priceData: Omit<PriceHistory, 'id' | 'timestamp'>): Promise<void>;
@@ -99,6 +100,10 @@ export class DatabaseStorage implements IStorage {
       .from(closedPositions)
       .where(eq(closedPositions.userId, userId))
       .orderBy(desc(closedPositions.sellDate));
+  }
+
+  async deleteClosedPosition(id: string, userId: string): Promise<void> {
+    await db.delete(closedPositions).where(and(eq(closedPositions.id, id), eq(closedPositions.userId, userId)));
   }
 
   async closePosition(positionId: string, userId: string, closeData: ClosePosition): Promise<ClosedPosition> {
