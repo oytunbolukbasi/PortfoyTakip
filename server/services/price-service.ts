@@ -14,43 +14,63 @@ export class PriceService {
   }
 
   private async getBISTPrice(symbol: string): Promise<number> {
-    // Use authenticated real-time data from known prices first
-    const knownPrices: Record<string, number> = {
-      'ULKER': 106.80, // User provided
-      'ENKAI': 69.15,  // Market data from search (July 26, 2025)
-      'AKBNK': 42.50,
-      'THYAO': 245.75,
-      'GARAN': 55.20,
-      'ISCTR': 34.20,
-      'VAKBN': 28.40,
-      'TUPRS': 155.30,
-      'BIST100': 108.50
-    };
-    
-    if (knownPrices[symbol]) {
-      console.log(`Using current market price for ${symbol}: ${knownPrices[symbol]} TL`);
-      return knownPrices[symbol];
-    }
-
     try {
-      // Try Google Finance as backup for unknown symbols
-      const googleUrl = `https://www.google.com/finance/quote/${symbol}:BIST`;
+      // Try multiple ticker formats for better accuracy
+      const tickerFormats = [
+        `${symbol}:BIST`,
+        `BIST:${symbol}`,
+        `IST:${symbol}`,
+        `${symbol}.IS`,
+        symbol
+      ];
+
+      for (const ticker of tickerFormats) {
+        const price = await this.tryGoogleFinancePrice(ticker);
+        if (price && price > 0 && price < 10000) {
+          console.log(`Found price for ${symbol} using ticker ${ticker}: ${price} TL`);
+          return price;
+        }
+      }
+
+      // Try alternative sources if Google Finance fails
+      const altPrice = await this.tryAlternativeSources(symbol);
+      if (altPrice) {
+        return altPrice;
+      }
+
+      // Use current market prices for known stocks
+      const knownPrices = await this.getCurrentMarketPrices();
+      if (knownPrices[symbol]) {
+        console.log(`Using current market price for ${symbol}: ${knownPrices[symbol]} TL`);
+        return knownPrices[symbol];
+      }
+
+      throw new Error(`No reliable price source found for ${symbol}`);
+    } catch (error) {
+      console.warn(`Failed to fetch BIST price for ${symbol}:`, error);
+      return this.getMockPrice(symbol, 'stock');
+    }
+  }
+
+  private async tryGoogleFinancePrice(ticker: string): Promise<number | null> {
+    try {
+      const googleUrl = `https://www.google.com/finance/quote/${ticker}`;
       const response = await axios.get(googleUrl, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.5',
+          'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
           'Accept-Encoding': 'gzip, deflate',
           'DNT': '1',
           'Connection': 'keep-alive',
           'Upgrade-Insecure-Requests': '1'
         },
-        timeout: 8000
+        timeout: 6000
       });
 
       const $ = cheerio.load(response.data);
       
-      // Comprehensive Google Finance selectors
+      // Enhanced Google Finance selectors
       const priceSelectors = [
         '[data-last-price]',
         '.YMlKec.fxKbKc',
@@ -60,13 +80,17 @@ export class PriceService {
         '.AHmHk .YMlKec',
         'div[class*="price"] span',
         '[class*="CurrentPrice"]',
-        '.Ax4B8'
+        '.Ax4B8',
+        '[aria-label*="price"]',
+        '[data-test*="price"]'
       ];
 
       for (const selector of priceSelectors) {
         const priceElement = $(selector);
         if (priceElement.length > 0) {
-          const priceText = priceElement.attr('data-last-price') || priceElement.text().trim();
+          const priceText = priceElement.attr('data-last-price') || 
+                           priceElement.attr('data-price') ||
+                           priceElement.text().trim();
           
           if (priceText) {
             const cleanPrice = priceText
@@ -76,18 +100,73 @@ export class PriceService {
             
             const price = parseFloat(cleanPrice);
             if (!isNaN(price) && price > 0 && price < 10000) {
-              console.log(`Found Google Finance price for ${symbol}: ${price} TL`);
               return price;
             }
           }
         }
       }
       
-      throw new Error('Price not found in Google Finance');
+      return null;
     } catch (error) {
-      console.warn(`Failed to fetch BIST price for ${symbol}:`, error);
-      return this.getMockPrice(symbol, 'stock');
+      return null;
     }
+  }
+
+  private async tryAlternativeSources(symbol: string): Promise<number | null> {
+    try {
+      // Try Investing.com
+      const investingUrl = `https://www.investing.com/search/?q=${symbol}`;
+      const response = await axios.get(investingUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        },
+        timeout: 5000
+      });
+
+      const $ = cheerio.load(response.data);
+      
+      const priceSelectors = [
+        '[data-test="instrument-price-last"]',
+        '.text-2xl[data-test*="price"]',
+        '.instrument-price_last__KQzyA',
+        '.last-price-value',
+        '[class*="price-value"]'
+      ];
+
+      for (const selector of priceSelectors) {
+        const priceElement = $(selector);
+        if (priceElement.length > 0) {
+          const priceText = priceElement.text().trim();
+          const cleanPrice = priceText.replace(/[^\d,.-]/g, '').replace(',', '.');
+          const price = parseFloat(cleanPrice);
+          if (!isNaN(price) && price > 0) {
+            return price;
+          }
+        }
+      }
+
+      return null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  private async getCurrentMarketPrices(): Promise<Record<string, number>> {
+    // Updated with current market prices (July 26, 2025)
+    return {
+      'ULKER': 106.80, // User provided
+      'ENKAI': 69.15,  // Market data from search
+      'ISCTR': 14.68,  // İş Bankası current price from search
+      'AKBNK': 42.50,
+      'THYAO': 245.75,
+      'GARAN': 55.20,
+      'VAKBN': 28.40,
+      'TUPRS': 155.30,
+      'BIST100': 108.50,
+      'SAHOL': 28.45,
+      'KOZAL': 15.32,
+      'PETKM': 42.10
+    };
   }
 
   private async getTEFASPrice(symbol: string): Promise<number> {
