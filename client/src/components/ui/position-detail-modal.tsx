@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Position } from "@shared/schema";
-import { Drawer } from "vaul";
+import { FullScreenModal } from './full-screen-modal';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -139,18 +139,13 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
     ((parseFloat(position.currentPrice) - parseFloat(position.buyPrice)) / parseFloat(position.buyPrice)) * 100 : 0;
 
   return (
-    <Drawer.Root open={open} onOpenChange={onOpenChange}>
-      <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 bg-black/40" />
-        <Drawer.Content className="bg-white flex flex-col rounded-t-[10px] h-auto max-h-[75vh] fixed bottom-0 left-0 right-0" style={{ marginTop: 'auto' }}>
-          <div className="p-4 bg-white rounded-t-[10px] flex-1 max-h-[70vh] overflow-y-auto">
-            <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300 mb-8" />
-            <div className="text-center pb-4">
-              <Drawer.Title className="text-lg font-semibold">
-                Pozisyon Detayı
-              </Drawer.Title>
-              <Drawer.Description className="text-sm text-gray-600">{position.symbol}</Drawer.Description>
-              {!isEditing && (
+    <FullScreenModal 
+      open={open} 
+      onOpenChange={onOpenChange}
+      title="Pozisyon Detayı"
+      description={position?.symbol}
+    >
+      {!isEditing && (
                 <div className="pt-2">
                   <Button
                     variant="outline"
@@ -162,10 +157,9 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
                     Düzenle
                   </Button>
                 </div>
-              )}
-            </div>
+        )}
 
-            <div className="space-y-4 drawer-content">
+      <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Sembol</Label>
@@ -338,12 +332,9 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
                     <X className="h-4 w-4 mr-2" />
                     İptal
                   </Button>
-                </div>
-              )}
-            </div>
           </div>
-        </Drawer.Content>
-      </Drawer.Portal>
-    </Drawer.Root>
+        )}
+      </div>
+    </FullScreenModal>
   );
 }

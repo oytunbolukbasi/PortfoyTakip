@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertPositionSchema, type InsertPosition } from "@shared/schema";
-import { Drawer } from "vaul";
+import { FullScreenModal } from './full-screen-modal';
 import {
   Form,
   FormControl,
@@ -76,24 +76,12 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
   };
 
   return (
-    <Drawer.Root open={open} onOpenChange={onOpenChange}>
-      <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 bg-black/40" />
-        <Drawer.Content className="bg-white flex flex-col rounded-t-[10px] h-auto max-h-[80vh] fixed bottom-0 left-0 right-0" style={{ marginTop: 'auto' }}>
-          <div className="p-4 bg-white rounded-t-[10px] flex-1 max-h-[75vh] overflow-y-auto">
-            <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300 mb-8" />
-            <div className="flex justify-between items-center pb-6">
-              <Drawer.Title className="text-xl font-semibold text-gray-900">Yeni Pozisyon</Drawer.Title>
-              <Drawer.Description className="sr-only">Portföyünüze yeni bir yatırım pozisyonu ekleyin</Drawer.Description>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleClose}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full"
-              >
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
+    <FullScreenModal 
+      open={open} 
+      onOpenChange={onOpenChange}
+      title="Yeni Pozisyon"
+      description="Portföyünüze yeni bir yatırım pozisyonu ekleyin"
+    >
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 drawer-content">
@@ -258,9 +246,6 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
             </Button>
           </form>
         </Form>
-          </div>
-        </Drawer.Content>
-      </Drawer.Portal>
-    </Drawer.Root>
+    </FullScreenModal>
   );
 }
