@@ -2,12 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertPositionSchema, type InsertPosition } from "@shared/schema";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Drawer } from "vaul";
 import {
   Form,
   FormControl,
@@ -81,19 +76,23 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl">
-        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-6">
-          <DialogTitle className="text-xl font-semibold text-gray-900">Yeni Pozisyon</DialogTitle>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleClose}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full"
-          >
-            <X className="w-5 h-5" />
-          </Button>
-        </DialogHeader>
+    <Drawer.Root open={open} onOpenChange={onOpenChange}>
+      <Drawer.Portal>
+        <Drawer.Overlay className="fixed inset-0 bg-black/40" />
+        <Drawer.Content className="bg-white flex flex-col rounded-t-[10px] h-[90%] mt-24 fixed bottom-0 left-0 right-0">
+          <div className="p-4 bg-white rounded-t-[10px] flex-1 overflow-y-auto">
+            <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300 mb-8" />
+            <div className="flex justify-between items-center pb-6">
+              <Drawer.Title className="text-xl font-semibold text-gray-900">Yeni Pozisyon</Drawer.Title>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClose}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -258,7 +257,9 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
             </Button>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+          </div>
+        </Drawer.Content>
+      </Drawer.Portal>
+    </Drawer.Root>
   );
 }

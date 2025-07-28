@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronUp, ChevronDown, X, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Drawer } from "vaul";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -114,7 +114,7 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
     try {
       const closeData = {
         sellPrice: numericPrice.toString(),
-        sellDate: sellDate,
+        sellDate,
       };
 
       const response = await fetch(`/api/positions/${showCloseModal.position.id}/close`, {
@@ -315,51 +315,60 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
         </table>
       </div>
 
-      {/* Close Position Modal */}
-      <Dialog open={showCloseModal.show} onOpenChange={(open) => setShowCloseModal({ show: open, position: null })}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Pozisyonu Kapat - {showCloseModal.position?.symbol}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="sellPrice">Satış Fiyatı (₺)</Label>
-              <Input
-                id="sellPrice"
-                type="text"
-                value={sellPrice}
-                onChange={(e) => {
-                  // Only allow digits and comma
-                  const value = e.target.value.replace(/[^\d,]/g, '');
-                  setSellPrice(value);
-                }}
-                placeholder="0,00"
-                className="font-mono"
-              />
+      {/* Close Position Bottom Sheet */}
+      <Drawer.Root open={showCloseModal.show} onOpenChange={(open) => setShowCloseModal({ show: open, position: null })}>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/40" />
+          <Drawer.Content className="bg-white flex flex-col rounded-t-[10px] h-[60%] mt-24 fixed bottom-0 left-0 right-0">
+            <div className="p-4 bg-white rounded-t-[10px] flex-1">
+              <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300 mb-8" />
+              <div className="text-center pb-4">
+                <Drawer.Title className="text-lg font-semibold">
+                  Pozisyonu Kapat - {showCloseModal.position?.symbol}
+                </Drawer.Title>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="sellPrice">Satış Fiyatı (₺)</Label>
+                  <Input
+                    id="sellPrice"
+                    type="text"
+                    value={sellPrice}
+                    onChange={(e) => {
+                      // Only allow digits and comma
+                      const value = e.target.value.replace(/[^\d,]/g, '');
+                      setSellPrice(value);
+                    }}
+                    placeholder="0,00"
+                    className="font-mono"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="sellDate">Satış Tarihi</Label>
+                  <Input
+                    id="sellDate"
+                    type="date"
+                    value={sellDate}
+                    onChange={(e) => setSellDate(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col space-y-2 pt-4">
+                  <Button onClick={handleConfirmClose} className="w-full py-3">
+                    Pozisyonu Kapat
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowCloseModal({ show: false, position: null })}
+                    className="w-full py-3"
+                  >
+                    İptal
+                  </Button>
+                </div>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="sellDate">Satış Tarihi</Label>
-              <Input
-                id="sellDate"
-                type="date"
-                value={sellDate}
-                onChange={(e) => setSellDate(e.target.value)}
-              />
-            </div>
-            <div className="flex justify-end space-x-2">
-              <Button 
-                variant="outline" 
-                onClick={() => setShowCloseModal({ show: false, position: null })}
-              >
-                İptal
-              </Button>
-              <Button onClick={handleConfirmClose}>
-                Pozisyonu Kapat
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
     </div>
   );
 }

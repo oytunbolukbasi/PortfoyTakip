@@ -70,6 +70,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/positions/:id", async (req, res) => {
+    try {
+      const positionId = req.params.id;
+      const updateData = req.body;
+      
+      // Convert Turkish number format to standard format for buyPrice if provided
+      if (updateData.buyPrice && typeof updateData.buyPrice === 'string') {
+        const normalizedPrice = updateData.buyPrice
+          .replace(/\./g, '') // Remove thousand separators
+          .replace(',', '.'); // Replace decimal comma with dot
+        updateData.buyPrice = normalizedPrice;
+      }
+      
+      // Convert Turkish number format to standard format for currentPrice if provided
+      if (updateData.currentPrice && typeof updateData.currentPrice === 'string') {
+        const normalizedPrice = updateData.currentPrice
+          .replace(/\./g, '') // Remove thousand separators
+          .replace(',', '.'); // Replace decimal comma with dot
+        updateData.currentPrice = normalizedPrice;
+      }
+      
+      const updatedPosition = await storage.updatePosition(positionId, updateData);
+      res.json(updatedPosition);
+    } catch (error) {
+      console.error('Update position error:', error);
+      if (error instanceof Error) {
+        res.status(400).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: "Failed to update position" });
+      }
+    }
+  });
+
   app.delete("/api/positions/:id", async (req, res) => {
     try {
       const userId = "demo-user";

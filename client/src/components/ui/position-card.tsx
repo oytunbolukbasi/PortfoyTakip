@@ -9,22 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Drawer } from "vaul";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -225,71 +210,89 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
         </div>
       </div>
 
-      {/* Delete Dialog */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent className="max-w-sm mx-auto">
-          <AlertDialogHeader className="text-center">
-            <AlertDialogTitle className="text-lg font-semibold">Pozisyonu Sil</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-600 mt-2">
-              {position.symbol} pozisyonunu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex-col space-y-2 mt-6">
-            <AlertDialogAction 
-              onClick={handleDelete} 
-              className="w-full bg-red-600 text-white hover:bg-red-700 py-3"
-            >
-              Evet, Sil
-            </AlertDialogAction>
-            <AlertDialogCancel className="w-full py-3">İptal</AlertDialogCancel>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Delete Bottom Sheet */}
+      <Drawer.Root open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/40" />
+          <Drawer.Content className="bg-white flex flex-col rounded-t-[10px] h-[40%] mt-24 fixed bottom-0 left-0 right-0">
+            <div className="p-4 bg-white rounded-t-[10px] flex-1">
+              <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300 mb-8" />
+              <div className="text-center pb-4">
+                <Drawer.Title className="text-lg font-semibold">Pozisyonu Sil</Drawer.Title>
+                <p className="text-gray-600 mt-2">
+                  {position.symbol} pozisyonunu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                </p>
+              </div>
+              <div className="flex flex-col space-y-2 mt-6">
+                <Button 
+                  onClick={handleDelete} 
+                  className="w-full bg-red-600 text-white hover:bg-red-700 py-3"
+                >
+                  Evet, Sil
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowDeleteDialog(false)} 
+                  className="w-full py-3"
+                >
+                  İptal
+                </Button>
+              </div>
+            </div>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
 
-      {/* Close Position Dialog */}
-      <Dialog open={showCloseDialog} onOpenChange={setShowCloseDialog}>
-        <DialogContent className="max-w-sm mx-auto">
-          <DialogHeader className="text-center pb-4">
-            <DialogTitle className="text-lg font-semibold">Pozisyonu Kapat</DialogTitle>
-            <p className="text-sm text-gray-600">{position.symbol}</p>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="sellPrice" className="text-sm font-medium">Satış Fiyatı (₺)</Label>
-              <Input
-                id="sellPrice"
-                type="text"
-                value={sellPrice}
-                onChange={(e) => {
-                  // Only allow digits and comma
-                  const value = e.target.value.replace(/[^\d,]/g, '');
-                  setSellPrice(value);
-                }}
-                placeholder="0,00"
-                className="font-mono mt-1"
-              />
+      {/* Close Position Bottom Sheet */}
+      <Drawer.Root open={showCloseDialog} onOpenChange={setShowCloseDialog}>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/40" />
+          <Drawer.Content className="bg-white flex flex-col rounded-t-[10px] h-[60%] mt-24 fixed bottom-0 left-0 right-0">
+            <div className="p-4 bg-white rounded-t-[10px] flex-1">
+              <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300 mb-8" />
+              <div className="text-center pb-4">
+                <Drawer.Title className="text-lg font-semibold">Pozisyonu Kapat</Drawer.Title>
+                <p className="text-sm text-gray-600">{position.symbol}</p>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="sellPrice" className="text-sm font-medium">Satış Fiyatı (₺)</Label>
+                  <Input
+                    id="sellPrice"
+                    type="text"
+                    value={sellPrice}
+                    onChange={(e) => {
+                      // Only allow digits and comma
+                      const value = e.target.value.replace(/[^\d,]/g, '');
+                      setSellPrice(value);
+                    }}
+                    placeholder="0,00"
+                    className="font-mono mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="sellDate" className="text-sm font-medium">Satış Tarihi</Label>
+                  <Input
+                    id="sellDate"
+                    type="date"
+                    value={sellDate}
+                    onChange={(e) => setSellDate(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+                <div className="flex flex-col space-y-2 pt-4">
+                  <Button onClick={handleClose} className="w-full py-3">
+                    Pozisyonu Kapat
+                  </Button>
+                  <Button variant="outline" onClick={() => setShowCloseDialog(false)} className="w-full py-3">
+                    İptal
+                  </Button>
+                </div>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="sellDate" className="text-sm font-medium">Satış Tarihi</Label>
-              <Input
-                id="sellDate"
-                type="date"
-                value={sellDate}
-                onChange={(e) => setSellDate(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-            <div className="flex flex-col space-y-2 pt-4">
-              <Button onClick={handleClose} className="w-full py-3">
-                Pozisyonu Kapat
-              </Button>
-              <Button variant="outline" onClick={() => setShowCloseDialog(false)} className="w-full py-3">
-                İptal
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
     </>
   );
 }
