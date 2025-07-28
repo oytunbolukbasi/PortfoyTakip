@@ -311,7 +311,7 @@ export default function Portfolio() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-mono text-lg font-medium">₺{formatTurkishPrice(position.sellPrice)}</p>
+                        <p className="font-mono text-lg font-medium">₺{formatTurkishPrice(parseFloat(position.sellPrice))}</p>
                         <p className="text-sm text-text-secondary">
                           {new Date(position.sellDate).toLocaleDateString('tr-TR')}
                         </p>
@@ -325,11 +325,11 @@ export default function Portfolio() {
                       </div>
                       <div>
                         <p className="text-text-secondary">Alış</p>
-                        <p className="font-mono font-medium">₺{formatTurkishPrice(position.buyPrice)}</p>
+                        <p className="font-mono font-medium">₺{formatTurkishPrice(parseFloat(position.buyPrice))}</p>
                       </div>
                       <div>
                         <p className="text-text-secondary">Satış</p>
-                        <p className="font-mono font-medium">₺{formatTurkishPrice(position.sellPrice)}</p>
+                        <p className="font-mono font-medium">₺{formatTurkishPrice(parseFloat(position.sellPrice))}</p>
                       </div>
                     </div>
                     
