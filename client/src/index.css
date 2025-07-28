@@ -9,10 +9,16 @@
   }
 }
 
+/* Bottom sheet mobile optimizations */
+[data-vaul-drawer] {
+  max-height: 90vh;
+}
+
 /* Handle keyboard overlays on mobile */
 @media (max-height: 600px) {
   [data-vaul-drawer][data-vaul-drawer-visible="true"] {
-    height: 100vh !important;
+    max-height: 70vh !important;
+    margin-top: 30vh !important;
   }
 }
 
@@ -21,13 +27,14 @@
   min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: 2rem;
+  padding-bottom: env(safe-area-inset-bottom, 1rem);
+  max-height: calc(100vh - 200px);
 }
 
 /* Mobile viewport height fix for keyboard */
 @supports (-webkit-touch-callout: none) {
   [data-vaul-drawer] {
-    height: -webkit-fill-available !important;
+    max-height: -webkit-fill-available;
   }
 }
 
@@ -36,7 +43,14 @@ input:focus,
 select:focus,
 textarea:focus {
   scroll-margin-top: 1rem;
-  scroll-margin-bottom: 8rem;
+  scroll-margin-bottom: 6rem;
+}
+
+/* Prevent drawer from covering entire screen */
+@media (max-height: 800px) {
+  [data-vaul-drawer] {
+    max-height: 75vh !important;
+  }
 }
 
 :root {

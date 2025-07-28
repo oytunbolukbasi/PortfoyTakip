@@ -79,7 +79,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
     <Drawer.Root open={open} onOpenChange={onOpenChange}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/40" />
-        <Drawer.Content className="bg-white flex flex-col rounded-t-[10px] h-[90%] mt-24 fixed bottom-0 left-0 right-0">
+        <Drawer.Content className="bg-white flex flex-col rounded-t-[10px] max-h-[85vh] mt-[15vh] fixed bottom-0 left-0 right-0">
           <div className="p-4 bg-white rounded-t-[10px] flex-1 overflow-y-auto pb-safe-area-inset-bottom">
             <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300 mb-8" />
             <div className="flex justify-between items-center pb-6">
