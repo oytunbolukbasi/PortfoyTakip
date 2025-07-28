@@ -90,6 +90,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .replace(',', '.'); // Replace decimal comma with dot
         updateData.currentPrice = normalizedPrice;
       }
+
+      // Convert buyDate string to Date object if provided
+      if (updateData.buyDate && typeof updateData.buyDate === 'string') {
+        updateData.buyDate = new Date(updateData.buyDate);
+      }
       
       const updatedPosition = await storage.updatePosition(positionId, updateData);
       res.json(updatedPosition);

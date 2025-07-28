@@ -268,7 +268,7 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
                     {position.quantity.toLocaleString('tr-TR')}
                   </td>
                   <td className="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-900">
-                    ₺{formatTurkishPrice(position.buyPrice)}
+                    ₺{formatTurkishPrice(parseFloat(position.buyPrice))}
                   </td>
                   <td className="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-900">
                     ₺{formatTurkishPrice(currentPrice)}
@@ -320,14 +320,14 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 bg-black/40" />
           <Drawer.Content className="bg-white flex flex-col rounded-t-[10px] h-[60%] mt-24 fixed bottom-0 left-0 right-0">
-            <div className="p-4 bg-white rounded-t-[10px] flex-1">
+            <div className="p-4 bg-white rounded-t-[10px] flex-1 pb-safe-area-inset-bottom">
               <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300 mb-8" />
               <div className="text-center pb-4">
                 <Drawer.Title className="text-lg font-semibold">
                   Pozisyonu Kapat - {showCloseModal.position?.symbol}
                 </Drawer.Title>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-4 drawer-content">
                 <div>
                   <Label htmlFor="sellPrice">Satış Fiyatı (₺)</Label>
                   <Input

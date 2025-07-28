@@ -143,7 +143,7 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/40" />
         <Drawer.Content className="bg-white flex flex-col rounded-t-[10px] h-[85%] mt-24 fixed bottom-0 left-0 right-0">
-          <div className="p-4 bg-white rounded-t-[10px] flex-1 overflow-y-auto">
+          <div className="p-4 bg-white rounded-t-[10px] flex-1 overflow-y-auto pb-safe-area-inset-bottom">
             <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300 mb-8" />
             <div className="text-center pb-4">
               <Drawer.Title className="text-lg font-semibold">
@@ -165,7 +165,7 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
               )}
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 drawer-content">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Sembol</Label>

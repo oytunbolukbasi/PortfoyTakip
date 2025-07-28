@@ -2,6 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile safe area and keyboard support */
+@supports (padding: max(0px)) {
+  .pb-safe-area-inset-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Handle keyboard overlays on mobile */
+@media (max-height: 600px) {
+  [data-vaul-drawer][data-vaul-drawer-visible="true"] {
+    height: 100vh !important;
+  }
+}
+
+/* Ensure scrollable content when keyboard is open */
+.drawer-content {
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2rem;
+}
+
+/* Mobile viewport height fix for keyboard */
+@supports (-webkit-touch-callout: none) {
+  [data-vaul-drawer] {
+    height: -webkit-fill-available !important;
+  }
+}
+
+/* Input focus improvements for mobile */
+input:focus,
+select:focus,
+textarea:focus {
+  scroll-margin-top: 1rem;
+  scroll-margin-bottom: 8rem;
+}
+
 :root {
   --background: hsl(0, 0%, 98%);
   --foreground: hsl(213, 13%, 13%);
