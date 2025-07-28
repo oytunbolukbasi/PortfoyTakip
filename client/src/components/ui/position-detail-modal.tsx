@@ -142,14 +142,14 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
     <Drawer.Root open={open} onOpenChange={onOpenChange}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/40" />
-        <Drawer.Content className="bg-white flex flex-col rounded-t-[10px] max-h-[80vh] mt-[20vh] fixed bottom-0 left-0 right-0">
-          <div className="p-4 bg-white rounded-t-[10px] flex-1 overflow-y-auto pb-safe-area-inset-bottom">
+        <Drawer.Content className="bg-white flex flex-col rounded-t-[10px] h-auto max-h-[75vh] fixed bottom-0 left-0 right-0" style={{ marginTop: 'auto' }}>
+          <div className="p-4 bg-white rounded-t-[10px] flex-1 max-h-[70vh] overflow-y-auto">
             <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300 mb-8" />
             <div className="text-center pb-4">
               <Drawer.Title className="text-lg font-semibold">
                 Pozisyon Detayı
               </Drawer.Title>
-              <p className="text-sm text-gray-600">{position.symbol}</p>
+              <Drawer.Description className="text-sm text-gray-600">{position.symbol}</Drawer.Description>
               {!isEditing && (
                 <div className="pt-2">
                   <Button

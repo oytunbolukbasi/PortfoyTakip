@@ -9,47 +9,59 @@
   }
 }
 
-/* Bottom sheet mobile optimizations */
+/* Bottom sheet mobile optimizations - Force reasonable sizing */
 [data-vaul-drawer] {
-  max-height: 90vh;
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: auto !important;
+  height: auto !important;
+  margin-top: 0 !important;
+}
+
+[data-vaul-drawer][data-vaul-drawer-visible="true"] {
+  transform: translateY(0) !important;
+}
+
+/* Ensure proper sizing regardless of content */
+[data-vaul-drawer-content] {
+  max-height: 80vh !important;
+  height: auto !important;
+  margin-top: 0 !important;
 }
 
 /* Handle keyboard overlays on mobile */
 @media (max-height: 600px) {
-  [data-vaul-drawer][data-vaul-drawer-visible="true"] {
-    max-height: 70vh !important;
-    margin-top: 30vh !important;
+  [data-vaul-drawer-content] {
+    max-height: 65vh !important;
   }
 }
 
-/* Ensure scrollable content when keyboard is open */
+/* Scrollable content inside drawers */
 .drawer-content {
-  min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: env(safe-area-inset-bottom, 1rem);
-  max-height: calc(100vh - 200px);
-}
-
-/* Mobile viewport height fix for keyboard */
-@supports (-webkit-touch-callout: none) {
-  [data-vaul-drawer] {
-    max-height: -webkit-fill-available;
-  }
+  padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
 }
 
 /* Input focus improvements for mobile */
 input:focus,
 select:focus,
 textarea:focus {
-  scroll-margin-top: 1rem;
-  scroll-margin-bottom: 6rem;
+  scroll-margin-bottom: 4rem;
 }
 
-/* Prevent drawer from covering entire screen */
-@media (max-height: 800px) {
+/* Prevent drawer expanding beyond intended size */
+@media (orientation: portrait) {
   [data-vaul-drawer] {
     max-height: 75vh !important;
+  }
+}
+
+@media (orientation: landscape) {
+  [data-vaul-drawer] {
+    max-height: 85vh !important;
   }
 }
 
