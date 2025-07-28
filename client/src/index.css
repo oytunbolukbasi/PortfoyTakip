@@ -146,6 +146,10 @@ textarea:focus {
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
   }
+  
+  .pb-safe-area {
+    padding-bottom: max(env(safe-area-inset-bottom), 16px);
+  }
 }
 
 @layer utilities {

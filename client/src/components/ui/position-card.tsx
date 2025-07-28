@@ -163,17 +163,24 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
             </div>
           </div>
           
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-500">K/Z:</span>
-              <span className={`font-semibold ${pl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {pl >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(pl))}
-              </span>
-              <span className={`text-sm ${plPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                ({plPercent >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(plPercent))})
-              </span>
+          <div className="space-y-3">
+            {/* K/Z bilgisi için ayrı satır */}
+            <div className="bg-gray-50 rounded-lg p-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-500 font-medium">K/Z:</span>
+                <div className="text-right">
+                  <div className={`font-semibold text-lg ${pl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {formatTurkishCurrency(pl)}
+                  </div>
+                  <div className={`text-sm ${plPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    ({formatTurkishPercent(plPercent)})
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
+            
+            {/* Action buttons */}
+            <div className="flex items-center justify-end space-x-2">
               <Button
                 variant="outline"
                 size="sm"

@@ -207,7 +207,7 @@ export default function Portfolio() {
       </div>
 
       {/* Main Content */}
-      <main className="pb-24">
+      <main className="pb-32">
         {activeTab === 'active' && (
           <>
             {positionsLoading ? (
