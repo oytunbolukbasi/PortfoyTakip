@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronUp, ChevronDown, X, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { Drawer } from "vaul";
+import { FullScreenModal } from './full-screen-modal';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -315,20 +315,14 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
         </table>
       </div>
 
-      {/* Close Position Bottom Sheet */}
-      <Drawer.Root open={showCloseModal.show} onOpenChange={(open) => setShowCloseModal({ show: open, position: null })}>
-        <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 bg-black/40" />
-          <Drawer.Content className="bg-white flex flex-col rounded-t-[10px] h-auto max-h-[45vh] fixed bottom-0 left-0 right-0" style={{ marginTop: 'auto' }}>
-            <div className="p-4 bg-white rounded-t-[10px] flex-1 max-h-[40vh] overflow-y-auto">
-              <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300 mb-8" />
-              <div className="text-center pb-4">
-                <Drawer.Title className="text-lg font-semibold">
-                  Pozisyonu Kapat - {showCloseModal.position?.symbol}
-                </Drawer.Title>
-                <Drawer.Description className="sr-only">Seçili pozisyonu satış fiyatı girerek kapatın</Drawer.Description>
-              </div>
-              <div className="space-y-4 drawer-content">
+      {/* Close Position Modal */}
+      <FullScreenModal 
+        open={showCloseModal.show} 
+        onOpenChange={(open) => setShowCloseModal({ show: open, position: null })}
+        title={`Pozisyonu Kapat - ${showCloseModal.position?.symbol || ''}`}
+        description="Seçili pozisyonu satış fiyatı girerek kapatın"
+      >
+        <div className="space-y-4">
                 <div>
                   <Label htmlFor="sellPrice">Satış Fiyatı (₺)</Label>
                   <Input
@@ -353,23 +347,20 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
                     onChange={(e) => setSellDate(e.target.value)}
                   />
                 </div>
-                <div className="flex flex-col space-y-2 pt-4">
-                  <Button onClick={handleConfirmClose} className="w-full py-3">
-                    Pozisyonu Kapat
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setShowCloseModal({ show: false, position: null })}
-                    className="w-full py-3"
-                  >
-                    İptal
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </Drawer.Content>
-        </Drawer.Portal>
-      </Drawer.Root>
+          <div className="flex flex-col space-y-2 pt-4">
+            <Button onClick={handleConfirmClose} className="w-full py-3">
+              Pozisyonu Kapat
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowCloseModal({ show: false, position: null })}
+              className="w-full py-3"
+            >
+              İptal
+            </Button>
+          </div>
+        </div>
+      </FullScreenModal>
     </div>
   );
 }

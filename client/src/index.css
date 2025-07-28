@@ -141,6 +141,11 @@ textarea:focus {
   .font-mono {
     font-family: 'Roboto Mono', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
   }
+
+  /* Safe area utilities for iPhone home indicator */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
 
 @layer utilities {

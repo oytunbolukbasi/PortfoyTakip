@@ -9,7 +9,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Drawer } from "vaul";
+
+import { FullScreenModal } from './full-screen-modal';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -211,88 +212,73 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
       </div>
 
       {/* Delete Bottom Sheet */}
-      <Drawer.Root open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 bg-black/40" />
-          <Drawer.Content className="bg-white flex flex-col rounded-t-[10px] h-[40%] mt-24 fixed bottom-0 left-0 right-0">
-            <div className="p-4 bg-white rounded-t-[10px] flex-1">
-              <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300 mb-8" />
-              <div className="text-center pb-4">
-                <Drawer.Title className="text-lg font-semibold">Pozisyonu Sil</Drawer.Title>
-                <p className="text-gray-600 mt-2">
-                  {position.symbol} pozisyonunu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
-                </p>
-              </div>
-              <div className="flex flex-col space-y-2 mt-6">
-                <Button 
-                  onClick={handleDelete} 
-                  className="w-full bg-red-600 text-white hover:bg-red-700 py-3"
-                >
-                  Evet, Sil
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowDeleteDialog(false)} 
-                  className="w-full py-3"
-                >
-                  İptal
-                </Button>
-              </div>
-            </div>
-          </Drawer.Content>
-        </Drawer.Portal>
-      </Drawer.Root>
+      {/* Delete Position Modal */}
+      <FullScreenModal 
+        open={showDeleteDialog} 
+        onOpenChange={setShowDeleteDialog}
+        title="Pozisyonu Sil"
+        description={`${position.symbol} pozisyonunu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`}
+      >
+        <div className="flex flex-col space-y-2 mt-6">
+          <Button 
+            onClick={handleDelete} 
+            className="w-full bg-red-600 text-white hover:bg-red-700 py-3"
+          >
+            Evet, Sil
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => setShowDeleteDialog(false)} 
+            className="w-full py-3"
+          >
+            İptal
+          </Button>
+        </div>
+      </FullScreenModal>
 
-      {/* Close Position Bottom Sheet */}
-      <Drawer.Root open={showCloseDialog} onOpenChange={setShowCloseDialog}>
-        <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 bg-black/40" />
-          <Drawer.Content className="bg-white flex flex-col rounded-t-[10px] h-auto max-h-[45vh] fixed bottom-0 left-0 right-0" style={{ marginTop: 'auto' }}>
-            <div className="p-4 bg-white rounded-t-[10px] flex-1 max-h-[40vh] overflow-y-auto">
-              <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300 mb-8" />
-              <div className="text-center pb-4">
-                <Drawer.Title className="text-lg font-semibold">Pozisyonu Kapat</Drawer.Title>
-                <Drawer.Description className="text-sm text-gray-600">{position.symbol}</Drawer.Description>
-              </div>
-              <div className="space-y-4 drawer-content">
-                <div>
-                  <Label htmlFor="sellPrice" className="text-sm font-medium">Satış Fiyatı (₺)</Label>
-                  <Input
-                    id="sellPrice"
-                    type="text"
-                    value={sellPrice}
-                    onChange={(e) => {
-                      // Only allow digits and comma
-                      const value = e.target.value.replace(/[^\d,]/g, '');
-                      setSellPrice(value);
-                    }}
-                    placeholder="0,00"
-                    className="font-mono mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="sellDate" className="text-sm font-medium">Satış Tarihi</Label>
-                  <Input
-                    id="sellDate"
-                    type="date"
-                    value={sellDate}
-                    onChange={(e) => setSellDate(e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-                <div className="flex flex-col space-y-2 pt-4">
-                  <Button onClick={handleClose} className="w-full py-3">
-                    Pozisyonu Kapat
-                  </Button>
-                  <Button variant="outline" onClick={() => setShowCloseDialog(false)} className="w-full py-3">
-                    İptal
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </Drawer.Content>
-        </Drawer.Portal>
-      </Drawer.Root>
+      {/* Close Position Modal */}
+      <FullScreenModal 
+        open={showCloseDialog} 
+        onOpenChange={setShowCloseDialog}
+        title="Pozisyonu Kapat"
+        description={position.symbol}
+      >
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="sellPrice" className="text-sm font-medium">Satış Fiyatı (₺)</Label>
+            <Input
+              id="sellPrice"
+              type="text"
+              value={sellPrice}
+              onChange={(e) => {
+                // Only allow digits and comma
+                const value = e.target.value.replace(/[^\d,]/g, '');
+                setSellPrice(value);
+              }}
+              placeholder="0,00"
+              className="font-mono mt-1"
+            />
+          </div>
+          <div>
+            <Label htmlFor="sellDate" className="text-sm font-medium">Satış Tarihi</Label>
+            <Input
+              id="sellDate"
+              type="date"
+              value={sellDate}
+              onChange={(e) => setSellDate(e.target.value)}
+              className="mt-1"
+            />
+          </div>
+          <div className="flex flex-col space-y-2 pt-4">
+            <Button onClick={handleClose} className="w-full py-3">
+              Pozisyonu Kapat
+            </Button>
+            <Button variant="outline" onClick={() => setShowCloseDialog(false)} className="w-full py-3">
+              İptal
+            </Button>
+          </div>
+        </div>
+      </FullScreenModal>
     </>
   );
 }
