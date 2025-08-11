@@ -8,25 +8,15 @@ export function formatTurkishPrice(value: number): string {
 
 // Format fund price with 6 decimal places for high precision
 export function formatFundPrice(value: number): string {
-  // Convert to string with full precision, then format manually to avoid rounding issues
-  const valueStr = value.toString();
-  const parts = valueStr.split('.');
+  // Use fixed-point notation to avoid scientific notation for small numbers
+  const fixedValue = value.toFixed(6);
+  const parts = fixedValue.split('.');
   
-  if (parts.length === 1) {
-    // No decimal point, add 6 zeros
-    return parts[0] + ',000000';
-  }
-  
-  // Pad or trim decimal part to exactly 6 digits
-  let decimalPart = parts[1];
-  if (decimalPart.length < 6) {
-    decimalPart = decimalPart.padEnd(6, '0');
-  } else if (decimalPart.length > 6) {
-    decimalPart = decimalPart.substring(0, 6);
-  }
-  
-  // Format the integer part with Turkish thousands separator
+  // Format the integer part with Turkish thousands separator if needed
   const integerPart = parseInt(parts[0]).toLocaleString('tr-TR');
+  
+  // Always use exactly 6 decimal places
+  const decimalPart = parts[1];
   
   return `${integerPart},${decimalPart}`;
 }

@@ -353,6 +353,7 @@ export class PriceService {
       const knownFundPrices: Record<string, number> = {
         'IRY': 2.654802, // INVEO PORTFÖY PARA PİYASASI (TL) FONU - Latest from TEFAS API
         'GJH': 2.657665, // GARANTİ PORTFÖY PARA PİYASASI SERBEST (TL) FON
+        'YKT': 0.606051, // YAPI KREDİ PORTFÖY ALTIN FONU
         'YAC': 2.85,
         'ALC': 3.41,
         'TYS': 1.23,
@@ -451,6 +452,7 @@ export class PriceService {
     if (type === 'fund') {
       const knownFundNames: Record<string, string> = {
         'IRY': 'INVEO PORTFÖY PARA PİYASASI (TL) FONU', // Updated from TEFAS API response
+        'YKT': 'YAPI KREDİ PORTFÖY ALTIN FONU', // Updated from TEFAS API response
         'YAC': 'Ak Portföy Değer Odakli 100 Şirketleri Hisse Senedi Fonu',
         'ALC': 'Ak Portföy Kar Payi Ödeyen Şirketler Hisse Senedi Fonu',
         'TYS': 'Teb Portföy Teknoloji Sektörü Hisse Senedi Fonu',
