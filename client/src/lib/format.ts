@@ -8,17 +8,11 @@ export function formatTurkishPrice(value: number): string {
 
 // Format fund price with 6 decimal places for high precision
 export function formatFundPrice(value: number): string {
-  // Use fixed-point notation to avoid scientific notation for small numbers
-  const fixedValue = value.toFixed(6);
-  const parts = fixedValue.split('.');
+  // Convert to string with exactly 6 decimal places without any locale formatting
+  const str = value.toFixed(6);
   
-  // Format the integer part with Turkish thousands separator if needed
-  const integerPart = parseInt(parts[0]).toLocaleString('tr-TR');
-  
-  // Always use exactly 6 decimal places
-  const decimalPart = parts[1];
-  
-  return `${integerPart},${decimalPart}`;
+  // Replace dot with comma for Turkish formatting
+  return str.replace('.', ',');
 }
 
 // Format currency to Turkish format with ₺ symbol
