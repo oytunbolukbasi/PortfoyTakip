@@ -335,16 +335,27 @@ export default function Portfolio() {
                         </div>
                       </div>
 
-                      {/* iOS-style Action Button - Centered */}
-                      <div className="flex justify-center">
+                      {/* Tarihler ve Sil Butonu */}
+                      <div className="flex justify-between items-center">
+                        <div className="flex space-x-4 text-xs text-gray-500">
+                          <div>
+                            <span className="font-medium">Açılış:</span>
+                            <br />
+                            {new Date(position.openDate).toLocaleDateString('tr-TR')}
+                          </div>
+                          <div>
+                            <span className="font-medium">Kapanış:</span>
+                            <br />
+                            {new Date(position.sellDate).toLocaleDateString('tr-TR')}
+                          </div>
+                        </div>
                         <Button
                           variant="ghost"
-                          size="lg"
-                          className="bg-red-50 hover:bg-red-100 text-red-600 px-6 py-3 rounded-xl font-medium border border-red-100"
+                          size="sm"
+                          className="bg-red-50 hover:bg-red-100 text-red-600 p-2 rounded-lg border border-red-100"
                           onClick={() => handleDeleteClosedPosition(position.id)}
                         >
-                          <Trash2 className="w-5 h-5 mr-2" />
-                          SİL
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>

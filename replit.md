@@ -42,6 +42,14 @@ This is a Turkish investment portfolio tracking application built for Turkish in
   - Removed all icons from Analytics card headers for minimal design
   - Removed circular symbol logos from position cards for simplicity
   - Enhanced action buttons in position cards - larger and more user-friendly
+- **iOS-Style K/Z Display (January 28, 2025):**
+  - Applied consistent gradient K/Z (profit/loss) styling to both active and closed position cards
+  - Implemented green gradient for profits, red gradient for losses across all position displays
+  - Added proper +/- prefix formatting with bold typography for better visual impact
+- **Closed Position Enhancement (January 28, 2025):**
+  - Added opening and closing dates to closed position cards
+  - Redesigned layout with dates on left side and compact delete button (trash icon only) on right
+  - Optimized space usage while maintaining iOS-style visual consistency
 
 ## User Preferences
 
