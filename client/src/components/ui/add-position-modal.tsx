@@ -86,43 +86,47 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 drawer-content">
             {/* Asset Type Selection */}
-            <div>
-              <FormLabel className="text-sm font-medium text-text-primary mb-2 block">
-                Varlık Türü
+            <div className="bg-gray-50 rounded-xl p-4">
+              <FormLabel className="text-sm font-medium text-gray-700 mb-3 block">
+                Yatırım Türü
               </FormLabel>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
+              <div className="flex bg-white rounded-lg p-1 border">
+                <button
                   type="button"
-                  variant={assetType === 'stock' ? 'default' : 'outline'}
-                  className={`p-3 h-auto ${
-                    assetType === 'stock' 
-                      ? 'bg-primary text-white border-primary' 
-                      : 'border-gray-300 text-text-primary'
-                  }`}
                   onClick={() => {
                     setAssetType('stock');
                     form.setValue('type', 'stock');
                   }}
-                >
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  BIST Hisse
-                </Button>
-                <Button
-                  type="button"
-                  variant={assetType === 'fund' ? 'default' : 'outline'}
-                  className={`p-3 h-auto ${
-                    assetType === 'fund' 
-                      ? 'bg-primary text-white border-primary' 
-                      : 'border-gray-300 text-text-primary'
+                  className={`flex-1 py-3 px-4 text-sm font-medium rounded-md transition-all ${
+                    assetType === 'stock'
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
                   }`}
+                >
+                  <TrendingUp className="w-4 h-4 inline mr-2" />
+                  BIST Hisse
+                </button>
+                <button
+                  type="button"
                   onClick={() => {
                     setAssetType('fund');
                     form.setValue('type', 'fund');
                   }}
+                  className={`flex-1 py-3 px-4 text-sm font-medium rounded-md transition-all ${
+                    assetType === 'fund'
+                      ? 'bg-green-600 text-white shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
                 >
-                  <Percent className="w-4 h-4 mr-2" />
+                  <Percent className="w-4 h-4 inline mr-2" />
                   TEFAS Fon
-                </Button>
+                </button>
+              </div>
+              <div className="mt-2 text-xs text-gray-500">
+                {assetType === 'stock' 
+                  ? 'Borsa İstanbul\'da işlem gören hisse senetleri (ör: ULKER, GARAN, ENKAI)'
+                  : 'TEFAS\'ta kayıtlı yatırım fonları (ör: TGY, IGY, AGY)'
+                }
               </div>
             </div>
 
@@ -136,8 +140,8 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                   <FormControl>
                     <Input
                       {...field}
-                      placeholder={assetType === 'stock' ? 'Örn: GARAN, AKBNK' : 'Örn: TFF, AFT'}
-                      className="uppercase"
+                      placeholder={assetType === 'stock' ? 'Örn: ULKER, GARAN, ENKAI' : 'Örn: TGY, IGY, AGY'}
+                      className="uppercase text-lg font-medium"
                       onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                     />
                   </FormControl>
@@ -157,7 +161,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                     <Input
                       {...field}
                       value={field.value || ''}
-                      placeholder={assetType === 'stock' ? 'Örn: Garanti BBVA' : 'Örn: TEFAS Fon'}
+                      placeholder={assetType === 'stock' ? 'Örn: Ülker Bisküvi Sanayi A.Ş.' : 'Örn: Türkiye Garanti Yatırım Fonu'}
                     />
                   </FormControl>
                   <FormMessage />

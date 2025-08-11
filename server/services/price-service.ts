@@ -290,41 +290,110 @@ export class PriceService {
 
   private async getTEFASPrice(symbol: string): Promise<number> {
     try {
-      const response = await axios.get(this.TEFAS_BASE_URL, {
-        params: {
-          FonKod: symbol,
-        },
+      console.log(`Fetching TEFAS price for ${symbol}`);
+      
+      // TEFAS API endpoint for fund data
+      const tefasApiUrl = 'https://www.tefas.gov.tr/api/DB/BindHistoryInfo';
+      
+      const today = new Date().toISOString().split('T')[0];
+      
+      const response = await axios.post(tefasApiUrl, {
+        fontip: 'YAT', // Yatırım Fonu
+        sfonkod: symbol,
+        kurucukod: '',
+        fiyattip: '',
+        bastarih: today,
+        bittarih: today
+      }, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'application/json, text/plain, */*',
+          'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
+          'Content-Type': 'application/json',
+          'Referer': 'https://www.tefas.gov.tr/',
+          'X-Requested-With': 'XMLHttpRequest'
         },
-        timeout: 10000,
+        timeout: 10000
+      });
+
+      if (response.data && response.data.data && response.data.data.length > 0) {
+        const latestData = response.data.data[0];
+        const price = parseFloat(latestData.BIRIMPAYDEGERI);
+        
+        if (!isNaN(price) && price > 0) {
+          console.log(`Found TEFAS API price for ${symbol}: ${price} TL`);
+          return price;
+        }
+      }
+
+      // Fallback: try web scraping TEFAS detail page
+      return this.scrapeTEFASPrice(symbol);
+    } catch (error) {
+      console.warn(`Failed to fetch TEFAS API price for ${symbol}:`, error);
+      return this.scrapeTEFASPrice(symbol);
+    }
+  }
+
+  private async scrapeTEFASPrice(symbol: string): Promise<number> {
+    try {
+      const tefasPageUrl = `https://www.tefas.gov.tr/FonAnaliz.aspx?FonKod=${symbol}`;
+      
+      const response = await axios.get(tefasPageUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
+        },
+        timeout: 10000
       });
 
       const $ = cheerio.load(response.data);
       
-      // Look for price in various possible selectors
+      // TEFAS sayfasından birim pay değerini çek
       const priceSelectors = [
-        '#MainContent_PanelInfo table tr:contains("Birim Pay Değeri") td:last',
-        '.price-value',
+        '#MainContent_FormViewMainIndicators_LabelPrice',
+        '.main-indicators .price',
         '.fund-price',
-        'table td:contains("₺")',
+        '#price-info .price-value',
+        'table tr:contains("Birim Pay Değeri") td:last-child',
+        '.price-value'
       ];
-
+      
       for (const selector of priceSelectors) {
-        const priceElement = $(selector);
-        if (priceElement.length > 0) {
-          const priceText = priceElement.text().trim();
-          const price = parseFloat(priceText.replace(/[^\d.,]/g, '').replace(',', '.'));
-          if (!isNaN(price)) {
+        const element = $(selector);
+        if (element.length > 0) {
+          const priceText = element.text().trim();
+          // Turkish decimal format handling
+          const cleanPrice = priceText.replace(/[^\d,]/g, '').replace(',', '.');
+          const price = parseFloat(cleanPrice);
+          
+          if (!isNaN(price) && price > 0 && price < 1000) {
+            console.log(`Found TEFAS scrape price for ${symbol}: ${price} TL`);
             return price;
           }
         }
       }
 
-      throw new Error('Price not found in TEFAS');
+      // Use mock data for known TEFAS funds
+      const mockTefasPrices: { [key: string]: number } = {
+        'TGY': 1.2567,     // Türkiye Garanti Yatırım Fonu
+        'IGY': 2.3456,     // İş Portföy Global Yatırım Fonu
+        'AGY': 1.8901,     // Akbank Portföy Yatırım Fonu
+        'KPY': 1.5432,     // Koç Portföy Yatırım Fonu
+        'IVY': 0.9876,     // İş Portföy Değişken Fon
+        'YAS': 1.4567,     // Yapı Kredi Portföy Yatırım Fonu
+        'HFY': 1.7890,     // Halkbank Portföy Yatırım Fonu
+        'VPY': 1.6543      // Vakıf Portföy Yatırım Fonu
+      };
+
+      if (mockTefasPrices[symbol]) {
+        console.log(`Using mock TEFAS price for ${symbol}: ${mockTefasPrices[symbol]} TL`);
+        return mockTefasPrices[symbol];
+      }
+
+      throw new Error(`Could not fetch TEFAS price for ${symbol}`);
     } catch (error) {
-      console.warn(`Failed to fetch TEFAS price for ${symbol}:`, error);
-      // Fallback to mock price service for demo
+      console.warn(`Failed to scrape TEFAS price for ${symbol}:`, error);
       return this.getMockPrice(symbol, 'fund');
     }
   }
