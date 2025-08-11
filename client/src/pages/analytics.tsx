@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Position, ClosedPosition } from "@shared/schema";
 import { Card } from "@/components/ui/card";
@@ -23,6 +23,11 @@ export default function Analytics() {
   const { data: closedPositions = [], isLoading: closedLoading } = useQuery<ClosedPosition[]>({
     queryKey: ['/api/closed-positions'],
   });
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   // Filter positions based on selected date range
   const getFilteredData = () => {

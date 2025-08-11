@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { X, TrendingUp, Percent } from "lucide-react";
+import { X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -93,34 +93,32 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
               <div className="grid grid-cols-2 gap-2">
                 <Button
                   type="button"
-                  variant={assetType === 'stock' ? 'default' : 'outline'}
-                  className={`p-3 h-auto ${
+                  variant="outline"
+                  className={`p-4 h-auto rounded-xl font-medium transition-all ${
                     assetType === 'stock' 
-                      ? 'bg-primary text-white border-primary' 
-                      : 'border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white bg-white dark:bg-gray-800'
+                      ? 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white shadow-sm' 
+                      : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-750'
                   }`}
                   onClick={() => {
                     setAssetType('stock');
                     form.setValue('type', 'stock');
                   }}
                 >
-                  <TrendingUp className="w-4 h-4 mr-2" />
                   BIST Hisse
                 </Button>
                 <Button
                   type="button"
-                  variant={assetType === 'fund' ? 'default' : 'outline'}
-                  className={`p-3 h-auto ${
+                  variant="outline"
+                  className={`p-4 h-auto rounded-xl font-medium transition-all ${
                     assetType === 'fund' 
-                      ? 'bg-primary text-white border-primary' 
-                      : 'border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white bg-white dark:bg-gray-800'
+                      ? 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white shadow-sm' 
+                      : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-750'
                   }`}
                   onClick={() => {
                     setAssetType('fund');
                     form.setValue('type', 'fund');
                   }}
                 >
-                  <Percent className="w-4 h-4 mr-2" />
                   TEFAS Fon
                 </Button>
               </div>
@@ -250,7 +248,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
             {/* Submit Button */}
             <Button 
               type="submit" 
-              className="w-full bg-primary text-white hover:bg-primary-dark"
+              className="w-full bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200 rounded-xl py-3 font-semibold"
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Ekleniyor...' : 'Pozisyon Ekle'}
