@@ -273,7 +273,6 @@ export default function Analytics() {
             <Card className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-gray-900 flex items-center">
-                  <DollarSign className="w-5 h-5 mr-2 text-blue-600" />
                   Portföy Durumu
                   {timeRange === 'custom' && startDate && endDate && (
                     <span className="text-xs text-gray-500 ml-2">
@@ -361,7 +360,6 @@ export default function Analytics() {
             <Card className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-gray-900 flex items-center">
-                  <Percent className="w-5 h-5 mr-2 text-green-600" />
                   Kar/Zarar Özeti
                   {timeRange === 'custom' && startDate && endDate && (
                     <span className="text-xs text-gray-500 ml-2">
@@ -416,7 +414,6 @@ export default function Analytics() {
             <Card className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-gray-900 flex items-center">
-                  <TrendingUp className="w-5 h-5 mr-2 text-blue-600" />
                   Performans Metrikleri
                 </h3>
               </div>
@@ -481,28 +478,12 @@ export default function Analytics() {
             </Card>
 
             {/* Coming Soon - Charts */}
-            <Card className="p-6">
-              <div className="text-center">
-                <CalendarDays className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="font-semibold text-gray-900 mb-2">Gelişmiş Analizler</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Zaman bazlı grafik analizleri, performans karşılaştırmaları ve detaylı raporlar yakında eklenecek.
-                </p>
-                <div className="flex items-center justify-center space-x-2 text-xs text-gray-500">
-                  <TrendingUp className="w-4 h-4" />
-                  <span>Grafik Görünümü</span>
-                  <span>•</span>
-                  <TrendingDown className="w-4 h-4" />
-                  <span>Trend Analizi</span>
-                </div>
-              </div>
-            </Card>
+
 
             {/* Asset Type P&L Analysis */}
             <Card className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-gray-900 flex items-center">
-                  <BarChart3 className="w-5 h-5 mr-2 text-purple-600" />
                   Hisse & Fon Kar/Zarar
                 </h3>
               </div>
@@ -553,7 +534,6 @@ export default function Analytics() {
             <Card className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-gray-900 flex items-center">
-                  <TrendingUp className="w-5 h-5 mr-2 text-indigo-600" />
                   Varlık Dağılımı
                 </h3>
               </div>

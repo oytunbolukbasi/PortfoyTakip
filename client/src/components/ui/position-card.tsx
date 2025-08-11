@@ -126,13 +126,6 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
         <div className="p-4">
           <div className="flex justify-between items-start mb-4">
             <div className="flex items-center space-x-3">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                position.type === 'stock' ? 'bg-blue-500' : 'bg-green-500'
-              }`}>
-                <span className="text-white font-semibold text-sm">
-                  {position.symbol.substring(0, 3).toUpperCase()}
-                </span>
-              </div>
               <div>
                 <h3 className="font-semibold text-gray-900 text-base">{position.symbol}</h3>
                 <p className="text-sm text-gray-500">{position.name || position.symbol}</p>
@@ -180,28 +173,28 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
             </div>
             
             {/* Action buttons */}
-            <div className="flex items-center justify-end space-x-2">
+            <div className="flex items-center justify-end space-x-3">
               <Button
                 variant="outline"
-                size="sm"
+                size="default"
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowCloseDialog(true);
                   setSellPrice(position.currentPrice ? parseFloat(position.currentPrice).toFixed(2).replace('.', ',') : '0,00');
                   setSellDate(new Date().toISOString().split('T')[0]);
                 }}
-                className="px-3 py-1 text-xs text-orange-600 border-orange-200 hover:bg-orange-50"
+                className="px-6 py-2 text-sm font-medium text-orange-600 border-orange-200 hover:bg-orange-50 rounded-xl"
               >
-                Kapat
+                Pozisyonu Kapat
               </Button>
               <Button
                 variant="outline"
-                size="sm"
+                size="default"
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowDeleteDialog(true);
                 }}
-                className="px-3 py-1 text-xs text-red-600 border-red-200 hover:bg-red-50"
+                className="px-6 py-2 text-sm font-medium text-red-600 border-red-200 hover:bg-red-50 rounded-xl"
               >
                 Sil
               </Button>

@@ -37,6 +37,11 @@ This is a Turkish investment portfolio tracking application built for Turkish in
   - Added icon-based information cards with rounded corners and subtle shadows
   - Implemented gradient P&L display with prominent visual indicators
   - Enhanced mobile-first design with better spacing and typography
+- **UI Simplification (January 28, 2025):**
+  - Removed "Gelişmiş Analizler" card from Analytics page for cleaner interface
+  - Removed all icons from Analytics card headers for minimal design
+  - Removed circular symbol logos from position cards for simplicity
+  - Enhanced action buttons in position cards - larger and more user-friendly
 
 ## User Preferences
 
