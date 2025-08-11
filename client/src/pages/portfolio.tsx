@@ -202,15 +202,15 @@ export default function Portfolio() {
               </div>
             ) : filteredPositions.length === 0 ? (
               <div className="text-center py-16">
-                <div className="w-20 h-20 bg-gray-100 rounded-full mx-auto mb-6 flex items-center justify-center">
+                <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full mx-auto mb-6 flex items-center justify-center">
                   <svg viewBox="0 0 24 24" fill="currentColor" className="w-10 h-10 text-gray-400">
                     <path d="M11,2V22C5.9,21.5 2,17.2 2,12S5.9,2.5 11,2M13,2V11H22C22,6.8 18.2,3 13,2M13,13V22C18.1,21.5 22,17.2 22,13H13Z"/>
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                   {searchQuery ? 'Sonuç Bulunamadı' : 'Henüz Pozisyon Yok'}
                 </h3>
-                <p className="text-gray-500 mb-8 text-base">
+                <p className="text-gray-500 dark:text-gray-400 mb-8 text-base">
                   {searchQuery ? 'Farklı anahtar kelimeler deneyin' : 'İlk yatırımınızı ekleyerek başlayın'}
                 </p>
                 {!searchQuery && (
@@ -262,7 +262,7 @@ export default function Portfolio() {
             ) : filteredClosedPositions.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-gray-400 dark:text-gray-500">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-gray-400">
                     <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17Z"/>
                   </svg>
                 </div>

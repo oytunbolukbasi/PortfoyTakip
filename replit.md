@@ -63,6 +63,9 @@ This is a Turkish investment portfolio tracking application built for Turkish in
     - Add Position Modal with dark-aware form controls and buttons
     - Full-screen modal backgrounds and headers optimized for dark mode
     - All text colors, borders, backgrounds, and interactive elements properly themed
+    - Portfolio table view (position-table) fully dark mode compatible with proper hover effects
+    - Unified color scheme using night blue tones (gray-800/gray-900) instead of harsh blacks
+    - Single view toggle button in header showing current active view with seamless switching
 
 ## User Preferences
 
