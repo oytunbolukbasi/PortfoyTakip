@@ -452,6 +452,7 @@ export class PriceService {
     if (type === 'fund') {
       const knownFundNames: Record<string, string> = {
         'IRY': 'INVEO PORTFÖY PARA PİYASASI (TL) FONU', // Updated from TEFAS API response
+        'GBG': 'INVEO PORTFÖY G-20 ÜLKELERİ YABANCI HİSSE SENEDİ FONU', // Updated from TEFAS API response
         'YKT': 'YAPI KREDİ PORTFÖY ALTIN FONU', // Updated from TEFAS API response
         'YAC': 'Ak Portföy Değer Odakli 100 Şirketleri Hisse Senedi Fonu',
         'ALC': 'Ak Portföy Kar Payi Ödeyen Şirketler Hisse Senedi Fonu',

@@ -220,10 +220,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (const position of positions) {
         try {
           const price = await priceService.getPrice(position.symbol, position.type as 'stock' | 'fund');
-          await storage.updatePosition(position.id, {
+          
+          // Update position with new price
+          const updateData: any = {
             currentPrice: price.toString(),
             lastUpdated: new Date(),
-          });
+          };
+          
+          // Also update fund names if they're missing or generic
+          if (position.type === 'fund' && (!position.name || position.name === position.symbol)) {
+            const fundName = priceService.getFundName(position.symbol, position.type as 'stock' | 'fund');
+            if (fundName !== position.symbol) {
+              updateData.name = fundName;
+            }
+          }
+          
+          await storage.updatePosition(position.id, updateData);
           
           console.log(`Updated ${position.symbol}: ${price} TL`);
           results.push({ symbol: position.symbol, success: true, price });
