@@ -84,49 +84,45 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
     >
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 drawer-content">
             {/* Asset Type Selection */}
-            <div className="bg-gray-50 rounded-xl p-4">
-              <FormLabel className="text-sm font-medium text-gray-700 mb-3 block">
-                Yatırım Türü
+            <div>
+              <FormLabel className="text-sm font-medium text-text-primary mb-2 block">
+                Varlık Türü
               </FormLabel>
-              <div className="flex bg-white rounded-lg p-1 border">
-                <button
+              <div className="grid grid-cols-2 gap-2">
+                <Button
                   type="button"
+                  variant={assetType === 'stock' ? 'default' : 'outline'}
+                  className={`p-3 h-auto ${
+                    assetType === 'stock' 
+                      ? 'bg-primary text-white border-primary' 
+                      : 'border-gray-300 text-text-primary'
+                  }`}
                   onClick={() => {
                     setAssetType('stock');
                     form.setValue('type', 'stock');
                   }}
-                  className={`flex-1 py-3 px-4 text-sm font-medium rounded-md transition-all ${
-                    assetType === 'stock'
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
                 >
-                  <TrendingUp className="w-4 h-4 inline mr-2" />
+                  <TrendingUp className="w-4 h-4 mr-2" />
                   BIST Hisse
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant={assetType === 'fund' ? 'default' : 'outline'}
+                  className={`p-3 h-auto ${
+                    assetType === 'fund' 
+                      ? 'bg-primary text-white border-primary' 
+                      : 'border-gray-300 text-text-primary'
+                  }`}
                   onClick={() => {
                     setAssetType('fund');
                     form.setValue('type', 'fund');
                   }}
-                  className={`flex-1 py-3 px-4 text-sm font-medium rounded-md transition-all ${
-                    assetType === 'fund'
-                      ? 'bg-green-600 text-white shadow-sm'
-                      : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
                 >
-                  <Percent className="w-4 h-4 inline mr-2" />
+                  <Percent className="w-4 h-4 mr-2" />
                   TEFAS Fon
-                </button>
-              </div>
-              <div className="mt-2 text-xs text-gray-500">
-                {assetType === 'stock' 
-                  ? 'Borsa İstanbul\'da işlem gören hisse senetleri (ör: ULKER, GARAN, ENKAI)'
-                  : 'TEFAS\'ta kayıtlı yatırım fonları (ör: TGY, IGY, AGY)'
-                }
+                </Button>
               </div>
             </div>
 
@@ -140,8 +136,8 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                   <FormControl>
                     <Input
                       {...field}
-                      placeholder={assetType === 'stock' ? 'Örn: ULKER, GARAN, ENKAI' : 'Örn: TGY, IGY, AGY'}
-                      className="uppercase text-lg font-medium"
+                      placeholder={assetType === 'stock' ? 'Örn: GARAN, AKBNK' : 'Örn: TFF, AFT'}
+                      className="uppercase"
                       onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                     />
                   </FormControl>
@@ -161,7 +157,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                     <Input
                       {...field}
                       value={field.value || ''}
-                      placeholder={assetType === 'stock' ? 'Örn: Ülker Bisküvi Sanayi A.Ş.' : 'Örn: Türkiye Garanti Yatırım Fonu'}
+                      placeholder={assetType === 'stock' ? 'Örn: Garanti BBVA' : 'Örn: TEFAS Fon'}
                     />
                   </FormControl>
                   <FormMessage />
@@ -240,16 +236,14 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
 
 
 
-            {/* Submit Button - Fixed at bottom */}
-            <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg">
-              <Button 
-                type="submit" 
-                className="w-full bg-blue-600 text-white hover:bg-blue-700 h-12 text-base font-medium"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? 'Ekleniyor...' : 'Pozisyon Ekle'}
-              </Button>
-            </div>
+            {/* Submit Button */}
+            <Button 
+              type="submit" 
+              className="w-full bg-primary text-white hover:bg-primary-dark"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Ekleniyor...' : 'Pozisyon Ekle'}
+            </Button>
           </form>
         </Form>
     </FullScreenModal>

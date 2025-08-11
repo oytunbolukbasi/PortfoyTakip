@@ -20,9 +20,9 @@ export function FullScreenModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-white flex flex-col">
+    <div className="fixed inset-0 z-50 bg-white">
       {/* Header */}
-      <div className="flex-shrink-0 bg-white border-b border-gray-200 px-4 py-3">
+      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
@@ -41,11 +41,9 @@ export function FullScreenModal({
         </div>
       </div>
 
-      {/* Content - Scrollable */}
-      <div className="flex-1 overflow-y-auto" style={{ height: 'calc(100vh - 80px)' }}>
-        <div className="p-4 pb-20">
-          {children}
-        </div>
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto p-4 pb-safe-area-inset-bottom">
+        {children}
       </div>
     </div>
   );
