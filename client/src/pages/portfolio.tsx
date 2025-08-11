@@ -127,22 +127,11 @@ export default function Portfolio() {
             <Button 
               variant="ghost" 
               size="sm" 
-              className={`p-3 rounded-full ${
-                viewMode === 'card' ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:bg-accent'
-              }`}
-              onClick={() => setViewMode('card')}
+              className="p-3 rounded-full text-primary bg-primary/10"
+              onClick={() => setViewMode(viewMode === 'card' ? 'table' : 'card')}
+              title={viewMode === 'card' ? 'Liste Görünümü' : 'Kart Görünümü'}
             >
-              <LayoutGrid className="w-6 h-6" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className={`p-3 rounded-full ${
-                viewMode === 'table' ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:bg-accent'
-              }`}
-              onClick={() => setViewMode('table')}
-            >
-              <Table2 className="w-6 h-6" />
+              {viewMode === 'card' ? <LayoutGrid className="w-6 h-6" /> : <Table2 className="w-6 h-6" />}
             </Button>
 
           </div>
