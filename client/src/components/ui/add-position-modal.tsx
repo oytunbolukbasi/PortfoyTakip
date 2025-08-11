@@ -87,40 +87,42 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 drawer-content">
             {/* Asset Type Selection */}
             <div>
-              <FormLabel className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
+              <FormLabel className="text-sm font-medium text-gray-900 dark:text-white mb-3 block">
                 Varlık Türü
               </FormLabel>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className={`p-4 h-auto rounded-xl font-medium transition-all ${
-                    assetType === 'stock' 
-                      ? 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white shadow-sm' 
-                      : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-750'
-                  }`}
-                  onClick={() => {
-                    setAssetType('stock');
-                    form.setValue('type', 'stock');
-                  }}
-                >
-                  BIST Hisse
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className={`p-4 h-auto rounded-xl font-medium transition-all ${
-                    assetType === 'fund' 
-                      ? 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white shadow-sm' 
-                      : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-750'
-                  }`}
-                  onClick={() => {
-                    setAssetType('fund');
-                    form.setValue('type', 'fund');
-                  }}
-                >
-                  TEFAS Fon
-                </Button>
+              <div className="bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
+                <div className="grid grid-cols-2 gap-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className={`py-2.5 px-4 rounded-lg font-medium text-sm transition-all ${
+                      assetType === 'stock' 
+                        ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' 
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    }`}
+                    onClick={() => {
+                      setAssetType('stock');
+                      form.setValue('type', 'stock');
+                    }}
+                  >
+                    Hisse
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className={`py-2.5 px-4 rounded-lg font-medium text-sm transition-all ${
+                      assetType === 'fund' 
+                        ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' 
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    }`}
+                    onClick={() => {
+                      setAssetType('fund');
+                      form.setValue('type', 'fund');
+                    }}
+                  >
+                    Fon
+                  </Button>
+                </div>
               </div>
             </div>
 
@@ -248,7 +250,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
             {/* Submit Button */}
             <Button 
               type="submit" 
-              className="w-full bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200 rounded-xl py-3 font-semibold"
+              className="w-full bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-800 rounded-xl py-3 font-semibold border border-gray-200 dark:border-gray-700"
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Ekleniyor...' : 'Pozisyon Ekle'}
