@@ -177,8 +177,14 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                       {...field}
                       type="number"
                       min="1"
+                      placeholder="1"
                       className="font-mono"
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                      value={field.value || ''}
+                      onChange={(e) => field.onChange(parseInt(e.target.value) || '')}
+                      onFocus={(e) => {
+                        // Select all text on focus so user can overwrite
+                        e.target.select();
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -199,12 +205,17 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                       type="text"
                       placeholder="106,80"
                       className="font-mono"
+                      value={field.value || ''}
                       onChange={(e) => {
                         // Allow Turkish format with comma as decimal separator
                         const value = e.target.value;
                         // Only allow numbers, comma, and thousand separator dot
                         const cleaned = value.replace(/[^0-9,.]/g, '');
                         field.onChange(cleaned);
+                      }}
+                      onFocus={(e) => {
+                        // Select all text on focus so user can overwrite
+                        e.target.select();
                       }}
                     />
                   </FormControl>
