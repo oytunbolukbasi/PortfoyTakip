@@ -534,9 +534,9 @@ export default function Analytics() {
             </Card>
 
             {/* Asset Allocation Chart */}
-            <Card className="p-4">
+            <Card className="p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-gray-900 flex items-center">
+                <h3 className="font-semibold text-gray-900 dark:text-white flex items-center">
                   Varlık Dağılımı
                 </h3>
               </div>
@@ -549,9 +549,9 @@ export default function Analytics() {
                       <path
                         d="M 20 100 A 80 80 0 0 1 180 100"
                         fill="none"
-                        stroke="#f3f4f6"
                         strokeWidth="16"
                         strokeLinecap="round"
+                        className="stroke-gray-200 dark:stroke-gray-600"
                       />
                       
                       {/* Stock allocation arc */}
@@ -559,12 +559,11 @@ export default function Analytics() {
                         <path
                           d="M 20 100 A 80 80 0 0 1 180 100"
                           fill="none"
-                          stroke="#3b82f6"
                           strokeWidth="16"
                           strokeLinecap="round"
                           strokeDasharray={`${(stockPercentage / 100) * 251.3} 251.3`}
                           strokeDashoffset="0"
-                          className="drop-shadow-sm"
+                          className="drop-shadow-sm stroke-blue-500 dark:stroke-blue-400"
                         />
                       )}
                       
@@ -573,20 +572,19 @@ export default function Analytics() {
                         <path
                           d="M 20 100 A 80 80 0 0 1 180 100"
                           fill="none"
-                          stroke="#10b981"
                           strokeWidth="16"
                           strokeLinecap="round"
                           strokeDasharray={`${(fundPercentage / 100) * 251.3} 251.3`}
                           strokeDashoffset={`${-(stockPercentage / 100) * 251.3}`}
-                          className="drop-shadow-sm"
+                          className="drop-shadow-sm stroke-green-500 dark:stroke-green-400"
                         />
                       )}
                     </svg>
                     
                     {/* Center text - positioned better for half donut */}
                     <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 text-center mb-2">
-                      <p className="text-sm text-gray-600 mb-1">Toplam Değer</p>
-                      <p className="text-xl font-bold text-gray-900">₺{formatTurkishPrice(totalValue)}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Toplam Değer</p>
+                      <p className="text-xl font-bold text-gray-900 dark:text-white">₺{formatTurkishPrice(totalValue)}</p>
                     </div>
                   </div>
                 </div>
@@ -595,23 +593,23 @@ export default function Analytics() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                      <span className="text-sm text-gray-700">Hisse Senedi</span>
+                      <div className="w-3 h-3 bg-blue-500 dark:bg-blue-400 rounded-full mr-2"></div>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">Hisse Senedi</span>
                     </div>
                     <div className="text-right">
-                      <span className="font-semibold text-gray-900">{formatTurkishPercent(stockPercentage)}</span>
-                      <span className="text-xs text-gray-500 ml-1">₺{formatTurkishPrice(stockValue)}</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">{formatTurkishPercent(stockPercentage)}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">₺{formatTurkishPrice(stockValue)}</span>
                     </div>
                   </div>
                   
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                      <span className="text-sm text-gray-700">Fon</span>
+                      <div className="w-3 h-3 bg-green-500 dark:bg-green-400 rounded-full mr-2"></div>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">Fon</span>
                     </div>
                     <div className="text-right">
-                      <span className="font-semibold text-gray-900">{formatTurkishPercent(fundPercentage)}</span>
-                      <span className="text-xs text-gray-500 ml-1">₺{formatTurkishPrice(fundValue)}</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">{formatTurkishPercent(fundPercentage)}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">₺{formatTurkishPrice(fundValue)}</span>
                     </div>
                   </div>
                 </div>
