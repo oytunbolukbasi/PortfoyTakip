@@ -158,15 +158,15 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
           
           <div className="space-y-3">
             {/* iOS-style Gradient K/Z Card */}
-            <div className={`rounded-xl p-4 ${
+            <div className={`rounded-xl p-3 ${
               pl >= 0 
                 ? 'bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/30 border border-green-100 dark:border-green-800/30'
                 : 'bg-gradient-to-br from-red-50 to-pink-100 dark:from-red-900/20 dark:to-pink-900/30 border border-red-100 dark:border-red-800/30'
             }`}>
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-muted-foreground">Kar/Zarar:</span>
-                <div className="text-right">
-                  <div className={`text-lg font-bold ${
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">K/Z:</span>
+                <div className="flex items-center space-x-2">
+                  <div className={`text-base font-bold ${
                     pl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   }`}>
                     {pl >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(pl))}
@@ -174,7 +174,7 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
                   <div className={`text-sm font-medium ${
                     pl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   }`}>
-                    {pl >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(plPercent))}
+                    ({pl >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(plPercent))})
                   </div>
                 </div>
               </div>
