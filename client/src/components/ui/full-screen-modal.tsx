@@ -42,8 +42,8 @@ export function FullScreenModal({
       </div>
 
       {/* Content - Scrollable */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-4 pb-6">
+      <div className="flex-1 overflow-y-auto" style={{ height: 'calc(100vh - 80px)' }}>
+        <div className="p-4 pb-20">
           {children}
         </div>
       </div>

@@ -115,7 +115,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                   className={`flex-1 py-3 px-4 text-sm font-medium rounded-md transition-all ${
                     assetType === 'fund'
                       ? 'bg-green-600 text-white shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                      : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
                   }`}
                 >
                   <Percent className="w-4 h-4 inline mr-2" />
@@ -240,11 +240,11 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
 
 
 
-            {/* Submit Button */}
-            <div className="pt-6">
+            {/* Submit Button - Fixed at bottom */}
+            <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg">
               <Button 
                 type="submit" 
-                className="w-full bg-blue-600 text-white hover:bg-blue-700 h-12 text-base font-medium shadow-lg"
+                className="w-full bg-blue-600 text-white hover:bg-blue-700 h-12 text-base font-medium"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Ekleniyor...' : 'Pozisyon Ekle'}
