@@ -8,7 +8,7 @@ import AddPositionModal from "@/components/ui/add-position-modal";
 import { PositionDetailModal } from "@/components/ui/position-detail-modal";
 import { PositionTable } from "@/components/ui/position-table";
 
-import { RefreshCw, Search, LayoutGrid, Table2, X } from "lucide-react";
+import { RefreshCw, Search, LayoutGrid, Table2, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -335,15 +335,15 @@ export default function Portfolio() {
                         </div>
                       </div>
 
-                      {/* iOS-style Action Button */}
-                      <div className="flex justify-end">
+                      {/* iOS-style Action Button - Centered */}
+                      <div className="flex justify-center">
                         <Button
                           variant="ghost"
                           size="lg"
                           className="bg-red-50 hover:bg-red-100 text-red-600 px-6 py-3 rounded-xl font-medium border border-red-100"
                           onClick={() => handleDeleteClosedPosition(position.id)}
                         >
-                          <X className="w-5 h-5 mr-2" />
+                          <Trash2 className="w-5 h-5 mr-2" />
                           SİL
                         </Button>
                       </div>
