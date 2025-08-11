@@ -22,7 +22,7 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light" storageKey="portfolio-theme">
+      <ThemeProvider>
         <TooltipProvider>
           <div className="min-h-screen bg-background text-foreground transition-colors">
             <Toaster />
