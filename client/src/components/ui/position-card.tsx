@@ -113,7 +113,7 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
   return (
     <>
       <div 
-        className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden mx-4 mb-3 cursor-pointer hover:shadow-md transition-shadow"
+        className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mx-4 mb-3 cursor-pointer hover:shadow-md transition-shadow"
         onClick={(e) => {
           // Don't trigger onClick if clicking on the dropdown menu or its trigger
           const target = e.target as HTMLElement;
@@ -127,12 +127,12 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
           <div className="flex justify-between items-start mb-4">
             <div className="flex items-center space-x-3">
               <div>
-                <h3 className="font-semibold text-card-foreground text-base">{position.symbol}</h3>
-                <p className="text-sm text-muted-foreground">{position.name || position.symbol}</p>
+                <h3 className="font-semibold text-gray-900 dark:text-white text-base">{position.symbol}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{position.name || position.symbol}</p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-xl font-bold text-card-foreground">₺{position.type === 'fund' ? formatFundPrice(currentPrice) : formatTurkishPrice(currentPrice)}</p>
+              <p className="text-xl font-bold text-gray-900 dark:text-white">₺{position.type === 'fund' ? formatFundPrice(currentPrice) : formatTurkishPrice(currentPrice)}</p>
               <div className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${
                 change >= 0 ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400'
               }`}>
@@ -142,17 +142,17 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
           </div>
           
           <div className="grid grid-cols-3 gap-3 mb-4">
-            <div className="text-center p-3 bg-muted rounded-xl">
-              <p className="text-xs text-muted-foreground mb-1">{position.type === 'fund' ? 'Pay' : 'Adet'}</p>
-              <p className="font-semibold text-foreground">{position.quantity.toLocaleString('tr-TR')}</p>
+            <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{position.type === 'fund' ? 'Pay' : 'Adet'}</p>
+              <p className="font-semibold text-gray-900 dark:text-white">{position.quantity.toLocaleString('tr-TR')}</p>
             </div>
-            <div className="text-center p-3 bg-muted rounded-xl">
-              <p className="text-xs text-muted-foreground mb-1">Alış</p>
-              <p className="font-semibold text-foreground">₺{position.type === 'fund' ? formatFundPrice(parseFloat(position.buyPrice)) : formatTurkishPrice(parseFloat(position.buyPrice))}</p>
+            <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Alış</p>
+              <p className="font-semibold text-gray-900 dark:text-white">₺{position.type === 'fund' ? formatFundPrice(parseFloat(position.buyPrice)) : formatTurkishPrice(parseFloat(position.buyPrice))}</p>
             </div>
-            <div className="text-center p-3 bg-muted rounded-xl">
-              <p className="text-xs text-muted-foreground mb-1">Değer</p>
-              <p className="font-semibold text-foreground">{formatTurkishCurrency(value)}</p>
+            <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Değer</p>
+              <p className="font-semibold text-gray-900 dark:text-white">{formatTurkishCurrency(value)}</p>
             </div>
           </div>
           

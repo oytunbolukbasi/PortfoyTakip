@@ -47,10 +47,10 @@ export default function PortfolioSummary({ positions }: PortfolioSummaryProps) {
   return (
     <section className="mx-4 mt-3 mb-4">
       {/* Main Portfolio Value Card */}
-      <div className="bg-card rounded-2xl p-6 shadow-sm border border-border">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
         <div className="text-center mb-6">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <h2 className="text-lg font-semibold text-card-foreground">Portföy Değeri</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Portföy Değeri</h2>
             <Button
               variant="ghost"
               size="sm"
@@ -60,7 +60,7 @@ export default function PortfolioSummary({ positions }: PortfolioSummaryProps) {
               {isVisible ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
             </Button>
           </div>
-          <p className="text-4xl font-bold text-card-foreground mb-1">
+          <p className="text-4xl font-bold text-gray-900 dark:text-white mb-1">
             {isVisible ? formatTurkishCurrency(summary.totalValue) : "***.***.***,**"}
           </p>
           <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
@@ -77,16 +77,16 @@ export default function PortfolioSummary({ positions }: PortfolioSummaryProps) {
         
         {/* Performance Metrics */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="text-center p-4 bg-muted rounded-xl">
-            <p className="text-sm text-muted-foreground mb-1">Toplam Getiri</p>
+          <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Toplam Getiri</p>
             <p className={`text-lg font-semibold ${
               summary.totalReturn >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
             }`}>
               {isVisible ? `${summary.totalReturn >= 0 ? '+' : '-'}${formatTurkishPercent(Math.abs(summary.totalReturn))}` : "**,**%"}
             </p>
           </div>
-          <div className="text-center p-4 bg-muted rounded-xl">
-            <p className="text-sm text-muted-foreground mb-1">Net K/Z</p>
+          <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Net K/Z</p>
             <p className={`text-lg font-semibold ${
               summary.totalPL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
             }`}>
