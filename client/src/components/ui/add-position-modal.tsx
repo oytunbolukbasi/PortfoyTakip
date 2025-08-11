@@ -87,7 +87,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 drawer-content">
             {/* Asset Type Selection */}
             <div>
-              <FormLabel className="text-sm font-medium text-text-primary mb-2 block">
+              <FormLabel className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
                 Varlık Türü
               </FormLabel>
               <div className="grid grid-cols-2 gap-2">
@@ -97,7 +97,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                   className={`p-3 h-auto ${
                     assetType === 'stock' 
                       ? 'bg-primary text-white border-primary' 
-                      : 'border-gray-300 text-text-primary'
+                      : 'border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white bg-white dark:bg-gray-800'
                   }`}
                   onClick={() => {
                     setAssetType('stock');
@@ -113,7 +113,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                   className={`p-3 h-auto ${
                     assetType === 'fund' 
                       ? 'bg-primary text-white border-primary' 
-                      : 'border-gray-300 text-text-primary'
+                      : 'border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white bg-white dark:bg-gray-800'
                   }`}
                   onClick={() => {
                     setAssetType('fund');
