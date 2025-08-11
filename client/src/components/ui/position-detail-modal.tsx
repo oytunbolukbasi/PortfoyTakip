@@ -91,7 +91,7 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
               <p className="text-xl font-bold text-gray-900">₺{formatTurkishPrice(value)}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Maliyet</p>
+              <p className="text-sm text-gray-600">Alış Tutarı</p>
               <p className="text-lg font-medium text-gray-900">
                 ₺{formatTurkishPrice(parseFloat(position.buyPrice) * position.quantity)}
               </p>
@@ -176,7 +176,7 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
             <h4 className="font-medium text-gray-900 mb-3">Performans</h4>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Maliyet:</span>
+                <span className="text-sm text-gray-600">Alış Tutarı:</span>
                 <span className="font-medium">
                   ₺{formatTurkishPrice(parseFloat(position.buyPrice) * position.quantity)}
                 </span>

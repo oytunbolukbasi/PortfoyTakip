@@ -25,6 +25,12 @@ This is a Turkish investment portfolio tracking application built for Turkish in
   - Implemented consistent daily pricing that simulates real fund behavior
   - Fund prices now update once per day as per real TEFAS behavior
   - Fixed fund name display in position cards and throughout the app
+- **Position Editing Removal (January 28, 2025):**
+  - Completely removed position editing functionality due to recurring bugs and complexity
+  - Position detail modal converted to read-only view with clean UI
+  - Removed Edit buttons from position cards and detail modals
+  - Simplified user interface focusing on view, close, and delete actions only
+  - Changed "Maliyet" label to "Alış Tutarı" in position details for clarity
 
 ## User Preferences
 

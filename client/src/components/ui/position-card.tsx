@@ -184,14 +184,6 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => onClick?.()}
-                className="px-3 py-1 text-xs text-blue-600 border-blue-200 hover:bg-blue-50"
-              >
-                Düzenle
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowCloseDialog(true);
