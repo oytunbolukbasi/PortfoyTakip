@@ -14,12 +14,11 @@ This is a Turkish investment portfolio tracking application built for Turkish in
 - Implemented proper minus (-) sign display for all loss positions across the app
 - Completed comprehensive profit/loss formatting with consistent negative value display
 - **Mobile UX Improvements (January 28, 2025):**
-  - Converted all modal dialogs to full-screen modals for native iOS experience
+  - Converted all modal dialogs to native-style bottom sheets using Vaul library
   - Fixed position editing functionality with proper PATCH endpoint implementation
   - Resolved mobile keyboard interaction issues with CSS optimizations
   - Added safe area support and proper scroll behavior for iOS devices
-  - Optimized position cards with dedicated K/Z display sections for better readability
-  - Enhanced PWA compatibility with proper bottom navigation safe area padding
+  - Optimized bottom sheet sizing for better mobile experience (max-height constraints)
 
 ## User Preferences
 
