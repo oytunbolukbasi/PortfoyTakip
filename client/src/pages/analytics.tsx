@@ -400,7 +400,7 @@ export default function Analytics() {
                 <div className="pt-3 border-t border-gray-100">
                   <div className="flex justify-between items-center">
                     <span className="font-medium text-gray-900">
-                      {timeRange === 'custom' && startDate && endDate ? 'Dönem Net K/Z:' : 'Net K/Z:'}
+                      {timeRange === 'custom' && startDate && endDate ? 'Dönem Kar/Zarar:' : 'Kar/Zarar:'}
                     </span>
                     <span className={`font-bold text-lg ${netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {netProfit >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(netProfit))}
@@ -538,55 +538,52 @@ export default function Analytics() {
                 </h3>
               </div>
               <div className="space-y-4">
-                {/* Simple SVG Donut Chart */}
-                <div className="flex justify-center">
+                {/* Modern Half Donut Chart */}
+                <div className="flex justify-center mb-6">
                   <div className="relative">
-                    <svg width="160" height="160" viewBox="0 0 160 160" className="transform -rotate-90">
-                      {/* Background circle */}
-                      <circle
-                        cx="80"
-                        cy="80"
-                        r="60"
+                    <svg width="200" height="120" viewBox="0 0 200 120" className="overflow-visible">
+                      {/* Background half circle */}
+                      <path
+                        d="M 20 100 A 80 80 0 0 1 180 100"
                         fill="none"
-                        stroke="#e5e7eb"
-                        strokeWidth="20"
+                        stroke="#f3f4f6"
+                        strokeWidth="16"
+                        strokeLinecap="round"
                       />
                       
                       {/* Stock allocation arc */}
                       {stockPercentage > 0 && (
-                        <circle
-                          cx="80"
-                          cy="80"
-                          r="60"
+                        <path
+                          d="M 20 100 A 80 80 0 0 1 180 100"
                           fill="none"
                           stroke="#3b82f6"
-                          strokeWidth="20"
-                          strokeDasharray={`${(stockPercentage / 100) * 377} 377`}
-                          strokeDashoffset="0"
+                          strokeWidth="16"
                           strokeLinecap="round"
+                          strokeDasharray={`${(stockPercentage / 100) * 251.3} 251.3`}
+                          strokeDashoffset="0"
+                          className="drop-shadow-sm"
                         />
                       )}
                       
                       {/* Fund allocation arc */}
                       {fundPercentage > 0 && (
-                        <circle
-                          cx="80"
-                          cy="80"
-                          r="60"
+                        <path
+                          d="M 20 100 A 80 80 0 0 1 180 100"
                           fill="none"
                           stroke="#10b981"
-                          strokeWidth="20"
-                          strokeDasharray={`${(fundPercentage / 100) * 377} 377`}
-                          strokeDashoffset={`${-(stockPercentage / 100) * 377}`}
+                          strokeWidth="16"
                           strokeLinecap="round"
+                          strokeDasharray={`${(fundPercentage / 100) * 251.3} 251.3`}
+                          strokeDashoffset={`${-(stockPercentage / 100) * 251.3}`}
+                          className="drop-shadow-sm"
                         />
                       )}
                     </svg>
                     
-                    {/* Center text */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <p className="text-xs text-gray-500">Toplam</p>
-                      <p className="text-lg font-bold text-gray-900">₺{formatTurkishPrice(totalValue)}</p>
+                    {/* Center text - positioned better for half donut */}
+                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 text-center mb-2">
+                      <p className="text-sm text-gray-600 mb-1">Toplam Değer</p>
+                      <p className="text-xl font-bold text-gray-900">₺{formatTurkishPrice(totalValue)}</p>
                     </div>
                   </div>
                 </div>

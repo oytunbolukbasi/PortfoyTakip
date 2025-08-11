@@ -134,14 +134,7 @@ export default function Portfolio() {
             >
               <Table2 className="w-6 h-6" />
             </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="p-3 text-blue-600 hover:bg-blue-50 rounded-full font-medium"
-              onClick={() => setShowAddModal(true)}
-            >
-              <span className="text-xl">+</span>
-            </Button>
+
           </div>
         </div>
       </header>
@@ -196,15 +189,7 @@ export default function Portfolio() {
         </div>
       </div>
 
-      {/* Add Position Button - Header */}
-      <div className="px-4 pb-3">
-        <Button 
-          onClick={() => setShowAddModal(true)}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-medium text-lg shadow-sm"
-        >
-          + Pozisyon Ekle
-        </Button>
-      </div>
+
 
       {/* Main Content */}
       <main className="pb-32">
@@ -294,69 +279,72 @@ export default function Portfolio() {
                 {filteredClosedPositions.map((position) => (
                   <div
                     key={position.id}
-                    className="bg-surface rounded-lg shadow-sm border border-gray-200 p-4"
+                    className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mx-4 mb-3"
                   >
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          position.type === 'stock' ? 'bg-primary' : 'bg-secondary'
-                        }`}>
-                          <span className="text-white font-medium text-sm">
-                            {position.symbol.substring(0, 2).toUpperCase()}
-                          </span>
+                    <div className="p-4">
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex items-center space-x-3">
+                          <div>
+                            <h3 className="font-semibold text-gray-900 text-base">{position.symbol}</h3>
+                            <p className="text-sm text-gray-500">{position.name || position.symbol}</p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="font-medium text-text-primary">{position.symbol}</h3>
-                          <p className="text-sm text-text-secondary">{position.name || position.symbol}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-mono text-lg font-medium">₺{formatTurkishPrice(parseFloat(position.sellPrice))}</p>
-                        <p className="text-sm text-text-secondary">
-                          {new Date(position.sellDate).toLocaleDateString('tr-TR')}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-4 text-sm mb-3">
-                      <div>
-                        <p className="text-text-secondary">Adet</p>
-                        <p className="font-mono font-medium">{position.quantity}</p>
-                      </div>
-                      <div>
-                        <p className="text-text-secondary">Alış</p>
-                        <p className="font-mono font-medium">₺{formatTurkishPrice(parseFloat(position.buyPrice))}</p>
-                      </div>
-                      <div>
-                        <p className="text-text-secondary">Satış</p>
-                        <p className="font-mono font-medium">₺{formatTurkishPrice(parseFloat(position.sellPrice))}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="pt-3 border-t border-gray-100">
-                      <div className="flex justify-between items-center">
-                        <span className="text-text-secondary text-sm">Net P/L:</span>
                         <div className="text-right">
-                          <span className={`font-mono text-sm font-medium ${
-                            parseFloat(position.pl) >= 0 ? 'text-success' : 'text-error'
-                          }`}>
-                            {parseFloat(position.pl) >= 0 ? '+' : ''}₺{formatTurkishPrice(Math.abs(parseFloat(position.pl)))}
-                          </span>
-                          <span className={`font-mono text-sm ml-1 ${
-                            parseFloat(position.plPercent) >= 0 ? 'text-success' : 'text-error'
-                          }`}>
-                            ({parseFloat(position.plPercent) >= 0 ? '+' : ''}{parseFloat(position.plPercent).toFixed(2)}%)
-                          </span>
+                          <p className="text-xl font-bold text-gray-900">₺{formatTurkishPrice(parseFloat(position.sellPrice))}</p>
+                          <p className="text-sm text-gray-500">
+                            {new Date(position.sellDate).toLocaleDateString('tr-TR')}
+                          </p>
                         </div>
                       </div>
-                      <div className="flex justify-end mt-2">
+                      
+                      <div className="grid grid-cols-3 gap-3 mb-4">
+                        <div className="text-center p-3 bg-gray-50 rounded-xl">
+                          <p className="text-xs text-gray-500 mb-1">{position.type === 'fund' ? 'Pay' : 'Adet'}</p>
+                          <p className="font-semibold text-gray-900">{position.quantity.toLocaleString('tr-TR')}</p>
+                        </div>
+                        <div className="text-center p-3 bg-gray-50 rounded-xl">
+                          <p className="text-xs text-gray-500 mb-1">Alış</p>
+                          <p className="font-semibold text-gray-900">₺{formatTurkishPrice(parseFloat(position.buyPrice))}</p>
+                        </div>
+                        <div className="text-center p-3 bg-gray-50 rounded-xl">
+                          <p className="text-xs text-gray-500 mb-1">Satış</p>
+                          <p className="font-semibold text-gray-900">₺{formatTurkishPrice(parseFloat(position.sellPrice))}</p>
+                        </div>
+                      </div>
+                      
+                      {/* iOS-style Gradient K/Z Card */}
+                      <div className={`rounded-xl p-4 mb-4 ${
+                        parseFloat(position.pl) >= 0 
+                          ? 'bg-gradient-to-br from-green-50 to-emerald-100 border border-green-100'
+                          : 'bg-gradient-to-br from-red-50 to-pink-100 border border-red-100'
+                      }`}>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-gray-600">Kar/Zarar:</span>
+                          <div className="text-right">
+                            <div className={`text-lg font-bold ${
+                              parseFloat(position.pl) >= 0 ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {parseFloat(position.pl) >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(parseFloat(position.pl)))}
+                            </div>
+                            <div className={`text-sm font-medium ${
+                              parseFloat(position.plPercent) >= 0 ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {parseFloat(position.plPercent) >= 0 ? '+' : '-'}{Math.abs(parseFloat(position.plPercent)).toFixed(2)}%
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* iOS-style Action Button */}
+                      <div className="flex justify-end">
                         <Button
                           variant="ghost"
-                          size="sm"
-                          className="text-red-600 hover:bg-red-50 p-1 h-auto"
+                          size="lg"
+                          className="bg-red-50 hover:bg-red-100 text-red-600 px-6 py-3 rounded-xl font-medium border border-red-100"
                           onClick={() => handleDeleteClosedPosition(position.id)}
                         >
-                          <X className="w-4 h-4" />
+                          <X className="w-5 h-5 mr-2" />
+                          SİL
                         </Button>
                       </div>
                     </div>
