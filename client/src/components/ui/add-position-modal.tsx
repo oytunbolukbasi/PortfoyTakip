@@ -132,7 +132,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
               name="symbol"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Varlık Kodu</FormLabel>
+                  <FormLabel className="text-gray-900 dark:text-white">Varlık Kodu</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -152,7 +152,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Varlık Adı (Opsiyonel)</FormLabel>
+                  <FormLabel className="text-gray-900 dark:text-white">Varlık Adı (Opsiyonel)</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -171,7 +171,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
               name="quantity"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{assetType === 'fund' ? 'Pay Adedi' : 'Adet'}</FormLabel>
+                  <FormLabel className="text-gray-900 dark:text-white">{assetType === 'fund' ? 'Pay Adedi' : 'Adet'}</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -198,7 +198,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
               name="buyPrice"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Alış Fiyatı (₺)</FormLabel>
+                  <FormLabel className="text-gray-900 dark:text-white">Alış Fiyatı (₺)</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -219,7 +219,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                       }}
                     />
                   </FormControl>
-                  <div className="text-xs text-muted-foreground mt-1">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     Örnek: 0,60 (fonlar) veya 106,80 (hisseler)
                   </div>
                   <FormMessage />
@@ -233,7 +233,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
               name="buyDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Alış Tarihi</FormLabel>
+                  <FormLabel className="text-gray-900 dark:text-white">Alış Tarihi</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
