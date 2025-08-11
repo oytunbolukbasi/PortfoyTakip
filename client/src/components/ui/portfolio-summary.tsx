@@ -47,26 +47,26 @@ export default function PortfolioSummary({ positions }: PortfolioSummaryProps) {
   return (
     <section className="mx-4 mt-3 mb-4">
       {/* Main Portfolio Value Card */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+      <div className="bg-card rounded-2xl p-6 shadow-sm border border-border">
         <div className="text-center mb-6">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <h2 className="text-lg font-semibold text-gray-900">Portföy Değeri</h2>
+            <h2 className="text-lg font-semibold text-card-foreground">Portföy Değeri</h2>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setIsVisible(!isVisible)}
-              className="p-1 h-auto text-gray-400 hover:text-gray-600"
+              className="p-1 h-auto text-muted-foreground hover:text-foreground"
             >
               {isVisible ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
             </Button>
           </div>
-          <p className="text-4xl font-bold text-gray-900 mb-1">
+          <p className="text-4xl font-bold text-card-foreground mb-1">
             {isVisible ? formatTurkishCurrency(summary.totalValue) : "***.***.***,**"}
           </p>
           <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
             summary.dailyPL >= 0 
-              ? 'bg-green-100 text-green-800' 
-              : 'bg-red-100 text-red-800'
+              ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400' 
+              : 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400'
           }`}>
             {isVisible 
               ? `${summary.dailyPL >= 0 ? '+' : '-'}₺${formatTurkishPrice(Math.abs(summary.dailyPL))} bugün`
@@ -77,18 +77,18 @@ export default function PortfolioSummary({ positions }: PortfolioSummaryProps) {
         
         {/* Performance Metrics */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="text-center p-4 bg-gray-50 rounded-xl">
-            <p className="text-sm text-gray-600 mb-1">Toplam Getiri</p>
+          <div className="text-center p-4 bg-muted rounded-xl">
+            <p className="text-sm text-muted-foreground mb-1">Toplam Getiri</p>
             <p className={`text-lg font-semibold ${
-              summary.totalReturn >= 0 ? 'text-green-600' : 'text-red-600'
+              summary.totalReturn >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
             }`}>
               {isVisible ? `${summary.totalReturn >= 0 ? '+' : '-'}${formatTurkishPercent(Math.abs(summary.totalReturn))}` : "**,**%"}
             </p>
           </div>
-          <div className="text-center p-4 bg-gray-50 rounded-xl">
-            <p className="text-sm text-gray-600 mb-1">Net K/Z</p>
+          <div className="text-center p-4 bg-muted rounded-xl">
+            <p className="text-sm text-muted-foreground mb-1">Net K/Z</p>
             <p className={`text-lg font-semibold ${
-              summary.totalPL >= 0 ? 'text-green-600' : 'text-red-600'
+              summary.totalPL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
             }`}>
               {isVisible 
                 ? `${summary.totalPL >= 0 ? '+' : '-'}₺${formatTurkishPrice(Math.abs(summary.totalPL))}`

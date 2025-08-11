@@ -113,7 +113,7 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
   return (
     <>
       <div 
-        className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mx-4 mb-3 cursor-pointer hover:shadow-md transition-shadow"
+        className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden mx-4 mb-3 cursor-pointer hover:shadow-md transition-shadow"
         onClick={(e) => {
           // Don't trigger onClick if clicking on the dropdown menu or its trigger
           const target = e.target as HTMLElement;
@@ -127,14 +127,14 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
           <div className="flex justify-between items-start mb-4">
             <div className="flex items-center space-x-3">
               <div>
-                <h3 className="font-semibold text-gray-900 text-base">{position.symbol}</h3>
-                <p className="text-sm text-gray-500">{position.name || position.symbol}</p>
+                <h3 className="font-semibold text-card-foreground text-base">{position.symbol}</h3>
+                <p className="text-sm text-muted-foreground">{position.name || position.symbol}</p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-xl font-bold text-gray-900">₺{position.type === 'fund' ? formatFundPrice(currentPrice) : formatTurkishPrice(currentPrice)}</p>
+              <p className="text-xl font-bold text-card-foreground">₺{position.type === 'fund' ? formatFundPrice(currentPrice) : formatTurkishPrice(currentPrice)}</p>
               <div className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${
-                change >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                change >= 0 ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400'
               }`}>
                 {formatTurkishPercent(change)}
               </div>
@@ -142,17 +142,17 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
           </div>
           
           <div className="grid grid-cols-3 gap-3 mb-4">
-            <div className="text-center p-3 bg-gray-50 rounded-xl">
-              <p className="text-xs text-gray-500 mb-1">{position.type === 'fund' ? 'Pay' : 'Adet'}</p>
-              <p className="font-semibold text-gray-900">{position.quantity.toLocaleString('tr-TR')}</p>
+            <div className="text-center p-3 bg-muted rounded-xl">
+              <p className="text-xs text-muted-foreground mb-1">{position.type === 'fund' ? 'Pay' : 'Adet'}</p>
+              <p className="font-semibold text-foreground">{position.quantity.toLocaleString('tr-TR')}</p>
             </div>
-            <div className="text-center p-3 bg-gray-50 rounded-xl">
-              <p className="text-xs text-gray-500 mb-1">Alış</p>
-              <p className="font-semibold text-gray-900">₺{position.type === 'fund' ? formatFundPrice(parseFloat(position.buyPrice)) : formatTurkishPrice(parseFloat(position.buyPrice))}</p>
+            <div className="text-center p-3 bg-muted rounded-xl">
+              <p className="text-xs text-muted-foreground mb-1">Alış</p>
+              <p className="font-semibold text-foreground">₺{position.type === 'fund' ? formatFundPrice(parseFloat(position.buyPrice)) : formatTurkishPrice(parseFloat(position.buyPrice))}</p>
             </div>
-            <div className="text-center p-3 bg-gray-50 rounded-xl">
-              <p className="text-xs text-gray-500 mb-1">Değer</p>
-              <p className="font-semibold text-gray-900">{formatTurkishCurrency(value)}</p>
+            <div className="text-center p-3 bg-muted rounded-xl">
+              <p className="text-xs text-muted-foreground mb-1">Değer</p>
+              <p className="font-semibold text-foreground">{formatTurkishCurrency(value)}</p>
             </div>
           </div>
           
@@ -160,19 +160,19 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
             {/* iOS-style Gradient K/Z Card */}
             <div className={`rounded-xl p-4 ${
               pl >= 0 
-                ? 'bg-gradient-to-br from-green-50 to-emerald-100 border border-green-100'
-                : 'bg-gradient-to-br from-red-50 to-pink-100 border border-red-100'
+                ? 'bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/30 border border-green-100 dark:border-green-800/30'
+                : 'bg-gradient-to-br from-red-50 to-pink-100 dark:from-red-900/20 dark:to-pink-900/30 border border-red-100 dark:border-red-800/30'
             }`}>
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-gray-600">Kar/Zarar:</span>
+                <span className="text-sm font-medium text-muted-foreground">Kar/Zarar:</span>
                 <div className="text-right">
                   <div className={`text-lg font-bold ${
-                    pl >= 0 ? 'text-green-600' : 'text-red-600'
+                    pl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   }`}>
                     {pl >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(pl))}
                   </div>
                   <div className={`text-sm font-medium ${
-                    pl >= 0 ? 'text-green-600' : 'text-red-600'
+                    pl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   }`}>
                     {pl >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(plPercent))}
                   </div>
@@ -191,7 +191,7 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
                   setSellPrice(position.currentPrice ? parseFloat(position.currentPrice).toFixed(2).replace('.', ',') : '0,00');
                   setSellDate(new Date().toISOString().split('T')[0]);
                 }}
-                className="flex-1 bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100 rounded-xl font-semibold py-3"
+                className="flex-1 bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800/30 text-orange-700 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-xl font-semibold py-3"
               >
                 <span className="mr-2">✓</span>
                 KAPAT
@@ -203,7 +203,7 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
                   e.stopPropagation();
                   setShowDeleteDialog(true);
                 }}
-                className="flex-1 bg-red-50 border-red-200 text-red-700 hover:bg-red-100 rounded-xl font-semibold py-3"
+                className="flex-1 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/30 text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl font-semibold py-3"
               >
                 <span className="mr-2">✕</span>
                 SİL

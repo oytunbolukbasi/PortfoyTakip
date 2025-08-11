@@ -8,11 +8,12 @@ import AddPositionModal from "@/components/ui/add-position-modal";
 import { PositionDetailModal } from "@/components/ui/position-detail-modal";
 import { PositionTable } from "@/components/ui/position-table";
 
-import { RefreshCw, Search, LayoutGrid, Table2, X, Trash2 } from "lucide-react";
+import { RefreshCw, Search, LayoutGrid, Table2, X, Trash2, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "@/components/ui/theme-provider";
 import { formatTurkishPrice } from "@/lib/format";
 
 export default function Portfolio() {
@@ -23,6 +24,7 @@ export default function Portfolio() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
   const { toast } = useToast();
+  const { theme, toggleTheme } = useTheme();
 
   const { data: positions = [], isLoading: positionsLoading, refetch: refetchPositions } = useQuery<Position[]>({
     queryKey: ['/api/positions'],
@@ -98,18 +100,26 @@ export default function Portfolio() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* iPhone-style Navigation Bar */}
-      <header className="bg-white/95 backdrop-blur-md border-b border-gray-200/60 sticky top-0 z-50">
+      <header className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-50">
         <div className="flex items-center justify-between px-4 h-12">
           <div className="flex items-center space-x-2">
-            <h1 className="text-lg font-semibold text-gray-900">Portföy</h1>
+            <h1 className="text-lg font-semibold text-foreground">Portföy</h1>
           </div>
           <div className="flex items-center space-x-1">
             <Button 
               variant="ghost" 
               size="sm" 
-              className="p-3 text-blue-600 hover:bg-blue-50 rounded-full"
+              className="p-3 text-primary hover:bg-primary/10 rounded-full"
+              onClick={toggleTheme}
+            >
+              {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="p-3 text-primary hover:bg-primary/10 rounded-full"
               onClick={handleRefresh}
             >
               <RefreshCw className="w-6 h-6" />
@@ -118,7 +128,7 @@ export default function Portfolio() {
               variant="ghost" 
               size="sm" 
               className={`p-3 rounded-full ${
-                viewMode === 'card' ? 'text-blue-600 bg-blue-50' : 'text-gray-500 hover:bg-gray-50'
+                viewMode === 'card' ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:bg-accent'
               }`}
               onClick={() => setViewMode('card')}
             >
@@ -128,7 +138,7 @@ export default function Portfolio() {
               variant="ghost" 
               size="sm" 
               className={`p-3 rounded-full ${
-                viewMode === 'table' ? 'text-blue-600 bg-blue-50' : 'text-gray-500 hover:bg-gray-50'
+                viewMode === 'table' ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:bg-accent'
               }`}
               onClick={() => setViewMode('table')}
             >
@@ -144,12 +154,12 @@ export default function Portfolio() {
 
       {/* iPhone-style Segmented Control */}
       <div className="px-4 pt-3 pb-2">
-        <div className="bg-gray-100 rounded-lg p-1 flex">
+        <div className="bg-muted rounded-lg p-1 flex">
           <button
             className={`flex-1 py-2 px-3 text-center text-sm font-medium rounded-md transition-all ${
               activeTab === 'active'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground'
             }`}
             onClick={() => setActiveTab('active')}
           >
@@ -158,8 +168,8 @@ export default function Portfolio() {
           <button
             className={`flex-1 py-2 px-3 text-center text-sm font-medium rounded-md transition-all ${
               activeTab === 'closed'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground'
             }`}
             onClick={() => {
               setActiveTab('closed');
@@ -177,14 +187,14 @@ export default function Portfolio() {
       <div className="px-4 pb-3">
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-4 w-4 text-gray-400" />
+            <Search className="h-4 w-4 text-muted-foreground" />
           </div>
           <Input
             type="text"
             placeholder="Arama"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 pr-4 py-2 bg-gray-100 border-0 rounded-lg text-gray-900 placeholder-gray-500 focus:bg-white focus:ring-2 focus:ring-blue-500"
+            className="pl-9 pr-4 py-2 bg-muted border-0 rounded-lg text-foreground placeholder-muted-foreground focus:bg-background focus:ring-2 focus:ring-primary"
           />
         </div>
       </div>

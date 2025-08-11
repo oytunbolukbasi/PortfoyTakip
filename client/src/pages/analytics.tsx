@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CalendarDays, TrendingUp, TrendingDown, DollarSign, Percent, BarChart3 } from "lucide-react";
+import { CalendarDays, TrendingUp, TrendingDown, DollarSign, Percent, BarChart3, Moon, Sun } from "lucide-react";
+import { useTheme } from "@/components/ui/theme-provider";
 import { formatTurkishPrice, formatTurkishPercent } from "@/lib/format";
 
 export default function Analytics() {
+  const { theme, toggleTheme } = useTheme();
   const [timeRange, setTimeRange] = useState<'daily' | 'monthly' | 'custom'>('daily');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -154,19 +156,20 @@ export default function Analytics() {
   const isLoading = positionsLoading || closedLoading;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <header className="bg-white/95 backdrop-blur-md border-b border-gray-200/60 sticky top-0 z-40">
+      <header className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-40">
         <div className="flex items-center justify-between px-4 h-12">
           <div className="flex items-center space-x-2">
-            <h1 className="text-lg font-semibold text-gray-900">Analiz</h1>
+            <h1 className="text-lg font-semibold text-foreground">Analiz</h1>
           </div>
           <Button 
             variant="ghost" 
             size="sm" 
-            className="p-3 text-blue-600 hover:bg-blue-50 rounded-full"
+            className="p-3 text-primary hover:bg-primary/10 rounded-full"
+            onClick={toggleTheme}
           >
-            <BarChart3 className="w-6 h-6" />
+            {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
           </Button>
         </div>
       </header>

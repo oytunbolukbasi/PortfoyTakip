@@ -66,6 +66,7 @@ textarea:focus {
 }
 
 :root {
+  /* iOS-style Light Theme */
   --background: hsl(0, 0%, 98%);
   --foreground: hsl(213, 13%, 13%);
   --muted: hsl(60, 4.8%, 95.9%);
@@ -74,58 +75,41 @@ textarea:focus {
   --popover-foreground: hsl(213, 13%, 13%);
   --card: hsl(0, 0%, 100%);
   --card-foreground: hsl(213, 13%, 13%);
-  --border: hsl(214, 13%, 90%);
-  --input: hsl(214, 13%, 90%);
-  --primary: hsl(207, 90%, 54%);
-  --primary-foreground: hsl(211, 100%, 99%);
-  --primary-dark: hsl(207, 90%, 47%);
-  --secondary: hsl(135, 50%, 47%);
-  --secondary-foreground: hsl(0, 0%, 100%);
-  --accent: hsl(60, 4.8%, 95.9%);
-  --accent-foreground: hsl(24, 9.8%, 10%);
-  --destructive: hsl(0, 84.2%, 60.2%);
-  --destructive-foreground: hsl(60, 9.1%, 97.8%);
-  --ring: hsl(213, 13%, 13%);
-  --radius: 0.5rem;
-  
-  /* Custom app colors */
-  --surface: hsl(0, 0%, 100%);
-  --text-primary: hsl(213, 13%, 13%);
-  --text-secondary: hsl(215, 8%, 46%);
-  --success: hsl(122, 39%, 49%);
-  --warning: hsl(36, 100%, 50%);
-  --error: hsl(0, 84%, 67%);
+  --border: hsl(214, 13%, 91%);
+  --input: hsl(214, 13%, 91%);
+  --primary: hsl(221, 83%, 53%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(210, 6%, 95%);
+  --secondary-foreground: hsl(213, 13%, 13%);
+  --accent: hsl(210, 6%, 95%);
+  --accent-foreground: hsl(213, 13%, 13%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --ring: hsl(221, 83%, 53%);
+  --radius: 12px;
 }
 
 .dark {
-  --background: hsl(240, 10%, 3.9%);
-  --foreground: hsl(0, 0%, 98%);
-  --muted: hsl(240, 3.7%, 15.9%);
-  --muted-foreground: hsl(240, 5%, 64.9%);
-  --popover: hsl(240, 10%, 3.9%);
-  --popover-foreground: hsl(0, 0%, 98%);
-  --card: hsl(240, 10%, 3.9%);
-  --card-foreground: hsl(0, 0%, 98%);
-  --border: hsl(240, 3.7%, 15.9%);
-  --input: hsl(240, 3.7%, 15.9%);
-  --primary: hsl(207, 90%, 54%);
-  --primary-foreground: hsl(211, 100%, 99%);
-  --primary-dark: hsl(207, 90%, 47%);
-  --secondary: hsl(135, 50%, 47%);
-  --secondary-foreground: hsl(0, 0%, 98%);
-  --accent: hsl(240, 3.7%, 15.9%);
-  --accent-foreground: hsl(0, 0%, 98%);
-  --destructive: hsl(0, 62.8%, 30.6%);
-  --destructive-foreground: hsl(0, 0%, 98%);
-  --ring: hsl(240, 4.9%, 83.9%);
-  
-  /* Custom app colors for dark mode */
-  --surface: hsl(240, 10%, 3.9%);
-  --text-primary: hsl(0, 0%, 98%);
-  --text-secondary: hsl(240, 5%, 64.9%);
-  --success: hsl(122, 39%, 49%);
-  --warning: hsl(36, 100%, 50%);
-  --error: hsl(0, 84%, 67%);
+  /* iOS-style Dark Theme */
+  --background: hsl(0, 0%, 8%);
+  --foreground: hsl(0, 0%, 95%);
+  --muted: hsl(0, 0%, 14%);
+  --muted-foreground: hsl(0, 0%, 63%);
+  --popover: hsl(0, 0%, 11%);
+  --popover-foreground: hsl(0, 0%, 95%);
+  --card: hsl(0, 0%, 11%);
+  --card-foreground: hsl(0, 0%, 95%);
+  --border: hsl(0, 0%, 20%);
+  --input: hsl(0, 0%, 20%);
+  --primary: hsl(214, 100%, 67%);
+  --primary-foreground: hsl(0, 0%, 8%);
+  --secondary: hsl(0, 0%, 14%);
+  --secondary-foreground: hsl(0, 0%, 95%);
+  --accent: hsl(0, 0%, 14%);
+  --accent-foreground: hsl(0, 0%, 95%);
+  --destructive: hsl(0, 90%, 71%);
+  --destructive-foreground: hsl(0, 0%, 8%);
+  --ring: hsl(214, 100%, 67%);
 }
 
 @layer base {
