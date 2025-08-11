@@ -191,9 +191,9 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
                   setSellPrice(position.currentPrice ? parseFloat(position.currentPrice).toFixed(2).replace('.', ',') : '0,00');
                   setSellDate(new Date().toISOString().split('T')[0]);
                 }}
-                className="flex-1 bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800/30 text-orange-700 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-xl font-semibold py-3"
+                className="flex-1 bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800/30 text-orange-700 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-xl font-medium py-2 text-sm h-auto"
               >
-                <span className="mr-2">✓</span>
+                <span className="mr-1.5">✓</span>
                 KAPAT
               </Button>
               <Button
@@ -203,9 +203,9 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
                   e.stopPropagation();
                   setShowDeleteDialog(true);
                 }}
-                className="flex-1 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/30 text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl font-semibold py-3"
+                className="flex-1 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/30 text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl font-medium py-2 text-sm h-auto"
               >
-                <span className="mr-2">✕</span>
+                <span className="mr-1.5">✕</span>
                 SİL
               </Button>
             </div>
