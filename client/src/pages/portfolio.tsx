@@ -341,7 +341,7 @@ export default function Portfolio() {
                           <div>
                             <span className="font-medium">Açılış:</span>
                             <br />
-                            {new Date(position.openDate).toLocaleDateString('tr-TR')}
+                            {new Date(position.buyDate).toLocaleDateString('tr-TR')}
                           </div>
                           <div>
                             <span className="font-medium">Kapanış:</span>
