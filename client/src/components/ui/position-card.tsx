@@ -173,30 +173,32 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
             </div>
             
             {/* Action buttons */}
-            <div className="flex items-center justify-end space-x-3">
+            <div className="flex items-center justify-center space-x-4 pt-2">
               <Button
                 variant="outline"
-                size="default"
+                size="lg"
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowCloseDialog(true);
                   setSellPrice(position.currentPrice ? parseFloat(position.currentPrice).toFixed(2).replace('.', ',') : '0,00');
                   setSellDate(new Date().toISOString().split('T')[0]);
                 }}
-                className="px-6 py-2 text-sm font-medium text-orange-600 border-orange-200 hover:bg-orange-50 rounded-xl"
+                className="flex-1 bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100 rounded-xl font-semibold py-3"
               >
-                Pozisyonu Kapat
+                <span className="mr-2">✓</span>
+                KAPAT
               </Button>
               <Button
                 variant="outline"
-                size="default"
+                size="lg"
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowDeleteDialog(true);
                 }}
-                className="px-6 py-2 text-sm font-medium text-red-600 border-red-200 hover:bg-red-50 rounded-xl"
+                className="flex-1 bg-red-50 border-red-200 text-red-700 hover:bg-red-100 rounded-xl font-semibold py-3"
               >
-                Sil
+                <span className="mr-2">✕</span>
+                SİL
               </Button>
             </div>
           </div>
