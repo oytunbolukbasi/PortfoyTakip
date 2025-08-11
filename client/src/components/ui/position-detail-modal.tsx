@@ -64,51 +64,44 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
   };
 
   return (
-    <FullScreenModal open={open} onClose={() => onOpenChange(false)}>
-      <div className="flex flex-col h-full">
-        {/* Header */}
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
+    <FullScreenModal 
+      open={open} 
+      onOpenChange={onOpenChange}
+      title={position.symbol}
+      description={position.name || 'Pozisyon Detayları'}
+    >
+      <div className="space-y-6">
+        {/* P&L Header */}
+        <div className="text-center py-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
+          <div className={`text-2xl font-bold ${pl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {pl >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(pl))}
+          </div>
+          <div className={`text-sm flex items-center justify-center ${pl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {pl >= 0 ? <TrendingUp className="w-4 h-4 mr-1" /> : <TrendingDown className="w-4 h-4 mr-1" />}
+            {pl >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(plPercent))}
+          </div>
+        </div>
+
+        {/* Overview Card */}
+        <div className="bg-white border border-gray-200 p-4 rounded-xl">
+          <h3 className="font-semibold text-gray-900 mb-3">Pozisyon Özeti</h3>
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <h2 className="text-xl font-semibold">{position.symbol}</h2>
-              <p className="text-sm text-muted-foreground">
-                {position.name || 'Pozisyon Detayları'}
-              </p>
+              <p className="text-sm text-gray-600">Toplam Değer</p>
+              <p className="text-xl font-bold text-gray-900">₺{formatTurkishPrice(value)}</p>
             </div>
-            <div className="text-right">
-              <div className={`text-lg font-bold ${pl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {pl >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(pl))}
-              </div>
-              <div className={`text-sm ${pl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {pl >= 0 ? <TrendingUp className="w-4 h-4 inline mr-1" /> : <TrendingDown className="w-4 h-4 inline mr-1" />}
-                {pl >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(plPercent))}
-              </div>
+            <div>
+              <p className="text-sm text-gray-600">Maliyet</p>
+              <p className="text-lg font-medium text-gray-900">
+                ₺{formatTurkishPrice(parseFloat(position.buyPrice) * position.quantity)}
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 p-4 space-y-6 overflow-y-auto">
-          {/* Overview Card */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl">
-            <h3 className="font-semibold text-gray-900 mb-3">Pozisyon Özeti</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-600">Toplam Değer</p>
-                <p className="text-xl font-bold text-gray-900">₺{formatTurkishPrice(value)}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Kar/Zarar</p>
-                <p className={`text-xl font-bold ${pl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {pl >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(pl))}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Position Details */}
-          <div className="space-y-4">
-            <h3 className="font-semibold text-gray-900">Pozisyon Bilgileri</h3>
+        {/* Position Details */}
+        <div className="space-y-4">
+          <h3 className="font-semibold text-gray-900">Pozisyon Bilgileri</h3>
             
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -178,46 +171,34 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
               </div>
             </div>
 
-            {/* Performance Metrics */}
-            <div className="pt-4 border-t border-gray-100">
-              <h4 className="font-medium text-gray-900 mb-3">Performans</h4>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Maliyet:</span>
-                  <span className="font-medium">
-                    ₺{formatTurkishPrice(parseFloat(position.buyPrice) * position.quantity)}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Güncel Değer:</span>
-                  <span className="font-medium">₺{formatTurkishPrice(value)}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Kar/Zarar:</span>
-                  <span className={`font-semibold ${pl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {pl >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(pl))}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Kar/Zarar (%):</span>
-                  <span className={`font-semibold ${pl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {pl >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(plPercent))}
-                  </span>
-                </div>
+          {/* Performance Metrics */}
+          <div className="pt-4 border-t border-gray-100">
+            <h4 className="font-medium text-gray-900 mb-3">Performans</h4>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Maliyet:</span>
+                <span className="font-medium">
+                  ₺{formatTurkishPrice(parseFloat(position.buyPrice) * position.quantity)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Güncel Değer:</span>
+                <span className="font-medium">₺{formatTurkishPrice(value)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Kar/Zarar:</span>
+                <span className={`font-semibold ${pl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {pl >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(pl))}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Kar/Zarar (%):</span>
+                <span className={`font-semibold ${pl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {pl >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(plPercent))}
+                </span>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="p-4 border-t border-gray-200">
-          <Button 
-            variant="outline" 
-            className="w-full"
-            onClick={() => onOpenChange(false)}
-          >
-            Kapat
-          </Button>
         </div>
       </div>
     </FullScreenModal>
