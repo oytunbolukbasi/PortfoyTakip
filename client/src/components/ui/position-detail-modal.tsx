@@ -40,9 +40,9 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
         name: position.name || '',
         type: position.type as 'stock' | 'fund',
         quantity: position.quantity.toString(),
-        buyPrice: formatTurkishPrice(parseFloat(position.buyPrice)),
+        buyPrice: position.buyPrice.replace('.', ','),
         buyDate: new Date(position.buyDate).toISOString().split('T')[0],
-        currentPrice: position.currentPrice ? formatTurkishPrice(parseFloat(position.currentPrice)) : ''
+        currentPrice: position.currentPrice ? position.currentPrice.replace('.', ',') : ''
       });
     }
   }, [position]);
@@ -57,9 +57,9 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
         name: formData.name,
         type: formData.type,
         quantity: parseInt(formData.quantity),
-        buyPrice: parseTurkishPrice(formData.buyPrice).toString(),
+        buyPrice: formData.buyPrice.replace(',', '.'),
         buyDate: formData.buyDate,
-        currentPrice: formData.currentPrice ? parseTurkishPrice(formData.currentPrice).toString() : null
+        currentPrice: formData.currentPrice ? formData.currentPrice.replace(',', '.') : null
       };
 
       const response = await fetch(`/api/positions/${position.id}`, {
@@ -247,7 +247,7 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
                     <Input
                       value={formData.buyPrice}
                       onChange={(e) => setFormData(prev => ({ ...prev, buyPrice: e.target.value }))}
-                      placeholder="109,50"
+                      placeholder="0,60 veya 109,50"
                     />
                   ) : (
                     <div className="text-lg font-medium">
@@ -273,7 +273,7 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
                     <Input
                       value={formData.currentPrice}
                       onChange={(e) => setFormData(prev => ({ ...prev, currentPrice: e.target.value }))}
-                      placeholder="109,50"
+                      placeholder="0,60 veya 109,50"
                     />
                   ) : (
                     <div className="text-lg font-medium">

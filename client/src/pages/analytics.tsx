@@ -558,38 +558,53 @@ export default function Analytics() {
                 </h3>
               </div>
               <div className="space-y-4">
-                {/* Semi-donut chart using CSS */}
+                {/* Simple SVG Donut Chart */}
                 <div className="flex justify-center">
-                  <div className="relative w-40 h-20 overflow-hidden">
-                    {/* Background semi-circle */}
-                    <div className="absolute inset-0 w-40 h-40 border-8 border-gray-200 rounded-full transform -translate-y-1/2"></div>
-                    
-                    {/* Stock allocation arc */}
-                    {stockPercentage > 0 && (
-                      <div 
-                        className="absolute inset-0 w-40 h-40 border-8 border-blue-500 rounded-full transform -translate-y-1/2"
-                        style={{
-                          background: `conic-gradient(from 180deg, transparent 0deg, transparent ${180 - (stockPercentage * 1.8)}deg, #3b82f6 ${180 - (stockPercentage * 1.8)}deg, #3b82f6 180deg, transparent 180deg)`,
-                          WebkitMask: 'radial-gradient(circle at 50% 100%, transparent 65px, black 73px)',
-                          mask: 'radial-gradient(circle at 50% 100%, transparent 65px, black 73px)'
-                        }}
-                      ></div>
-                    )}
-                    
-                    {/* Fund allocation arc */}
-                    {fundPercentage > 0 && (
-                      <div 
-                        className="absolute inset-0 w-40 h-40 border-8 border-green-500 rounded-full transform -translate-y-1/2"
-                        style={{
-                          background: `conic-gradient(from 180deg, transparent 0deg, transparent ${180 - (stockPercentage * 1.8)}deg, transparent ${180 - (stockPercentage * 1.8)}deg, transparent ${180 - ((stockPercentage + fundPercentage) * 1.8)}deg, #10b981 ${180 - ((stockPercentage + fundPercentage) * 1.8)}deg, #10b981 180deg, transparent 180deg)`,
-                          WebkitMask: 'radial-gradient(circle at 50% 100%, transparent 65px, black 73px)',
-                          mask: 'radial-gradient(circle at 50% 100%, transparent 65px, black 73px)'
-                        }}
-                      ></div>
-                    )}
+                  <div className="relative">
+                    <svg width="160" height="160" viewBox="0 0 160 160" className="transform -rotate-90">
+                      {/* Background circle */}
+                      <circle
+                        cx="80"
+                        cy="80"
+                        r="60"
+                        fill="none"
+                        stroke="#e5e7eb"
+                        strokeWidth="20"
+                      />
+                      
+                      {/* Stock allocation arc */}
+                      {stockPercentage > 0 && (
+                        <circle
+                          cx="80"
+                          cy="80"
+                          r="60"
+                          fill="none"
+                          stroke="#3b82f6"
+                          strokeWidth="20"
+                          strokeDasharray={`${(stockPercentage / 100) * 377} 377`}
+                          strokeDashoffset="0"
+                          strokeLinecap="round"
+                        />
+                      )}
+                      
+                      {/* Fund allocation arc */}
+                      {fundPercentage > 0 && (
+                        <circle
+                          cx="80"
+                          cy="80"
+                          r="60"
+                          fill="none"
+                          stroke="#10b981"
+                          strokeWidth="20"
+                          strokeDasharray={`${(fundPercentage / 100) * 377} 377`}
+                          strokeDashoffset={`${-(stockPercentage / 100) * 377}`}
+                          strokeLinecap="round"
+                        />
+                      )}
+                    </svg>
                     
                     {/* Center text */}
-                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 text-center">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
                       <p className="text-xs text-gray-500">Toplam</p>
                       <p className="text-lg font-bold text-gray-900">₺{formatTurkishPrice(totalValue)}</p>
                     </div>
