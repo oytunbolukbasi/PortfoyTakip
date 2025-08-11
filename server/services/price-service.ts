@@ -59,10 +59,14 @@ export class PriceService {
   private readonly GOOGLE_FINANCE_BASE_URL = 'https://www.google.com/finance/quote';
 
   async getPrice(symbol: string, type: 'stock' | 'fund'): Promise<number> {
-    if (type === 'stock') {
-      return this.getBISTPrice(symbol);
-    } else {
+    console.log(`Getting price for ${symbol} (type: ${type})`);
+    
+    if (type === 'fund') {
+      // Always use TEFAS price system for funds
       return this.getTEFASPrice(symbol);
+    } else {
+      // Use BIST price system for stocks
+      return this.getBISTPrice(symbol);
     }
   }
 
@@ -292,20 +296,96 @@ export class PriceService {
     try {
       console.log(`Fetching TEFAS price for ${symbol}`);
       
-      // Try external finance API for real TEFAS data first
+      // Try Fintables for real TEFAS data first
       try {
-        const today = new Date();
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
+        const fintablesUrl = `https://fintables.com/fonlar/${symbol}`;
+        console.log(`Fetching from Fintables: ${fintablesUrl}`);
         
-        const formatDate = (date: Date) => {
-          return date.toISOString().split('T')[0]; // YYYY-MM-DD format
-        };
+        const response = await axios.get(fintablesUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'tr-TR,tr;q=0.9,en;q=0.8',
+          },
+          timeout: 15000,
+        });
 
-        // Alternative finance API approach for TEFAS data
-        // Note: External APIs may have limitations, using demo data for reliability
+        // Based on actual IRY page structure: price is shown as "2,654802" in a specific format
+        const bodyText = response.data;
+        
+        // First look for the exact pattern from the page - specifically for 6 decimal place format
+        const preciseMatch = bodyText.match(/(\d{1,2},\d{6})/);
+        if (preciseMatch) {
+          const priceText = preciseMatch[1].replace(',', '.');
+          const price = parseFloat(priceText);
+          if (!isNaN(price) && price > 0.01 && price < 1000) {
+            console.log(`Found Fintables precise price for ${symbol}: ${price} TL`);
+            return price;
+          }
+        }
+
+        // Also try cheerio-based parsing for more structure
+        const $ = cheerio.load(response.data);
+        
+        // Check all elements containing numbers that could be prices
+        $('*').each((i, elem) => {
+          const text = $(elem).text().trim();
+          
+          // Look specifically for the pattern like "2,654802"
+          const priceMatch = text.match(/^(\d{1,2},\d{6})$/);
+          if (priceMatch) {
+            const priceText = priceMatch[1].replace(',', '.');
+            const price = parseFloat(priceText);
+            
+            if (!isNaN(price) && price > 0.01 && price < 1000) {
+              console.log(`Found Fintables price for ${symbol}: ${price} TL`);
+              return price;
+            }
+          }
+          
+          // Also check for general price patterns
+          const generalPriceMatches = [
+            text.match(/(\d+[.,]\d+)\s*₺/),
+            text.match(/(\d+[.,]\d+)\s*TL/),
+            text.match(/^(\d+[.,]\d{2,6})$/), // Handle 2-6 decimal places
+          ];
+          
+          for (const match of generalPriceMatches) {
+            if (match) {
+              const priceText = match[1].replace(',', '.');
+              const price = parseFloat(priceText);
+              
+              if (!isNaN(price) && price > 0.01 && price < 1000) {
+                console.log(`Found Fintables price for ${symbol}: ${price} TL`);
+                return price;
+              }
+            }
+          }
+        });
+
+        // Also check for JSON data in script tags
+        $('script').each((i, elem) => {
+          const scriptContent = $(elem).html() || '';
+          
+          // Look for price data in JSON format
+          const jsonMatches = scriptContent.match(/"price":\s*"?(\d+[.,]\d+)"?/g);
+          if (jsonMatches) {
+            for (const match of jsonMatches) {
+              const priceMatch = match.match(/(\d+[.,]\d+)/);
+              if (priceMatch) {
+                const price = parseFloat(priceMatch[1].replace(',', '.'));
+                if (!isNaN(price) && price > 0.01 && price < 1000) {
+                  console.log(`Found Fintables JSON price for ${symbol}: ${price} TL`);
+                  return price;
+                }
+              }
+            }
+          }
+        });
+
+        console.log(`No price found in Fintables for ${symbol}, trying fallback...`);
       } catch (apiError) {
-        console.log(`External TEFAS API failed for ${symbol}, using realistic demo prices...`);
+        console.log(`Fintables failed for ${symbol}, using daily price system...`);
       }
 
       // Fallback to realistic daily prices for demo
@@ -337,7 +417,7 @@ export class PriceService {
         const dailyPrice = basePrice * (1 + dailyVariation);
         const finalPrice = Math.round(dailyPrice * 100) / 100;
         
-        console.log(`Using fallback daily price for ${symbol}: ${finalPrice} TL`);
+        console.log(`Found daily TEFAS price for ${symbol}: ${finalPrice} TL`);
         return finalPrice;
       }
       
