@@ -351,7 +351,8 @@ export class PriceService {
 
       // Fallback to recent TEFAS fund prices (these will be used if API fails)
       const knownFundPrices: Record<string, number> = {
-        'IRY': 2.111661, // INVEO PORTFÖY PARA PİYASASI (TL) FONU - Latest from TEFAS API
+        'IRY': 2.654802, // INVEO PORTFÖY PARA PİYASASI (TL) FONU - Latest from TEFAS API
+        'GJH': 2.657665, // GARANTİ PORTFÖY PARA PİYASASI SERBEST (TL) FON
         'YAC': 2.85,
         'ALC': 3.41,
         'TYS': 1.23,
@@ -454,6 +455,7 @@ export class PriceService {
         'ALC': 'Ak Portföy Kar Payi Ödeyen Şirketler Hisse Senedi Fonu',
         'TYS': 'Teb Portföy Teknoloji Sektörü Hisse Senedi Fonu',
         'AKB': 'Ak Portföy Kısa Vadeli Borçlanma Araçları Fonu',
+        'GJH': 'GARANTİ PORTFÖY PARA PİYASASI SERBEST (TL) FON', // Updated from TEFAS API response
         'GRO': 'Garanti Portföy Otuzuncu Serbest (Döviz) Fon',
         'DCB': 'Deniz Portföy Para Piyasası Serbest (TL) Fon',
         'ZP8': 'Ziraat Portföy Kehribar Para Piyasası Katılım Serbest Fon',

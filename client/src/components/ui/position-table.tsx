@@ -1,5 +1,5 @@
 import { Position } from "@shared/schema";
-import { formatTurkishCurrency, formatTurkishPrice, formatTurkishPercent } from "@/lib/format";
+import { formatTurkishCurrency, formatTurkishPrice, formatTurkishPercent, formatFundPrice } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { ChevronUp, ChevronDown, X, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -268,10 +268,10 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
                     {position.quantity.toLocaleString('tr-TR')}
                   </td>
                   <td className="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-900">
-                    ₺{formatTurkishPrice(parseFloat(position.buyPrice))}
+                    ₺{position.type === 'fund' ? formatFundPrice(parseFloat(position.buyPrice)) : formatTurkishPrice(parseFloat(position.buyPrice))}
                   </td>
                   <td className="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-900">
-                    ₺{formatTurkishPrice(currentPrice)}
+                    ₺{position.type === 'fund' ? formatFundPrice(currentPrice) : formatTurkishPrice(currentPrice)}
                   </td>
                   <td className="px-3 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
                     {formatTurkishCurrency(value)}

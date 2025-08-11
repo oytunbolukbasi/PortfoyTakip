@@ -6,6 +6,14 @@ export function formatTurkishPrice(value: number): string {
   });
 }
 
+// Format fund price with 6 decimal places for high precision
+export function formatFundPrice(value: number): string {
+  return value.toLocaleString('tr-TR', { 
+    minimumFractionDigits: 6, 
+    maximumFractionDigits: 6 
+  });
+}
+
 // Format currency to Turkish format with ₺ symbol
 export function formatTurkishCurrency(value: number): string {
   return '₺' + value.toLocaleString('tr-TR', { 

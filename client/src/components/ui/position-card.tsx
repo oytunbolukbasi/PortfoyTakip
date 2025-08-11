@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Position } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { MoreVertical } from "lucide-react";
-import { formatTurkishCurrency, formatTurkishPrice, formatTurkishPercent, parseTurkishPrice } from "@/lib/format";
+import { formatTurkishCurrency, formatTurkishPrice, formatTurkishPercent, formatFundPrice, parseTurkishPrice } from "@/lib/format";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -139,7 +139,7 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
               </div>
             </div>
             <div className="text-right">
-              <p className="text-xl font-bold text-gray-900">₺{formatTurkishPrice(currentPrice)}</p>
+              <p className="text-xl font-bold text-gray-900">₺{position.type === 'fund' ? formatFundPrice(currentPrice) : formatTurkishPrice(currentPrice)}</p>
               <div className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${
                 change >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
               }`}>
@@ -155,7 +155,7 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
             </div>
             <div className="text-center p-3 bg-gray-50 rounded-xl">
               <p className="text-xs text-gray-500 mb-1">Alış</p>
-              <p className="font-semibold text-gray-900">₺{formatTurkishPrice(parseFloat(position.buyPrice))}</p>
+              <p className="font-semibold text-gray-900">₺{position.type === 'fund' ? formatFundPrice(parseFloat(position.buyPrice)) : formatTurkishPrice(parseFloat(position.buyPrice))}</p>
             </div>
             <div className="text-center p-3 bg-gray-50 rounded-xl">
               <p className="text-xs text-gray-500 mb-1">Değer</p>

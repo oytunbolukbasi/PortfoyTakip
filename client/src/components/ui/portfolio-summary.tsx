@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Position } from "@shared/schema";
-import { formatTurkishCurrency, formatTurkishPercent, formatTurkishPrice } from "@/lib/format";
+import { formatTurkishCurrency, formatTurkishPercent, formatTurkishPrice, formatFundPrice } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
 
