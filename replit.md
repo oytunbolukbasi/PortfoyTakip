@@ -50,6 +50,13 @@ This is a Turkish investment portfolio tracking application built for Turkish in
   - Added opening and closing dates to closed position cards
   - Redesigned layout with dates on left side and compact delete button (trash icon only) on right
   - Optimized space usage while maintaining iOS-style visual consistency
+- **iOS-Style Dark Mode Implementation (January 28, 2025):**
+  - Added comprehensive dark/light theme support with CSS variables
+  - Implemented ThemeProvider with localStorage persistence
+  - Added theme toggle buttons (moon/sun icons) in both Portfolio and Analytics page headers
+  - Applied dark mode styling to all UI components including position cards, portfolio summary, bottom navigation
+  - Enhanced gradient K/Z displays with proper dark mode color variants
+  - Fixed theme provider context issues for stable mobile browser compatibility
 
 ## User Preferences
 
