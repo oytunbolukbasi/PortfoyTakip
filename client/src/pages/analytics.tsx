@@ -484,27 +484,27 @@ export default function Analytics() {
 
 
             {/* Asset Type P&L Analysis */}
-            <Card className="p-4">
+            <Card className="p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-gray-900 flex items-center">
+                <h3 className="font-semibold text-gray-900 dark:text-white flex items-center">
                   Hisse & Fon Kar/Zarar
                 </h3>
               </div>
               <div className="space-y-4">
                 {/* Stock P&L */}
-                <div className="bg-blue-50 p-3 rounded-lg">
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800/30">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-blue-900">Hisse Senedi</span>
-                    <span className="text-sm text-blue-700">{stockPositions.length} pozisyon</span>
+                    <span className="font-medium text-blue-900 dark:text-blue-200">Hisse Senedi</span>
+                    <span className="text-sm text-blue-700 dark:text-blue-300">{stockPositions.length} pozisyon</span>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
-                      <p className="text-blue-600">Değer</p>
-                      <p className="font-semibold text-blue-900">₺{formatTurkishPrice(stockValue)}</p>
+                      <p className="text-blue-600 dark:text-blue-400">Değer</p>
+                      <p className="font-semibold text-blue-900 dark:text-blue-100">₺{formatTurkishPrice(stockValue)}</p>
                     </div>
                     <div>
-                      <p className="text-blue-600">K/Z</p>
-                      <p className={`font-semibold ${stockPL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <p className="text-blue-600 dark:text-blue-400">K/Z</p>
+                      <p className={`font-semibold ${stockPL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                         {stockPL >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(stockPL))}
                       </p>
                     </div>
@@ -512,19 +512,19 @@ export default function Analytics() {
                 </div>
 
                 {/* Fund P&L */}
-                <div className="bg-green-50 p-3 rounded-lg">
+                <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border border-green-100 dark:border-green-800/30">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-green-900">Fon</span>
-                    <span className="text-sm text-green-700">{fundPositions.length} pozisyon</span>
+                    <span className="font-medium text-green-900 dark:text-green-200">Fon</span>
+                    <span className="text-sm text-green-700 dark:text-green-300">{fundPositions.length} pozisyon</span>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
-                      <p className="text-green-600">Değer</p>
-                      <p className="font-semibold text-green-900">₺{formatTurkishPrice(fundValue)}</p>
+                      <p className="text-green-600 dark:text-green-400">Değer</p>
+                      <p className="font-semibold text-green-900 dark:text-green-100">₺{formatTurkishPrice(fundValue)}</p>
                     </div>
                     <div>
-                      <p className="text-green-600">K/Z</p>
-                      <p className={`font-semibold ${fundPL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <p className="text-green-600 dark:text-green-400">K/Z</p>
+                      <p className={`font-semibold ${fundPL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                         {fundPL >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(fundPL))}
                       </p>
                     </div>
