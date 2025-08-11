@@ -203,7 +203,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                     <Input
                       {...field}
                       type="text"
-                      placeholder="106,80"
+                      placeholder="0,60 veya 106,80"
                       className="font-mono"
                       value={field.value || ''}
                       onChange={(e) => {
@@ -220,7 +220,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                     />
                   </FormControl>
                   <div className="text-xs text-muted-foreground mt-1">
-                    Örnek: 106,80 veya 1.205,50
+                    Örnek: 0,60 (fonlar) veya 106,80 (hisseler)
                   </div>
                   <FormMessage />
                 </FormItem>

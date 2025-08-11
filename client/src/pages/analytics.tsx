@@ -123,6 +123,34 @@ export default function Analytics() {
   const netProfit = realizedProfit + unrealizedProfit;
   const netProfitTotal = realizedProfitTotal + unrealizedProfit;
 
+  // Asset type analysis
+  const stockPositions = positions.filter(pos => pos.type === 'stock');
+  const fundPositions = positions.filter(pos => pos.type === 'fund');
+  
+  const stockValue = stockPositions.reduce((sum, pos) => {
+    return sum + (parseFloat(pos.currentPrice || '0') * pos.quantity);
+  }, 0);
+  
+  const stockCost = stockPositions.reduce((sum, pos) => {
+    return sum + (parseFloat(pos.buyPrice) * pos.quantity);
+  }, 0);
+  
+  const stockPL = stockValue - stockCost;
+  
+  const fundValue = fundPositions.reduce((sum, pos) => {
+    return sum + (parseFloat(pos.currentPrice || '0') * pos.quantity);
+  }, 0);
+  
+  const fundCost = fundPositions.reduce((sum, pos) => {
+    return sum + (parseFloat(pos.buyPrice) * pos.quantity);
+  }, 0);
+  
+  const fundPL = fundValue - fundCost;
+  
+  // Asset allocation percentages
+  const stockPercentage = totalValue > 0 ? (stockValue / totalValue) * 100 : 0;
+  const fundPercentage = totalValue > 0 ? (fundValue / totalValue) * 100 : 0;
+
   const isLoading = positionsLoading || closedLoading;
 
   return (
@@ -466,6 +494,131 @@ export default function Analytics() {
                   <span>•</span>
                   <TrendingDown className="w-4 h-4" />
                   <span>Trend Analizi</span>
+                </div>
+              </div>
+            </Card>
+
+            {/* Asset Type P&L Analysis */}
+            <Card className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-gray-900 flex items-center">
+                  <BarChart3 className="w-5 h-5 mr-2 text-purple-600" />
+                  Hisse & Fon Kar/Zarar
+                </h3>
+              </div>
+              <div className="space-y-4">
+                {/* Stock P&L */}
+                <div className="bg-blue-50 p-3 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-blue-900">Hisse Senedi</span>
+                    <span className="text-sm text-blue-700">{stockPositions.length} pozisyon</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-blue-600">Değer</p>
+                      <p className="font-semibold text-blue-900">₺{formatTurkishPrice(stockValue)}</p>
+                    </div>
+                    <div>
+                      <p className="text-blue-600">K/Z</p>
+                      <p className={`font-semibold ${stockPL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {stockPL >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(stockPL))}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Fund P&L */}
+                <div className="bg-green-50 p-3 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-green-900">Fon</span>
+                    <span className="text-sm text-green-700">{fundPositions.length} pozisyon</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-green-600">Değer</p>
+                      <p className="font-semibold text-green-900">₺{formatTurkishPrice(fundValue)}</p>
+                    </div>
+                    <div>
+                      <p className="text-green-600">K/Z</p>
+                      <p className={`font-semibold ${fundPL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {fundPL >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(fundPL))}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Asset Allocation Chart */}
+            <Card className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-gray-900 flex items-center">
+                  <TrendingUp className="w-5 h-5 mr-2 text-indigo-600" />
+                  Varlık Dağılımı
+                </h3>
+              </div>
+              <div className="space-y-4">
+                {/* Semi-donut chart using CSS */}
+                <div className="flex justify-center">
+                  <div className="relative w-40 h-20 overflow-hidden">
+                    {/* Background semi-circle */}
+                    <div className="absolute inset-0 w-40 h-40 border-8 border-gray-200 rounded-full transform -translate-y-1/2"></div>
+                    
+                    {/* Stock allocation arc */}
+                    {stockPercentage > 0 && (
+                      <div 
+                        className="absolute inset-0 w-40 h-40 border-8 border-blue-500 rounded-full transform -translate-y-1/2"
+                        style={{
+                          background: `conic-gradient(from 180deg, transparent 0deg, transparent ${180 - (stockPercentage * 1.8)}deg, #3b82f6 ${180 - (stockPercentage * 1.8)}deg, #3b82f6 180deg, transparent 180deg)`,
+                          WebkitMask: 'radial-gradient(circle at 50% 100%, transparent 65px, black 73px)',
+                          mask: 'radial-gradient(circle at 50% 100%, transparent 65px, black 73px)'
+                        }}
+                      ></div>
+                    )}
+                    
+                    {/* Fund allocation arc */}
+                    {fundPercentage > 0 && (
+                      <div 
+                        className="absolute inset-0 w-40 h-40 border-8 border-green-500 rounded-full transform -translate-y-1/2"
+                        style={{
+                          background: `conic-gradient(from 180deg, transparent 0deg, transparent ${180 - (stockPercentage * 1.8)}deg, transparent ${180 - (stockPercentage * 1.8)}deg, transparent ${180 - ((stockPercentage + fundPercentage) * 1.8)}deg, #10b981 ${180 - ((stockPercentage + fundPercentage) * 1.8)}deg, #10b981 180deg, transparent 180deg)`,
+                          WebkitMask: 'radial-gradient(circle at 50% 100%, transparent 65px, black 73px)',
+                          mask: 'radial-gradient(circle at 50% 100%, transparent 65px, black 73px)'
+                        }}
+                      ></div>
+                    )}
+                    
+                    {/* Center text */}
+                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 text-center">
+                      <p className="text-xs text-gray-500">Toplam</p>
+                      <p className="text-lg font-bold text-gray-900">₺{formatTurkishPrice(totalValue)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Legend */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                      <span className="text-sm text-gray-700">Hisse Senedi</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-semibold text-gray-900">{formatTurkishPercent(stockPercentage)}</span>
+                      <span className="text-xs text-gray-500 ml-1">₺{formatTurkishPrice(stockValue)}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                      <span className="text-sm text-gray-700">Fon</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-semibold text-gray-900">{formatTurkishPercent(fundPercentage)}</span>
+                      <span className="text-xs text-gray-500 ml-1">₺{formatTurkishPrice(fundValue)}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </Card>

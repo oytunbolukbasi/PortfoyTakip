@@ -78,13 +78,19 @@ export const insertPositionSchema = createInsertSchema(positions).omit({
 }).extend({
   symbol: z.string().min(1, "Varlık kodu gerekli"),
   quantity: z.number().min(1, "Adet en az 1 olmalı"),
-  buyPrice: z.string().refine((val) => parseFloat(val) > 0, "Alış fiyatı 0'dan büyük olmalı"),
+  buyPrice: z.string().refine((val) => {
+    const parsed = parseFloat(val.replace(',', '.'));
+    return !isNaN(parsed) && parsed > 0;
+  }, "Alış fiyatı 0'dan büyük olmalı"),
   buyDate: z.string().refine((val) => !isNaN(Date.parse(val)), "Geçerli bir tarih giriniz"),
   type: z.enum(["stock", "fund"], { required_error: "Varlık türü seçilmeli" }),
 });
 
 export const closePositionSchema = z.object({
-  sellPrice: z.string().refine((val) => parseFloat(val) > 0, "Satış fiyatı 0'dan büyük olmalı"),
+  sellPrice: z.string().refine((val) => {
+    const parsed = parseFloat(val.replace(',', '.'));
+    return !isNaN(parsed) && parsed > 0;
+  }, "Satış fiyatı 0'dan büyük olmalı"),
   sellDate: z.string().refine((val) => !isNaN(Date.parse(val)), "Geçerli bir tarih giriniz"),
 });
 
