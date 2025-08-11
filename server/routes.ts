@@ -47,8 +47,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.warn(`Failed to fetch price for ${validatedData.symbol}:`, error);
       }
 
+      // Get proper fund name for TEFAS funds
+      let positionName = validatedData.name;
+      if (validatedData.type === 'fund' && (!validatedData.name || validatedData.name === validatedData.symbol)) {
+        positionName = priceService.getFundName(validatedData.symbol, validatedData.type);
+      }
+
       const position = await storage.createPosition({
         ...validatedData,
+        name: positionName,
         userId,
       });
 

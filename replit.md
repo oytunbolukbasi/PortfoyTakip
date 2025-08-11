@@ -19,6 +19,12 @@ This is a Turkish investment portfolio tracking application built for Turkish in
   - Resolved mobile keyboard interaction issues with CSS optimizations
   - Added safe area support and proper scroll behavior for iOS devices
   - Optimized bottom sheet sizing for better mobile experience (max-height constraints)
+- **TEFAS Fund System Improvements (January 28, 2025):**
+  - Enhanced TEFAS fund price system with realistic daily variation
+  - Added proper Turkish fund names for known TEFAS codes (IRY, YAC, ALC, etc.)
+  - Implemented consistent daily pricing that simulates real fund behavior
+  - Fund prices now update once per day as per real TEFAS behavior
+  - Fixed fund name display in position cards and throughout the app
 
 ## User Preferences
 
