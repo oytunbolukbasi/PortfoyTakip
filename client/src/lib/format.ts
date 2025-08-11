@@ -6,13 +6,20 @@ export function formatTurkishPrice(value: number): string {
   });
 }
 
-// Format fund price with 6 decimal places for high precision
+// Format fund price with exact 6 decimal precision
 export function formatFundPrice(value: number): string {
-  // Convert to string with exactly 6 decimal places without any locale formatting
-  const str = value.toFixed(6);
+  if (typeof value !== 'number' || isNaN(value)) {
+    return '0,000000';
+  }
   
-  // Replace dot with comma for Turkish formatting
-  return str.replace('.', ',');
+  // Use Number.parseFloat to ensure we have the exact value
+  const numValue = Number(value);
+  
+  // Format with exactly 6 decimal places, no rounding beyond that
+  const formatted = numValue.toFixed(6);
+  
+  // Replace decimal point with Turkish comma
+  return formatted.replace('.', ',');
 }
 
 // Format currency to Turkish format with ₺ symbol

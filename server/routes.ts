@@ -62,7 +62,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update with current price if available
       if (currentPrice !== null) {
         await storage.updatePosition(position.id, {
-          currentPrice: currentPrice.toString(),
+          currentPrice: currentPrice.toFixed(6), // Preserve 6-digit precision
           lastUpdated: new Date(),
         });
       }

@@ -47,20 +47,20 @@ export class PriceMonitor {
         try {
           const currentPrice = await this.priceService.getPrice(position.symbol, position.type as 'stock' | 'fund');
           
-          // Update position with new price
+          // Update position with new price - preserve 6-digit precision
           await db
             .update(positions)
             .set({
-              currentPrice: currentPrice.toString(),
+              currentPrice: currentPrice.toFixed(6),
               lastUpdated: new Date()
             })
             .where(eq(positions.id, position.id));
 
-          // Record price history
+          // Record price history - preserve 6-digit precision
           await db.insert(priceHistory).values({
             symbol: position.symbol,
             type: position.type,
-            price: currentPrice.toString(),
+            price: currentPrice.toFixed(6),
             timestamp: new Date()
           });
 
