@@ -31,6 +31,12 @@ This is a Turkish investment portfolio tracking application built for Turkish in
   - Removed Edit buttons from position cards and detail modals
   - Simplified user interface focusing on view, close, and delete actions only
   - Changed "Maliyet" label to "Alış Tutarı" in position details for clarity
+- **iOS-Style Position Detail Modal (January 28, 2025):**
+  - Redesigned position detail modal with native iOS-style interface
+  - Removed complex performance metrics section for cleaner UX
+  - Added icon-based information cards with rounded corners and subtle shadows
+  - Implemented gradient P&L display with prominent visual indicators
+  - Enhanced mobile-first design with better spacing and typography
 
 ## User Preferences
 
