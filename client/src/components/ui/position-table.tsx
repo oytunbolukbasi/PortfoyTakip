@@ -184,7 +184,7 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
     <Button
       variant="ghost"
       size="sm"
-      className="h-auto p-0 font-medium text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1"
+      className="h-auto p-0 font-medium text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 flex items-center gap-1"
       onClick={() => handleSort(field)}
     >
       {children}
@@ -206,83 +206,83 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mx-4 mb-3 overflow-hidden">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 mx-4 mb-3 overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[800px]">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-50 dark:bg-gray-700/50">
             <tr>
-              <th className="sticky left-0 bg-gray-50 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[140px] z-10 border-r border-gray-200">
+              <th className="sticky left-0 bg-gray-50 dark:bg-gray-700/50 px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[140px] z-10 border-r border-gray-200 dark:border-gray-600">
                 <SortButton field="symbol">Varlık</SortButton>
               </th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[70px]">
+              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[70px]">
                 <SortButton field="quantity">Adet</SortButton>
               </th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[90px]">
+              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[90px]">
                 <SortButton field="buyPrice">Alış</SortButton>
               </th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[90px]">
+              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[90px]">
                 <SortButton field="currentPrice">Güncel</SortButton>
               </th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">
+              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[100px]">
                 <SortButton field="value">Değer</SortButton>
               </th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">
+              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[80px]">
                 <SortButton field="pl">K/Z</SortButton>
               </th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[70px]">
+              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[70px]">
                 <SortButton field="plPercent">K/Z %</SortButton>
               </th>
-              <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">
+              <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[80px]">
                 İşlemler
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {sortedPositions.map((position) => {
               const { pl, plPercent, value, currentPrice } = calculatePL(position);
               
               return (
                 <tr
                   key={position.id}
-                  className="hover:bg-gray-50 cursor-pointer transition-colors"
+                  className="hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
                   onClick={() => onRowClick(position)}
                 >
-                  <td className="sticky left-0 bg-white hover:bg-gray-50 px-3 py-4 whitespace-nowrap z-10 border-r border-gray-200">
+                  <td className="sticky left-0 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 px-3 py-4 whitespace-nowrap z-10 border-r border-gray-200 dark:border-gray-600">
                     <div className="flex items-center">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-2 ${
-                        position.type === 'stock' ? 'bg-blue-500' : 'bg-green-500'
+                        position.type === 'stock' ? 'bg-blue-500 dark:bg-blue-400' : 'bg-green-500 dark:bg-green-400'
                       }`}>
                         <span className="text-white font-semibold text-xs">
                           {position.symbol.substring(0, 2).toUpperCase()}
                         </span>
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{position.symbol}</div>
-                        <div className="text-xs text-gray-500 truncate max-w-[80px]">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">{position.symbol}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[80px]">
                           {position.name || position.symbol}
                         </div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                  <td className="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-900 dark:text-white">
                     {position.quantity.toLocaleString('tr-TR')}
                   </td>
-                  <td className="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                  <td className="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-900 dark:text-white">
                     ₺{position.type === 'fund' ? formatFundPrice(parseFloat(position.buyPrice)) : formatTurkishPrice(parseFloat(position.buyPrice))}
                   </td>
-                  <td className="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                  <td className="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-900 dark:text-white">
                     ₺{position.type === 'fund' ? formatFundPrice(currentPrice) : formatTurkishPrice(currentPrice)}
                   </td>
-                  <td className="px-3 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
+                  <td className="px-3 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900 dark:text-white">
                     {formatTurkishCurrency(value)}
                   </td>
                   <td className={`px-3 py-4 whitespace-nowrap text-right text-sm font-medium ${
-                    pl >= 0 ? 'text-green-600' : 'text-red-600'
+                    pl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   }`}>
                     {pl >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(pl))}
                   </td>
                   <td className={`px-3 py-4 whitespace-nowrap text-right text-sm font-medium ${
-                    plPercent >= 0 ? 'text-green-600' : 'text-red-600'
+                    plPercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   }`}>
                     {plPercent >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(plPercent))}
                   </td>
@@ -291,7 +291,7 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="p-1.5 text-green-600 hover:bg-green-50 rounded-full"
+                        className="p-1.5 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-full"
                         onClick={(e) => handleClosePosition(position, e)}
                         title="Pozisyonu Kapat"
                       >
@@ -300,7 +300,7 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-full"
+                        className="p-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
                         onClick={(e) => handleDeletePosition(position, e)}
                         title="Pozisyonu Sil"
                       >
