@@ -84,7 +84,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
     >
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 drawer-content">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Asset Type Selection */}
             <div className="bg-gray-50 rounded-xl p-4">
               <FormLabel className="text-sm font-medium text-gray-700 mb-3 block">
@@ -241,13 +241,15 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
 
 
             {/* Submit Button */}
-            <Button 
-              type="submit" 
-              className="w-full bg-primary text-white hover:bg-primary-dark"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Ekleniyor...' : 'Pozisyon Ekle'}
-            </Button>
+            <div className="pt-6">
+              <Button 
+                type="submit" 
+                className="w-full bg-blue-600 text-white hover:bg-blue-700 h-12 text-base font-medium shadow-lg"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Ekleniyor...' : 'Pozisyon Ekle'}
+              </Button>
+            </div>
           </form>
         </Form>
     </FullScreenModal>
