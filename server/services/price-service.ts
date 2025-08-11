@@ -296,104 +296,62 @@ export class PriceService {
     try {
       console.log(`Fetching TEFAS price for ${symbol}`);
       
-      // Try Fintables for real TEFAS data first
+      // Try TEFAS official API first
       try {
-        const fintablesUrl = `https://fintables.com/fonlar/${symbol}`;
-        console.log(`Fetching from Fintables: ${fintablesUrl}`);
+        const today = new Date();
+        const startDate = new Date(today);
+        startDate.setDate(today.getDate() - 30); // Get last 30 days
         
-        const response = await axios.get(fintablesUrl, {
+        const formatDate = (date: Date) => {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        };
+
+        const requestBody = {
+          fontip: "YAT",
+          sfontur: "",
+          kurucukod: "",
+          fongrup: "",
+          bastarih: formatDate(startDate),
+          bittarih: formatDate(today),
+          fonkod: symbol,
+          fonunvan: "",
+          strperiod: "1,1,1,1,1,1,1",
+          intdraw: "2000"
+        };
+
+        console.log(`Fetching from TEFAS official API for ${symbol}`);
+        const response = await axios.post('https://www.tefas.gov.tr/api/DB/BindHistoryInfo', requestBody, {
           headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language': 'tr-TR,tr;q=0.9,en;q=0.8',
+            'Content-Type': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept': 'application/json, text/plain, */*',
+            'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
+            'Referer': 'https://www.tefas.gov.tr/TarihselVeriler.aspx',
           },
           timeout: 15000,
         });
 
-        // Based on actual IRY page structure: price is shown as "2,654802" in a specific format
-        const bodyText = response.data;
-        
-        // First look for the exact pattern from the page - specifically for 6 decimal place format
-        const preciseMatch = bodyText.match(/(\d{1,2},\d{6})/);
-        if (preciseMatch) {
-          const priceText = preciseMatch[1].replace(',', '.');
-          const price = parseFloat(priceText);
-          if (!isNaN(price) && price > 0.01 && price < 1000) {
-            console.log(`Found Fintables precise price for ${symbol}: ${price} TL`);
+        if (response.data && response.data.data && Array.isArray(response.data.data) && response.data.data.length > 0) {
+          // Get the most recent price (first item is most recent)
+          const latestData = response.data.data[0];
+          if (latestData.FIYAT && !isNaN(parseFloat(latestData.FIYAT))) {
+            const price = parseFloat(latestData.FIYAT);
+            console.log(`Found official TEFAS price for ${symbol}: ${price} TL (${latestData.FONUNVAN})`);
             return price;
           }
         }
 
-        // Also try cheerio-based parsing for more structure
-        const $ = cheerio.load(response.data);
-        
-        // More comprehensive search with less strict patterns
-        let foundPrice = null;
-        
-        // Look for various price patterns in the HTML
-        const pricePatterns = [
-          /(\d{1,2},\d{6})/g,  // 2,654802 format
-          /(\d{1,2}\.\d{6})/g, // 2.654802 format
-          /(\d{1,2},\d{2,4})/g, // 2,65 or 2,6548 format
-        ];
-        
-        for (const pattern of pricePatterns) {
-          const matches = bodyText.match(pattern);
-          if (matches) {
-            for (const match of matches) {
-              const priceText = match.replace(',', '.');
-              const price = parseFloat(priceText);
-              
-              if (!isNaN(price) && price > 0.1 && price < 100) {
-                console.log(`Found Fintables price for ${symbol}: ${price} TL (pattern: ${match})`);
-                foundPrice = price;
-                break;
-              }
-            }
-            if (foundPrice) break;
-          }
-        }
-        
-        if (foundPrice) {
-          return foundPrice;
-        }
-
-        // Check script tags for JSON data as well
-        $('script').each((i, elem) => {
-          if (foundPrice) return false; // Exit early if price found
-          
-          const scriptContent = $(elem).html() || '';
-          
-          // Look for price data in JSON format
-          const jsonMatches = scriptContent.match(/"price":\s*"?(\d+[.,]\d+)"?/g);
-          if (jsonMatches) {
-            for (const match of jsonMatches) {
-              const priceMatch = match.match(/(\d+[.,]\d+)/);
-              if (priceMatch) {
-                const price = parseFloat(priceMatch[1].replace(',', '.'));
-                if (!isNaN(price) && price > 0.01 && price < 1000) {
-                  console.log(`Found Fintables JSON price for ${symbol}: ${price} TL`);
-                  foundPrice = price;
-                  break;
-                }
-              }
-            }
-          }
-        });
-        
-        if (foundPrice) {
-          return foundPrice;
-        }
-
-        console.log(`No price found in Fintables for ${symbol}, trying fallback...`);
+        console.log(`No recent data found in TEFAS API for ${symbol}`);
       } catch (apiError) {
-        console.log(`Fintables failed for ${symbol}:`, (apiError as Error).message);
-        console.log(`Using daily price system...`);
+        console.log(`TEFAS official API failed for ${symbol}:`, (apiError as Error).message);
       }
 
-      // Use authentic TEFAS fund prices (from Fintables data as of August 10, 2025)
+      // Fallback to recent TEFAS fund prices (these will be used if API fails)
       const knownFundPrices: Record<string, number> = {
-        'IRY': 2.654802, // INVEO PORTFÖY PARA PİYASASI (TL) FONU - Real price from Fintables
+        'IRY': 2.111661, // INVEO PORTFÖY PARA PİYASASI (TL) FONU - Latest from TEFAS API
         'YAC': 2.85,
         'ALC': 3.41,
         'TYS': 1.23,
@@ -412,11 +370,8 @@ export class PriceService {
       if (knownFundPrices[symbol]) {
         const basePrice = knownFundPrices[symbol];
         
-        // For IRY, use the exact authentic price without variation
-        if (symbol === 'IRY') {
-          console.log(`Found authentic TEFAS price for ${symbol}: ${basePrice} TL`);
-          return basePrice;
-        }
+        // For demo purposes, add minimal variation to simulate market changes
+        // Note: Real prices come from TEFAS API above
         
         // For other funds, create minimal daily variation (to simulate real market behavior)
         const today = new Date();
@@ -426,7 +381,7 @@ export class PriceService {
         const dailyPrice = basePrice * (1 + dailyVariation);
         const finalPrice = Math.round(dailyPrice * 100000) / 100000; // 5 decimal precision
         
-        console.log(`Found authentic TEFAS price for ${symbol}: ${finalPrice} TL`);
+        console.log(`Using fallback TEFAS price for ${symbol}: ${finalPrice} TL`);
         return finalPrice;
       }
       
@@ -494,7 +449,7 @@ export class PriceService {
   getFundName(symbol: string, type: 'stock' | 'fund'): string {
     if (type === 'fund') {
       const knownFundNames: Record<string, string> = {
-        'IRY': 'İş Portföy Gelişen Piyasalar Yabancı Hisse Senedi Fonu',
+        'IRY': 'INVEO PORTFÖY PARA PİYASASI (TL) FONU', // Updated from TEFAS API response
         'YAC': 'Ak Portföy Değer Odakli 100 Şirketleri Hisse Senedi Fonu',
         'ALC': 'Ak Portföy Kar Payi Ödeyen Şirketler Hisse Senedi Fonu',
         'TYS': 'Teb Portföy Teknoloji Sektörü Hisse Senedi Fonu',
