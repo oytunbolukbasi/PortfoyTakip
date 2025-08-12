@@ -12,7 +12,7 @@ import { formatTurkishPrice, formatTurkishPercent } from "@/lib/format";
 
 export default function Analytics() {
   const { theme, toggleTheme } = useTheme();
-  const [timeRange, setTimeRange] = useState<'daily' | 'monthly' | 'custom'>('daily');
+  const [timeRange, setTimeRange] = useState<'daily' | 'monthly' | 'all' | 'custom'>('daily');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
@@ -85,7 +85,8 @@ export default function Analytics() {
         const buyDate = new Date(position.buyDate);
         return buyDate >= startOfMonth && buyDate <= endOfMonth;
       });
-    } else {
+    } else if (timeRange === 'all') {
+      // Return all data
       filteredClosed = closedPositions;
       filteredActive = positions;
     }
@@ -199,6 +200,14 @@ export default function Analytics() {
             Aylık
           </Button>
           <Button
+            variant={timeRange === 'all' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setTimeRange('all')}
+            className="flex-1"
+          >
+            Tümü
+          </Button>
+          <Button
             variant={timeRange === 'custom' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setTimeRange('custom')}
@@ -209,48 +218,60 @@ export default function Analytics() {
         </div>
 
         {timeRange === 'custom' && (
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label htmlFor="startDate" className="text-sm font-medium">Başlangıç</Label>
-              <Input
-                id="startDate"
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="mt-1"
-                max={endDate || undefined}
-              />
+          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl space-y-4">
+            <div className="text-sm font-medium text-gray-900 dark:text-white">Tarih Aralığı Seçin</div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="startDate" className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block">Başlangıç Tarihi</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="mt-1"
+                  max={endDate || undefined}
+                />
+              </div>
+              <div>
+                <Label htmlFor="endDate" className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block">Bitiş Tarihi</Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="mt-1"
+                  min={startDate || undefined}
+                  max={new Date().toISOString().split('T')[0]}
+                />
+              </div>
             </div>
-            <div>
-              <Label htmlFor="endDate" className="text-sm font-medium">Bitiş</Label>
-              <Input
-                id="endDate"
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="mt-1"
-                min={startDate || undefined}
-                max={new Date().toISOString().split('T')[0]}
-              />
-            </div>
+            
+            {startDate && endDate && (
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800/30">
+                <p className="text-sm text-blue-800 dark:text-blue-300 font-medium">
+                  <CalendarDays className="w-4 h-4 inline mr-2" />
+                  Seçili Dönem: {new Date(startDate).toLocaleDateString('tr-TR')} - {new Date(endDate).toLocaleDateString('tr-TR')}
+                </p>
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                  • {filteredActivePositions.length} pozisyon açıldı • {filteredClosedPositions.length} pozisyon kapatıldı
+                </p>
+              </div>
+            )}
           </div>
         )}
         
-        {timeRange === 'custom' && startDate && endDate && (
-          <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-800">
+        {timeRange === 'all' && (
+          <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+            <p className="text-sm text-gray-800 dark:text-gray-200 font-medium">
               <CalendarDays className="w-4 h-4 inline mr-2" />
-              Seçili dönem: {new Date(startDate).toLocaleDateString('tr-TR')} - {new Date(endDate).toLocaleDateString('tr-TR')}
-            </p>
-            <p className="text-xs text-blue-600 mt-1">
-              • {filteredActivePositions.length} pozisyon açıldı • {filteredClosedPositions.length} pozisyon kapatıldı
+              Tüm Veriler: {positions.length} aktif pozisyon, {closedPositions.length} kapalı pozisyon
             </p>
           </div>
         )}
         
         {timeRange === 'daily' && (
-          <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-            <p className="text-sm text-green-800 dark:text-green-200">
+          <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-800/30">
+            <p className="text-sm text-green-800 dark:text-green-200 font-medium">
               <CalendarDays className="w-4 h-4 inline mr-2" />
               Bugün: {filteredActivePositions.length} pozisyon açıldı, {filteredClosedPositions.length} pozisyon kapatıldı
             </p>
@@ -258,10 +279,10 @@ export default function Analytics() {
         )}
         
         {timeRange === 'monthly' && (
-          <div className="mt-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-            <p className="text-sm text-purple-800 dark:text-purple-200">
+          <div className="mt-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-100 dark:border-purple-800/30">
+            <p className="text-sm text-purple-800 dark:text-purple-200 font-medium">
               <CalendarDays className="w-4 h-4 inline mr-2" />
-              Bu ay: {filteredActivePositions.length} pozisyon açıldı, {filteredClosedPositions.length} pozisyon kapatıldı
+              Bu Ay: {filteredActivePositions.length} pozisyon açıldı, {filteredClosedPositions.length} pozisyon kapatıldı
             </p>
           </div>
         )}
