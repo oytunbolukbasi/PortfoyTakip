@@ -180,11 +180,8 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
               </div>
             </div>
             
-            {/* Divider line */}
-            <div className="border-t border-gray-100 dark:border-gray-700 my-3"></div>
-            
             {/* Bottom section with duration and action buttons */}
-            <div className="flex items-center justify-between pt-1">
+            <div className="flex items-center justify-between pt-3 mt-2 border-t border-gray-100 dark:border-gray-700">
               <div className="text-xs text-gray-500 dark:text-gray-400">
                 {(() => {
                   const openDate = new Date(position.buyDate);
