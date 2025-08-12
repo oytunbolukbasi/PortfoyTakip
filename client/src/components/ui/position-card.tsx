@@ -44,6 +44,16 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
   const { pl, plPercent, value, currentPrice } = calculatePL();
   const change = position.currentPrice ? 
     ((currentPrice - parseFloat(position.buyPrice)) / parseFloat(position.buyPrice)) * 100 : 0;
+  
+  const calculateActiveDays = () => {
+    const openDate = new Date(position.buyDate);
+    const today = new Date();
+    const diffTime = Math.abs(today.getTime() - openDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+  
+  const activeDays = calculateActiveDays();
 
   const handleDelete = async () => {
     try {
@@ -180,8 +190,12 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
               </div>
             </div>
             
-            {/* Action buttons */}
-            <div className="flex items-center justify-end space-x-3 pt-1">
+            {/* Active days info and action buttons */}
+            <div className="flex items-center justify-between pt-1">
+              <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                {activeDays} günden beri aktif
+              </div>
+              <div className="flex items-center space-x-3">
               <Button
                 variant="ghost"
                 size="sm"
@@ -206,6 +220,7 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
               >
                 SİL
               </Button>
+              </div>
             </div>
           </div>
         </div>

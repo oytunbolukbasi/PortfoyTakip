@@ -221,7 +221,7 @@ export default function Analytics() {
           <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl space-y-4">
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="startDate" className="text-sm font-medium text-gray-900 dark:text-white block">Başlangıç Tarihi</Label>
+                <Label htmlFor="startDate" className="text-xs font-medium text-gray-600 dark:text-gray-400 block">Başlangıç Tarihi</Label>
                 <Input
                   id="startDate"
                   type="date"
@@ -232,7 +232,7 @@ export default function Analytics() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="endDate" className="text-sm font-medium text-gray-900 dark:text-white block">Bitiş Tarihi</Label>
+                <Label htmlFor="endDate" className="text-xs font-medium text-gray-600 dark:text-gray-400 block">Bitiş Tarihi</Label>
                 <Input
                   id="endDate"
                   type="date"
