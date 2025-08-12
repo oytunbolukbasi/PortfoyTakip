@@ -181,7 +181,7 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
             </div>
             
             {/* Action buttons */}
-            <div className="flex items-center justify-center space-x-6 pt-3">
+            <div className="flex items-center justify-end space-x-4 pt-2">
               <Button
                 variant="ghost"
                 size="sm"
@@ -191,7 +191,7 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
                   setSellPrice(position.currentPrice ? parseFloat(position.currentPrice).toFixed(2).replace('.', ',') : '0,00');
                   setSellDate(new Date().toISOString().split('T')[0]);
                 }}
-                className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium text-sm py-2 px-4"
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium text-sm py-1 px-2"
               >
                 KAPAT
               </Button>
@@ -202,7 +202,7 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
                   e.stopPropagation();
                   setShowDeleteDialog(true);
                 }}
-                className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium text-sm py-2 px-4"
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium text-sm py-1 px-2"
               >
                 SİL
               </Button>
