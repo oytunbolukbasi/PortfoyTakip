@@ -219,27 +219,26 @@ export default function Analytics() {
 
         {timeRange === 'custom' && (
           <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl space-y-4">
-            <div className="text-sm font-medium text-gray-900 dark:text-white">Tarih Aralığı Seçin</div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="startDate" className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block">Başlangıç Tarihi</Label>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="startDate" className="text-sm font-medium text-gray-900 dark:text-white block">Başlangıç Tarihi</Label>
                 <Input
                   id="startDate"
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="mt-1"
+                  className="w-full"
                   max={endDate || undefined}
                 />
               </div>
-              <div>
-                <Label htmlFor="endDate" className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block">Bitiş Tarihi</Label>
+              <div className="space-y-2">
+                <Label htmlFor="endDate" className="text-sm font-medium text-gray-900 dark:text-white block">Bitiş Tarihi</Label>
                 <Input
                   id="endDate"
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="mt-1"
+                  className="w-full"
                   min={startDate || undefined}
                   max={new Date().toISOString().split('T')[0]}
                 />
