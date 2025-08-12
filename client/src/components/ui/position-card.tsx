@@ -181,31 +181,29 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
             </div>
             
             {/* Action buttons */}
-            <div className="flex items-center justify-center space-x-3 pt-1">
+            <div className="flex items-center justify-center space-x-6 pt-3">
               <Button
-                variant="outline"
-                size="lg"
+                variant="ghost"
+                size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowCloseDialog(true);
                   setSellPrice(position.currentPrice ? parseFloat(position.currentPrice).toFixed(2).replace('.', ',') : '0,00');
                   setSellDate(new Date().toISOString().split('T')[0]);
                 }}
-                className="flex-1 bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800/30 text-orange-700 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-lg font-medium py-1.5 px-3 text-xs h-auto"
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium text-sm py-2 px-4"
               >
-                <span className="mr-1">✓</span>
                 KAPAT
               </Button>
               <Button
-                variant="outline"
-                size="lg"
+                variant="ghost"
+                size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowDeleteDialog(true);
                 }}
-                className="flex-1 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/30 text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg font-medium py-1.5 px-3 text-xs h-auto"
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium text-sm py-2 px-4"
               >
-                <span className="mr-1">✕</span>
                 SİL
               </Button>
             </div>
