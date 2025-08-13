@@ -219,26 +219,29 @@ export default function Analytics() {
 
         {timeRange === 'custom' && (
           <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="startDate" className="text-xs font-medium text-gray-600 dark:text-gray-400 text-center block">Başlangıç</Label>
+            <div className="flex justify-center items-center space-x-6">
+              <div className="space-y-2 flex-1 max-w-[140px]">
+                <Label htmlFor="startDate" className="text-xs font-medium text-gray-600 dark:text-gray-400 text-center block">Başlangıç Tarihi</Label>
                 <Input
                   id="startDate"
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full text-xs"
+                  className="w-full text-xs text-center"
                   max={endDate || undefined}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="endDate" className="text-xs font-medium text-gray-600 dark:text-gray-400 text-center block">Bitiş</Label>
+              <div className="flex items-center pt-6">
+                <span className="text-gray-400 dark:text-gray-500 text-sm">-</span>
+              </div>
+              <div className="space-y-2 flex-1 max-w-[140px]">
+                <Label htmlFor="endDate" className="text-xs font-medium text-gray-600 dark:text-gray-400 text-center block">Bitiş Tarihi</Label>
                 <Input
                   id="endDate"
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full text-xs"
+                  className="w-full text-xs text-center"
                   min={startDate || undefined}
                   max={new Date().toISOString().split('T')[0]}
                 />
