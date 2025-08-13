@@ -218,27 +218,27 @@ export default function Analytics() {
         </div>
 
         {timeRange === 'custom' && (
-          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl space-y-4 mx-auto max-w-md">
-            <div className="grid grid-cols-1 gap-4">
+          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl space-y-4">
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="startDate" className="text-sm font-medium text-gray-700 dark:text-gray-300 text-center block">Başlangıç Tarihi</Label>
+                <Label htmlFor="startDate" className="text-xs font-medium text-gray-600 dark:text-gray-400 text-center block">Başlangıç</Label>
                 <Input
                   id="startDate"
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full text-center"
+                  className="w-full text-xs"
                   max={endDate || undefined}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="endDate" className="text-sm font-medium text-gray-700 dark:text-gray-300 text-center block">Bitiş Tarihi</Label>
+                <Label htmlFor="endDate" className="text-xs font-medium text-gray-600 dark:text-gray-400 text-center block">Bitiş</Label>
                 <Input
                   id="endDate"
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full text-center"
+                  className="w-full text-xs"
                   min={startDate || undefined}
                   max={new Date().toISOString().split('T')[0]}
                 />
