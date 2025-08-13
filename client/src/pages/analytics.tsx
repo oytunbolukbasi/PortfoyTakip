@@ -31,8 +31,8 @@ export default function Analytics() {
 
   // Filter positions based on selected date range
   const getFilteredData = () => {
-    let filteredClosed = [];
-    let filteredActive = [];
+    let filteredClosed: ClosedPosition[] = [];
+    let filteredActive: Position[] = [];
     
     if (timeRange === 'custom' && startDate && endDate) {
       const start = new Date(startDate);
