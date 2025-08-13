@@ -66,6 +66,13 @@ This is a Turkish investment portfolio tracking application built for Turkish in
     - Portfolio table view (position-table) fully dark mode compatible with proper hover effects
     - Unified color scheme using night blue tones (gray-800/gray-900) instead of harsh blacks
     - Single view toggle button in header showing current active view with seamless switching
+- **Global Table View Implementation (January 28, 2025):**
+  - Added comprehensive table view for closed positions matching active positions design
+  - Implemented sticky first column structure for both active and closed position tables
+  - Fixed K/Z data display in closed positions table using correct `pl` and `plPercent` fields
+  - Added item count indicators to both table views showing number of listed positions
+  - Ensured global view switching works across both active and closed position tabs
+  - Maintained consistent UI design language between both table implementations
 
 ## User Preferences
 
