@@ -207,6 +207,13 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 mx-4 mb-3 overflow-hidden">
+      {/* Item count indicator */}
+      <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-600">
+        <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+          {positions.length} aktif pozisyon listeleniyor
+        </p>
+      </div>
+      
       <div className="overflow-x-auto">
         <table className="w-full min-w-[800px]">
           <thead className="bg-gray-50 dark:bg-gray-700/50">
