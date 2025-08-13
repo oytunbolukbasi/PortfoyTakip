@@ -13,7 +13,7 @@ interface ClosedPositionTableProps {
 }
 
 export function ClosedPositionTable({ closedPositions, onRefresh }: ClosedPositionTableProps) {
-  const [sortField, setSortField] = useState<'symbol' | 'quantity' | 'buyPrice' | 'sellPrice' | 'totalReturn' | 'returnPercent' | 'sellDate'>('sellDate');
+  const [sortField, setSortField] = useState<'symbol' | 'quantity' | 'buyPrice' | 'sellPrice' | 'pl' | 'plPercent' | 'sellDate'>('sellDate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [deletePosition, setDeletePosition] = useState<ClosedPosition | null>(null);
   const { toast } = useToast();
@@ -47,13 +47,13 @@ export function ClosedPositionTable({ closedPositions, onRefresh }: ClosedPositi
         aValue = parseFloat(a.sellPrice);
         bValue = parseFloat(b.sellPrice);
         break;
-      case 'totalReturn':
-        aValue = parseFloat(a.totalReturn);
-        bValue = parseFloat(b.totalReturn);
+      case 'pl':
+        aValue = parseFloat(a.pl);
+        bValue = parseFloat(b.pl);
         break;
-      case 'returnPercent':
-        aValue = parseFloat(a.returnPercent);
-        bValue = parseFloat(b.returnPercent);
+      case 'plPercent':
+        aValue = parseFloat(a.plPercent);
+        bValue = parseFloat(b.plPercent);
         break;
       case 'sellDate':
         aValue = new Date(a.sellDate).getTime();
@@ -88,155 +88,148 @@ export function ClosedPositionTable({ closedPositions, onRefresh }: ClosedPositi
   };
 
   const SortButton = ({ field, children }: { field: typeof sortField; children: React.ReactNode }) => (
-    <button
+    <Button
+      variant="ghost"
+      size="sm"
+      className="h-auto p-0 font-medium text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 flex items-center gap-1"
       onClick={() => handleSort(field)}
-      className="flex items-center space-x-1 hover:bg-gray-100 dark:hover:bg-gray-700 px-2 py-1 rounded"
     >
-      <span>{children}</span>
+      {children}
       {sortField === field && (
         sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
       )}
-    </button>
+    </Button>
   );
 
   return (
-    <>
-      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
-        {/* Item count indicator */}
-        <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-            {closedPositions.length} kapalı pozisyon listeleniyor
-          </p>
-        </div>
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 mx-4 mb-3 overflow-hidden">
+      {/* Item count indicator */}
+      <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-600">
+        <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+          {closedPositions.length} kapalı pozisyon listeleniyor
+        </p>
+      </div>
+      
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[800px]">
+          <thead className="bg-gray-50 dark:bg-gray-700/50">
+            <tr>
+              <th className="sticky left-0 bg-gray-50 dark:bg-gray-700/50 px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[140px] z-10 border-r border-gray-200 dark:border-gray-600">
+                <SortButton field="symbol">Varlık</SortButton>
+              </th>
+              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[70px]">
+                <SortButton field="quantity">Adet</SortButton>
+              </th>
+              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[90px]">
+                <SortButton field="buyPrice">Alış</SortButton>
+              </th>
+              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[90px]">
+                <SortButton field="sellPrice">Satış</SortButton>
+              </th>
+              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[80px]">
+                <SortButton field="pl">K/Z</SortButton>
+              </th>
+              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[70px]">
+                <SortButton field="plPercent">K/Z %</SortButton>
+              </th>
+              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[90px]">
+                <SortButton field="sellDate">Tarih</SortButton>
+              </th>
+              <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[80px]">
+                İşlemler
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            {sortedPositions.map((position) => {
+              const pl = parseFloat(position.pl);
+              const plPercent = parseFloat(position.plPercent);
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-              <tr>
-                <th className="text-left px-3 py-3">
-                  <SortButton field="symbol">
-                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Sembol</span>
-                  </SortButton>
-                </th>
-                <th className="text-right px-3 py-3">
-                  <SortButton field="quantity">
-                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Adet</span>
-                  </SortButton>
-                </th>
-                <th className="text-right px-3 py-3">
-                  <SortButton field="buyPrice">
-                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Alış</span>
-                  </SortButton>
-                </th>
-                <th className="text-right px-3 py-3">
-                  <SortButton field="sellPrice">
-                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Satış</span>
-                  </SortButton>
-                </th>
-                <th className="text-right px-3 py-3">
-                  <SortButton field="totalReturn">
-                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400">K/Z</span>
-                  </SortButton>
-                </th>
-                <th className="text-right px-3 py-3">
-                  <SortButton field="sellDate">
-                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Tarih</span>
-                  </SortButton>
-                </th>
-                <th className="text-center px-3 py-3">
-                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">İşlem</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedPositions.map((position, index) => {
-                const totalReturn = parseFloat(position.totalReturn);
-                const returnPercent = parseFloat(position.returnPercent);
-
-                return (
-                  <tr 
-                    key={position.id}
-                    className={`border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 ${
-                      index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-25 dark:bg-gray-900/50'
-                    }`}
-                  >
-                    <td className="px-3 py-3">
-                      <div>
-                        <div className="font-medium text-sm text-gray-900 dark:text-white">
+              return (
+                <tr 
+                  key={position.id}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                >
+                  <td className="sticky left-0 bg-white dark:bg-gray-800 px-3 py-4 border-r border-gray-200 dark:border-gray-600 z-10">
+                    <div className="flex items-center space-x-3 min-w-[140px]">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
                           {position.symbol}
                         </div>
                         {position.name && (
-                          <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[120px]">
+                          <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
                             {position.name}
                           </div>
                         )}
                       </div>
-                    </td>
-                    <td className="px-3 py-3 text-right">
-                      <span className="text-sm text-gray-900 dark:text-white font-medium">
-                        {position.quantity.toLocaleString('tr-TR')}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3 text-right">
-                      <span className="text-sm text-gray-900 dark:text-white">
-                        {position.type === 'fund' 
-                          ? formatFundPrice(parseFloat(position.buyPrice))
-                          : `₺${formatTurkishPrice(parseFloat(position.buyPrice))}`
-                        }
-                      </span>
-                    </td>
-                    <td className="px-3 py-3 text-right">
-                      <span className="text-sm text-gray-900 dark:text-white">
-                        {position.type === 'fund' 
-                          ? formatFundPrice(parseFloat(position.sellPrice))
-                          : `₺${formatTurkishPrice(parseFloat(position.sellPrice))}`
-                        }
-                      </span>
-                    </td>
-                    <td className="px-3 py-3 text-right">
-                      <div className="flex flex-col items-end">
-                        <span className={`text-sm font-medium ${
-                          totalReturn >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                        }`}>
-                          {totalReturn >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(totalReturn))}
-                        </span>
-                        <span className={`text-xs ${
-                          totalReturn >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                        }`}>
-                          ({totalReturn >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(returnPercent))})
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 text-right">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        {new Date(position.sellDate).toLocaleDateString('tr-TR')}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3 text-center">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeletePosition(position);
-                        }}
-                        className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        {closedPositions.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 dark:text-gray-400">Henüz kapalı pozisyon bulunmuyor</p>
-          </div>
-        )}
+                    </div>
+                  </td>
+                  <td className="px-3 py-4 text-right">
+                    <span className="text-sm text-gray-900 dark:text-white font-medium">
+                      {position.quantity.toLocaleString('tr-TR')}
+                    </span>
+                  </td>
+                  <td className="px-3 py-4 text-right">
+                    <span className="text-sm text-gray-900 dark:text-white">
+                      {position.type === 'fund' 
+                        ? formatFundPrice(parseFloat(position.buyPrice))
+                        : `₺${formatTurkishPrice(parseFloat(position.buyPrice))}`
+                      }
+                    </span>
+                  </td>
+                  <td className="px-3 py-4 text-right">
+                    <span className="text-sm text-gray-900 dark:text-white">
+                      {position.type === 'fund' 
+                        ? formatFundPrice(parseFloat(position.sellPrice))
+                        : `₺${formatTurkishPrice(parseFloat(position.sellPrice))}`
+                      }
+                    </span>
+                  </td>
+                  <td className="px-3 py-4 text-right">
+                    <span className={`text-sm font-medium ${
+                      pl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                    }`}>
+                      {pl >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(pl))}
+                    </span>
+                  </td>
+                  <td className="px-3 py-4 text-right">
+                    <span className={`text-sm font-medium ${
+                      plPercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                    }`}>
+                      {plPercent >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(plPercent))}
+                    </span>
+                  </td>
+                  <td className="px-3 py-4 text-right">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      {new Date(position.sellDate).toLocaleDateString('tr-TR')}
+                    </span>
+                  </td>
+                  <td className="px-3 py-4 text-center">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeletePosition(position);
+                      }}
+                      className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </td>
+                </tr>
+              );
+            })}
+            
+            {closedPositions.length === 0 && (
+              <tr>
+                <td colSpan={8} className="text-center py-12">
+                  <p className="text-gray-500 dark:text-gray-400">Henüz kapalı pozisyon bulunmuyor</p>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
 
       {/* Delete Modal */}
@@ -264,6 +257,6 @@ export function ClosedPositionTable({ closedPositions, onRefresh }: ClosedPositi
           </div>
         </FullScreenModal>
       )}
-    </>
+    </div>
   );
 }
