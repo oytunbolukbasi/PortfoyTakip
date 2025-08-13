@@ -218,7 +218,7 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
         <table className="w-full min-w-[800px]">
           <thead className="bg-gray-50 dark:bg-gray-700/50">
             <tr>
-              <th className="sticky left-0 bg-gray-50 dark:bg-gray-700/50 px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[140px] z-10 border-r border-gray-200 dark:border-gray-600">
+              <th className="sticky left-0 bg-gray-50 dark:bg-gray-700/50 px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[120px] z-10 border-r border-gray-200 dark:border-gray-600">
                 <SortButton field="symbol">Varlık</SortButton>
               </th>
               <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[70px]">
@@ -255,17 +255,10 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
                   onClick={() => onRowClick(position)}
                 >
                   <td className="sticky left-0 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 px-3 py-4 whitespace-nowrap z-10 border-r border-gray-200 dark:border-gray-600">
-                    <div className="flex items-center">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-2 ${
-                        position.type === 'stock' ? 'bg-blue-500 dark:bg-blue-400' : 'bg-green-500 dark:bg-green-400'
-                      }`}>
-                        <span className="text-white font-semibold text-xs">
-                          {position.symbol.substring(0, 2).toUpperCase()}
-                        </span>
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">{position.symbol}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[80px]">
+                    <div className="flex items-center min-w-[120px]">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white truncate">{position.symbol}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
                           {position.name || position.symbol}
                         </div>
                       </div>

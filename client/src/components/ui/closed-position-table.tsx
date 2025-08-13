@@ -114,7 +114,7 @@ export function ClosedPositionTable({ closedPositions, onRefresh }: ClosedPositi
         <table className="w-full min-w-[800px]">
           <thead className="bg-gray-50 dark:bg-gray-700/50">
             <tr>
-              <th className="sticky left-0 bg-gray-50 dark:bg-gray-700/50 px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[140px] z-10 border-r border-gray-200 dark:border-gray-600">
+              <th className="sticky left-0 bg-gray-50 dark:bg-gray-700/50 px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[120px] z-10 border-r border-gray-200 dark:border-gray-600">
                 <SortButton field="symbol">Varlık</SortButton>
               </th>
               <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[70px]">
@@ -151,7 +151,7 @@ export function ClosedPositionTable({ closedPositions, onRefresh }: ClosedPositi
                   className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                 >
                   <td className="sticky left-0 bg-white dark:bg-gray-800 px-3 py-4 border-r border-gray-200 dark:border-gray-600 z-10">
-                    <div className="flex items-center space-x-3 min-w-[140px]">
+                    <div className="flex items-center space-x-3 min-w-[120px]">
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
                           {position.symbol}
