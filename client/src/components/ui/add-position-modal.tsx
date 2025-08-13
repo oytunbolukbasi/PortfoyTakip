@@ -95,10 +95,10 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                   <Button
                     type="button"
                     variant="ghost"
-                    className={`py-2.5 px-4 rounded-lg font-medium text-sm transition-all ${
+                    className={`py-2.5 px-4 rounded-lg font-semibold text-sm transition-all duration-200 ${
                       assetType === 'stock' 
-                        ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' 
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                        ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-md border border-blue-200 dark:border-blue-700/50' 
+                        : 'text-gray-500 dark:text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750'
                     }`}
                     onClick={() => {
                       setAssetType('stock');
@@ -110,10 +110,10 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                   <Button
                     type="button"
                     variant="ghost"
-                    className={`py-2.5 px-4 rounded-lg font-medium text-sm transition-all ${
+                    className={`py-2.5 px-4 rounded-lg font-semibold text-sm transition-all duration-200 ${
                       assetType === 'fund' 
-                        ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' 
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                        ? 'bg-white dark:bg-gray-700 text-green-600 dark:text-green-400 shadow-md border border-green-200 dark:border-green-700/50' 
+                        : 'text-gray-500 dark:text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750'
                     }`}
                     onClick={() => {
                       setAssetType('fund');
