@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/components/ui/theme-provider";
-import { formatTurkishPrice } from "@/lib/format";
+import { formatTurkishPrice, formatPositionPrice } from "@/lib/format";
 
 export default function Portfolio() {
   const [activeTab, setActiveTab] = useState<'active' | 'closed'>('active');
@@ -140,7 +140,7 @@ export default function Portfolio() {
       </header>
 
       {/* Portfolio Summary */}
-      <PortfolioSummary positions={positions} />
+      <PortfolioSummary positions={positions} closedPositions={closedPositions} />
 
       {/* iPhone-style Segmented Control */}
       <div className="px-4 pt-3 pb-2">
@@ -292,7 +292,7 @@ export default function Portfolio() {
                               </div>
                             </div>
                             <div className="text-right">
-                              <p className="text-xl font-bold text-gray-900 dark:text-white">₺{formatTurkishPrice(parseFloat(position.sellPrice))}</p>
+                              <p className="text-xl font-bold text-gray-900 dark:text-white">{formatPositionPrice(parseFloat(position.sellPrice), position.type)}</p>
                               <p className="text-sm text-gray-500 dark:text-gray-400">
                                 {new Date(position.sellDate).toLocaleDateString('tr-TR')}
                               </p>
@@ -306,11 +306,11 @@ export default function Portfolio() {
                             </div>
                             <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
                               <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Alış</p>
-                              <p className="font-semibold text-gray-900 dark:text-white">₺{formatTurkishPrice(parseFloat(position.buyPrice))}</p>
+                              <p className="font-semibold text-gray-900 dark:text-white">{formatPositionPrice(parseFloat(position.buyPrice), position.type)}</p>
                             </div>
                             <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
                               <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Satış</p>
-                              <p className="font-semibold text-gray-900 dark:text-white">₺{formatTurkishPrice(parseFloat(position.sellPrice))}</p>
+                              <p className="font-semibold text-gray-900 dark:text-white">{formatPositionPrice(parseFloat(position.sellPrice), position.type)}</p>
                             </div>
                           </div>
                           
@@ -326,7 +326,7 @@ export default function Portfolio() {
                                 <div className={`text-base font-bold ${
                                   parseFloat(position.pl) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                                 }`}>
-                                  {parseFloat(position.pl) >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(parseFloat(position.pl)))}
+                                  {parseFloat(position.pl) >= 0 ? '+' : '-'}{formatPositionPrice(Math.abs(parseFloat(position.pl)), position.type)}
                                 </div>
                                 <div className={`text-sm font-medium ${
                                   parseFloat(position.plPercent) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'

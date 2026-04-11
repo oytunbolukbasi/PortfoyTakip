@@ -114,7 +114,7 @@ export class DatabaseStorage implements IStorage {
 
     const sellPrice = parseFloat(closeData.sellPrice);
     const buyPrice = parseFloat(position.buyPrice);
-    const quantity = position.quantity;
+    const quantity = parseFloat(position.quantity);
     
     const pl = (sellPrice - buyPrice) * quantity;
     const plPercent = ((sellPrice - buyPrice) / buyPrice) * 100;
@@ -129,8 +129,9 @@ export class DatabaseStorage implements IStorage {
         symbol: position.symbol,
         name: position.name,
         type: position.type,
-        quantity: position.quantity,
+        quantity: position.quantity, // Keep as string for decimal type
         buyPrice: position.buyPrice,
+        buyRate: position.buyRate,
         sellPrice: closeData.sellPrice,
         buyDate: position.buyDate,
         sellDate: new Date(closeData.sellDate),

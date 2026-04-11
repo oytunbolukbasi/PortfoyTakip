@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
 import { insertPositionSchema, type InsertPosition } from "@shared/schema";
 import { FullScreenModal } from './full-screen-modal';
 import {
@@ -25,7 +26,7 @@ interface AddPositionModalProps {
 }
 
 export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddPositionModalProps) {
-  const [assetType, setAssetType] = useState<'stock' | 'fund'>('stock');
+  const [assetType, setAssetType] = useState<'stock' | 'fund' | 'us_stock'>('stock');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -35,8 +36,9 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
       symbol: '',
       name: '',
       type: 'stock',
-      quantity: 1,
+      quantity: '1',
       buyPrice: '',
+      buyRate: '1.0',
       buyDate: new Date().toISOString().split('T')[0],
     },
   });
@@ -91,7 +93,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                 Varlık Türü
               </FormLabel>
               <div className="bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
-                <div className="grid grid-cols-2 gap-1">
+                <div className="grid grid-cols-3 gap-1">
                   <Button
                     type="button"
                     variant="ghost"
@@ -122,6 +124,21 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                   >
                     Fon
                   </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className={`py-2.5 px-4 rounded-lg font-semibold text-sm transition-all duration-200 ${
+                      assetType === 'us_stock' 
+                        ? 'bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-400 shadow-md border border-purple-200 dark:border-purple-700/50' 
+                        : 'text-gray-500 dark:text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750'
+                    }`}
+                    onClick={() => {
+                      setAssetType('us_stock');
+                      form.setValue('type', 'us_stock');
+                    }}
+                  >
+                    ABD Hisse
+                  </Button>
                 </div>
               </div>
             </div>
@@ -136,7 +153,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                   <FormControl>
                     <Input
                       {...field}
-                      placeholder={assetType === 'stock' ? 'Örn: GARAN, AKBNK' : 'Örn: TFF, AFT'}
+                      placeholder={assetType === 'stock' ? 'Örn: GARAN, AKBNK' : (assetType === 'us_stock' ? 'Örn: AAPL, TSLA' : 'Örn: TFF, AFT')}
                       className="uppercase"
                       onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                     />
@@ -157,7 +174,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                     <Input
                       {...field}
                       value={field.value || ''}
-                      placeholder={assetType === 'stock' ? 'Örn: Garanti BBVA' : 'Örn: TEFAS Fon'}
+                      placeholder={assetType === 'stock' ? 'Örn: Garanti BBVA' : (assetType === 'us_stock' ? 'Örn: Apple Inc.' : 'Örn: TEFAS Fon')}
                     />
                   </FormControl>
                   <FormMessage />
@@ -175,14 +192,16 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                   <FormControl>
                     <Input
                       {...field}
-                      type="number"
-                      min="1"
-                      placeholder="1"
+                      type="text"
+                      placeholder="Örn: 10,5 veya 1"
                       className="font-mono"
                       value={field.value || ''}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || '')}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const cleaned = value.replace(/[^0-9,.]/g, '');
+                        field.onChange(cleaned);
+                      }}
                       onFocus={(e) => {
-                        // Select all text on focus so user can overwrite
                         e.target.select();
                       }}
                     />
@@ -198,7 +217,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
               name="buyPrice"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-900 dark:text-white">Alış Fiyatı (₺)</FormLabel>
+                  <FormLabel className="text-gray-900 dark:text-white">Alış Fiyatı ({assetType === 'us_stock' ? '$' : '₺'})</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -207,20 +226,15 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                       className="font-mono"
                       value={field.value || ''}
                       onChange={(e) => {
-                        // Allow Turkish format with comma as decimal separator
                         const value = e.target.value;
-                        // Only allow numbers, comma, and thousand separator dot
                         const cleaned = value.replace(/[^0-9,.]/g, '');
                         field.onChange(cleaned);
                       }}
-                      onFocus={(e) => {
-                        // Select all text on focus so user can overwrite
-                        e.target.select();
-                      }}
+                      onFocus={(e) => e.target.select()}
                     />
                   </FormControl>
                   <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Örnek: 0,60 (fonlar) veya 106,80 (hisseler)
+                    Örnek: {assetType === 'us_stock' ? '150,45' : (assetType === 'stock' ? '106,80' : '0,60')}
                   </div>
                   <FormMessage />
                 </FormItem>

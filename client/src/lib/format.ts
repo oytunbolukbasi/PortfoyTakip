@@ -42,3 +42,18 @@ export function formatTurkishPercent(value: number): string {
 export function parseTurkishPrice(value: string): number {
   return parseFloat(value.replace(/\./g, '').replace(',', '.'));
 }
+
+// Format price with correct currency symbol based on asset type
+// Used for per-unit prices (e.g. buy price, current price)
+export function formatPositionPrice(value: number, type: string): string {
+  // Fund per-unit prices get 6 decimal places, others get 2
+  const formatted = type === 'fund' ? formatFundPrice(value) : formatTurkishPrice(value);
+  return type === 'us_stock' ? `$${formatted}` : `₺${formatted}`;
+}
+
+// Format aggregate position values (total value, P&L) - always 2 decimal places
+// Fund totals should NOT use 6-decimal fund format
+export function formatPositionValue(value: number, type: string): string {
+  const formatted = formatTurkishPrice(value);
+  return type === 'us_stock' ? `$${formatted}` : `₺${formatted}`;
+}

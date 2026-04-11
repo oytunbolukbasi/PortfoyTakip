@@ -24,6 +24,24 @@ export default function Analytics() {
     queryKey: ['/api/closed-positions'],
   });
 
+  const { data: exchangeRateData } = useQuery<{ pair: string; rate: number }>({
+    queryKey: ['/api/exchange-rates', 'USDTRY'],
+    queryFn: async () => {
+      const res = await fetch('/api/exchange-rates?pair=USDTRY');
+      return res.json();
+    },
+    refetchInterval: 60000, // Refresh every minute
+  });
+  const usdRate = exchangeRateData?.rate || 35.0;
+
+  const toTRY = (val: string | number, type: string) => {
+    return parseFloat(val?.toString() || '0') * (type === 'us_stock' ? usdRate : 1);
+  };
+
+  const getTRY = (val: string | number, type: string, rate: number = 1) => {
+    return parseFloat(val?.toString() || '0') * (type === 'us_stock' ? rate : 1);
+  };
+
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -33,53 +51,53 @@ export default function Analytics() {
   const getFilteredData = () => {
     let filteredClosed: ClosedPosition[] = [];
     let filteredActive: Position[] = [];
-    
+
     if (timeRange === 'custom' && startDate && endDate) {
       const start = new Date(startDate);
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999); // Include the entire end date
-      
+
       // Filter closed positions by sell date within range
       filteredClosed = closedPositions.filter(position => {
         const sellDate = new Date(position.sellDate);
         return sellDate >= start && sellDate <= end;
       });
-      
+
       // Filter active positions by buy date within range (for portfolio metrics)
       filteredActive = positions.filter(position => {
         const buyDate = new Date(position.buyDate);
         return buyDate >= start && buyDate <= end;
       });
-      
+
     } else if (timeRange === 'daily') {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
-      
+
       // Filter closed positions sold today
       filteredClosed = closedPositions.filter(position => {
         const sellDate = new Date(position.sellDate);
         return sellDate >= today && sellDate < tomorrow;
       });
-      
+
       // Filter active positions bought today
       filteredActive = positions.filter(position => {
         const buyDate = new Date(position.buyDate);
         return buyDate >= today && buyDate < tomorrow;
       });
-      
+
     } else if (timeRange === 'monthly') {
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-      
+
       // Filter closed positions sold this month
       filteredClosed = closedPositions.filter(position => {
         const sellDate = new Date(position.sellDate);
         return sellDate >= startOfMonth && sellDate <= endOfMonth;
       });
-      
+
       // Filter active positions bought this month
       filteredActive = positions.filter(position => {
         const buyDate = new Date(position.buyDate);
@@ -90,7 +108,7 @@ export default function Analytics() {
       filteredClosed = closedPositions;
       filteredActive = positions;
     }
-    
+
     return { filteredClosed, filteredActive };
   };
 
@@ -98,66 +116,106 @@ export default function Analytics() {
 
   // Calculate portfolio metrics for filtered period
   const filteredTotalValue = filteredActivePositions.reduce((sum, pos) => {
-    return sum + (parseFloat(pos.currentPrice || '0') * pos.quantity);
+    return sum + (getTRY(pos.currentPrice || '0', pos.type, usdRate) * parseFloat(pos.quantity));
   }, 0);
 
   const filteredTotalCost = filteredActivePositions.reduce((sum, pos) => {
-    return sum + (parseFloat(pos.buyPrice) * pos.quantity);
+    // Current requirement: Use current rate for everything for US stocks
+    const rate = pos.type === 'us_stock' ? usdRate : 1;
+    return sum + (parseFloat(pos.buyPrice) * parseFloat(pos.quantity) * rate);
   }, 0);
 
   const filteredProfit = filteredTotalValue - filteredTotalCost;
-  
+
   // Overall portfolio metrics (all positions)
   const totalValue = positions.reduce((sum, pos) => {
-    return sum + (parseFloat(pos.currentPrice || '0') * pos.quantity);
+    return sum + (getTRY(pos.currentPrice || '0', pos.type, usdRate) * parseFloat(pos.quantity));
   }, 0);
 
   const totalCost = positions.reduce((sum, pos) => {
-    return sum + (parseFloat(pos.buyPrice) * pos.quantity);
+    const rate = pos.type === 'us_stock' ? usdRate : 1;
+    return sum + (parseFloat(pos.buyPrice) * parseFloat(pos.quantity) * rate);
   }, 0);
 
   const totalProfit = totalValue - totalCost;
   const totalProfitPercent = totalCost > 0 ? (totalProfit / totalCost) * 100 : 0;
 
   const realizedProfit = filteredClosedPositions.reduce((sum, pos) => {
+    if (pos.type === 'us_stock') {
+      const sellPrice = parseFloat(pos.sellPrice);
+      const buyPrice = parseFloat(pos.buyPrice);
+      return sum + (sellPrice - buyPrice) * parseFloat(pos.quantity) * usdRate;
+    }
     return sum + parseFloat(pos.pl);
   }, 0);
 
   const realizedProfitTotal = closedPositions.reduce((sum, pos) => {
+    if (pos.type === 'us_stock') {
+      const sellPrice = parseFloat(pos.sellPrice);
+      const buyPrice = parseFloat(pos.buyPrice);
+      return sum + (sellPrice - buyPrice) * parseFloat(pos.quantity) * usdRate;
+    }
     return sum + parseFloat(pos.pl);
+  }, 0);
+
+  const realizedCostTotal = closedPositions.reduce((sum, pos) => {
+    const rate = pos.type === 'us_stock' ? usdRate : 1;
+    return sum + (getTRY(pos.buyPrice, pos.type, rate) * parseFloat(pos.quantity));
   }, 0);
 
   const unrealizedProfit = totalProfit;
   const netProfit = realizedProfit + unrealizedProfit;
   const netProfitTotal = realizedProfitTotal + unrealizedProfit;
+  const lifetimeCost = totalCost + realizedCostTotal;
+  const netProfitPercent = lifetimeCost > 0 ? (netProfitTotal / lifetimeCost) * 100 : 0;
 
   // Asset type analysis
   const stockPositions = positions.filter(pos => pos.type === 'stock');
   const fundPositions = positions.filter(pos => pos.type === 'fund');
-  
+  const usStockPositions = positions.filter(pos => pos.type === 'us_stock');
+
   const stockValue = stockPositions.reduce((sum, pos) => {
-    return sum + (parseFloat(pos.currentPrice || '0') * pos.quantity);
+    return sum + (getTRY(pos.currentPrice || '0', pos.type, usdRate) * parseFloat(pos.quantity));
   }, 0);
-  
+
   const stockCost = stockPositions.reduce((sum, pos) => {
-    return sum + (parseFloat(pos.buyPrice) * pos.quantity);
+    return sum + (getTRY(pos.buyPrice, pos.type, 1) * parseFloat(pos.quantity));
   }, 0);
-  
+
   const stockPL = stockValue - stockCost;
-  
+
   const fundValue = fundPositions.reduce((sum, pos) => {
-    return sum + (parseFloat(pos.currentPrice || '0') * pos.quantity);
+    return sum + (getTRY(pos.currentPrice || '0', pos.type, usdRate) * parseFloat(pos.quantity));
   }, 0);
-  
+
   const fundCost = fundPositions.reduce((sum, pos) => {
-    return sum + (parseFloat(pos.buyPrice) * pos.quantity);
+    return sum + (getTRY(pos.buyPrice, pos.type, 1) * parseFloat(pos.quantity));
   }, 0);
-  
+
   const fundPL = fundValue - fundCost;
-  
+
+  // US Stocks (stored in USD internally, multiply by rate for TRY totals)
+  const usStockValue = usStockPositions.reduce((sum, pos) => {
+    return sum + (getTRY(pos.currentPrice || '0', pos.type, usdRate) * parseFloat(pos.quantity));
+  }, 0);
+  const usStockCost = usStockPositions.reduce((sum, pos) => {
+    return sum + (getTRY(pos.buyPrice, pos.type, usdRate) * parseFloat(pos.quantity));
+  }, 0);
+  const usStockPL = usStockValue - usStockCost;
+  // USD display values (native without rate)
+  const usStockValueUSD = usStockPositions.reduce((sum, pos) => {
+    return sum + (parseFloat(pos.currentPrice || '0') * parseFloat(pos.quantity));
+  }, 0);
+  const usStockPLUSD = usStockPositions.reduce((sum, pos) => {
+    const cp = parseFloat(pos.currentPrice || pos.buyPrice);
+    const bp = parseFloat(pos.buyPrice);
+    return sum + ((cp - bp) * parseFloat(pos.quantity));
+  }, 0);
+
   // Asset allocation percentages
   const stockPercentage = totalValue > 0 ? (stockValue / totalValue) * 100 : 0;
   const fundPercentage = totalValue > 0 ? (fundValue / totalValue) * 100 : 0;
+  const usStockPercentage = totalValue > 0 ? (usStockValue / totalValue) * 100 : 0;
 
   const isLoading = positionsLoading || closedLoading;
 
@@ -169,9 +227,9 @@ export default function Analytics() {
           <div className="flex items-center space-x-2">
             <h1 className="text-lg font-semibold text-foreground">Analiz</h1>
           </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             className="p-3 text-primary hover:bg-primary/10 rounded-full"
             onClick={toggleTheme}
           >
@@ -247,7 +305,7 @@ export default function Analytics() {
                 />
               </div>
             </div>
-            
+
             {startDate && endDate && (
               <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800/30">
                 <p className="text-sm text-blue-800 dark:text-blue-300 font-medium">
@@ -261,7 +319,7 @@ export default function Analytics() {
             )}
           </div>
         )}
-        
+
         {timeRange === 'all' && (
           <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
             <p className="text-sm text-gray-800 dark:text-gray-200 font-medium">
@@ -270,7 +328,7 @@ export default function Analytics() {
             </p>
           </div>
         )}
-        
+
         {timeRange === 'daily' && (
           <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-800/30">
             <p className="text-sm text-green-800 dark:text-green-200 font-medium">
@@ -279,7 +337,7 @@ export default function Analytics() {
             </p>
           </div>
         )}
-        
+
         {timeRange === 'monthly' && (
           <div className="mt-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-100 dark:border-purple-800/30">
             <p className="text-sm text-purple-800 dark:text-purple-200 font-medium">
@@ -318,7 +376,7 @@ export default function Analytics() {
                   )}
                 </h3>
               </div>
-              
+
               {/* Show filtered period data if custom date range is selected */}
               {timeRange === 'custom' && startDate && endDate ? (
                 <div>
@@ -370,9 +428,9 @@ export default function Analytics() {
                       <p className="text-xl font-bold text-gray-900 dark:text-white">₺{formatTurkishPrice(totalCost)}</p>
                     </div>
                   </div>
-                  <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                  <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Gerçekleşmemiş K/Z:</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Aktif Pozisyonlar K/Z:</span>
                       <div className="text-right">
                         <span className={`font-bold ${totalProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                           {totalProfit >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(totalProfit))}
@@ -381,6 +439,21 @@ export default function Analytics() {
                           ({totalProfitPercent >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(totalProfitPercent))})
                         </span>
                       </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
+                      <span className="text-sm font-semibold text-gray-900 dark:text-white">Net Portföy Karı (Lifetime):</span>
+                      <div className="text-right">
+                        <span className={`font-bold ${netProfitTotal >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                          {netProfitTotal >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(netProfitTotal))}
+                        </span>
+                        <span className={`text-sm ml-2 ${netProfitPercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                          ({netProfitPercent >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(netProfitPercent))})
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-[10px] text-right text-gray-400 dark:text-gray-500">
+                      Toplam Maliyet Temeli: ₺{formatTurkishPrice(lifetimeCost)}
                     </div>
                   </div>
                 </div>
@@ -515,14 +588,14 @@ export default function Analytics() {
             <Card className="p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-gray-900 dark:text-white flex items-center">
-                  Hisse & Fon Kar/Zarar
+                  Hisse &amp; Fon Kar/Zarar
                 </h3>
               </div>
               <div className="space-y-4">
                 {/* Stock P&L */}
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800/30">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-blue-900 dark:text-blue-200">Hisse Senedi</span>
+                    <span className="font-medium text-blue-900 dark:text-blue-200">Hisse Senedi (BIST)</span>
                     <span className="text-sm text-blue-700 dark:text-blue-300">{stockPositions.length} pozisyon</span>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm">
@@ -538,6 +611,41 @@ export default function Analytics() {
                     </div>
                   </div>
                 </div>
+
+                {/* US Stock P&L - only shown when user has us_stock positions */}
+                {usStockPositions.length > 0 && (
+                  <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg border border-purple-100 dark:border-purple-800/30">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-purple-900 dark:text-purple-200">Yabancı Hisse (ABD)</span>
+                      <span className="text-sm text-purple-700 dark:text-purple-300">{usStockPositions.length} pozisyon</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <p className="text-purple-600 dark:text-purple-400">Değer (TL)</p>
+                        <p className="font-semibold text-purple-900 dark:text-purple-100">₺{formatTurkishPrice(usStockValue)}</p>
+                      </div>
+                      <div>
+                        <p className="text-purple-600 dark:text-purple-400">Değer (USD)</p>
+                        <p className="font-semibold text-purple-900 dark:text-purple-100">${formatTurkishPrice(usStockValueUSD)}</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 text-sm mt-2 pt-2 border-t border-purple-100 dark:border-purple-800/30">
+                      <div>
+                        <p className="text-purple-600 dark:text-purple-400">K/Z (TL)</p>
+                        <p className={`font-semibold ${usStockPL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                          {usStockPL >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(usStockPL))}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-purple-600 dark:text-purple-400">K/Z (USD)</p>
+                        <p className={`font-semibold ${usStockPLUSD >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                          {usStockPLUSD >= 0 ? '+' : '-'}${formatTurkishPrice(Math.abs(usStockPLUSD))}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-purple-500 dark:text-purple-400 mt-2">Kur: 1 USD = ₺{formatTurkishPrice(usdRate)}</p>
+                  </div>
+                )}
 
                 {/* Fund P&L */}
                 <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border border-green-100 dark:border-green-800/30">
@@ -581,7 +689,7 @@ export default function Analytics() {
                         strokeLinecap="round"
                         className="stroke-gray-200 dark:stroke-gray-600"
                       />
-                      
+
                       {/* Stock allocation arc */}
                       {stockPercentage > 0 && (
                         <path
@@ -594,7 +702,20 @@ export default function Analytics() {
                           className="drop-shadow-sm stroke-blue-500 dark:stroke-blue-400"
                         />
                       )}
-                      
+
+                      {/* US Stock allocation arc */}
+                      {usStockPercentage > 0 && (
+                        <path
+                          d="M 20 100 A 80 80 0 0 1 180 100"
+                          fill="none"
+                          strokeWidth="16"
+                          strokeLinecap="round"
+                          strokeDasharray={`${(usStockPercentage / 100) * 251.3} 251.3`}
+                          strokeDashoffset={`${-(stockPercentage / 100) * 251.3}`}
+                          className="drop-shadow-sm stroke-purple-500 dark:stroke-purple-400"
+                        />
+                      )}
+
                       {/* Fund allocation arc */}
                       {fundPercentage > 0 && (
                         <path
@@ -603,12 +724,12 @@ export default function Analytics() {
                           strokeWidth="16"
                           strokeLinecap="round"
                           strokeDasharray={`${(fundPercentage / 100) * 251.3} 251.3`}
-                          strokeDashoffset={`${-(stockPercentage / 100) * 251.3}`}
+                          strokeDashoffset={`${-((stockPercentage + usStockPercentage) / 100) * 251.3}`}
                           className="drop-shadow-sm stroke-green-500 dark:stroke-green-400"
                         />
                       )}
                     </svg>
-                    
+
                     {/* Center text - positioned better for half donut */}
                     <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 text-center mb-2">
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Toplam Değer</p>
@@ -622,14 +743,27 @@ export default function Analytics() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <div className="w-3 h-3 bg-blue-500 dark:bg-blue-400 rounded-full mr-2"></div>
-                      <span className="text-sm text-gray-700 dark:text-gray-300">Hisse Senedi</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">Hisse Senedi (BIST)</span>
                     </div>
                     <div className="text-right">
                       <span className="font-semibold text-gray-900 dark:text-white">{formatTurkishPercent(stockPercentage)}</span>
                       <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">₺{formatTurkishPrice(stockValue)}</span>
                     </div>
                   </div>
-                  
+
+                  {usStockPositions.length > 0 && (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-purple-500 dark:bg-purple-400 rounded-full mr-2"></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Yabancı Hisse (ABD)</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-semibold text-gray-900 dark:text-white">{formatTurkishPercent(usStockPercentage)}</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">₺{formatTurkishPrice(usStockValue)}</span>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <div className="w-3 h-3 bg-green-500 dark:bg-green-400 rounded-full mr-2"></div>

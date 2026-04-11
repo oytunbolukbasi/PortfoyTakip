@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Position } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { MoreVertical } from "lucide-react";
-import { formatTurkishCurrency, formatTurkishPrice, formatTurkishPercent, formatFundPrice, parseTurkishPrice } from "@/lib/format";
+import { formatTurkishCurrency, formatTurkishPrice, formatTurkishPercent, formatFundPrice, parseTurkishPrice, formatPositionPrice, formatPositionValue } from "@/lib/format";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,7 +32,7 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
   const calculatePL = () => {
     const buyPrice = parseFloat(position.buyPrice);
     const currentPrice = position.currentPrice ? parseFloat(position.currentPrice) : buyPrice;
-    const quantity = position.quantity;
+    const quantity = parseFloat(position.quantity);
     
     const pl = (currentPrice - buyPrice) * quantity;
     const plPercent = ((currentPrice - buyPrice) / buyPrice) * 100;
@@ -142,7 +142,12 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
               </div>
             </div>
             <div className="text-right">
-              <p className="text-xl font-bold text-gray-900 dark:text-white">₺{position.type === 'fund' ? formatFundPrice(currentPrice) : formatTurkishPrice(currentPrice)}</p>
+              <p className="text-xl font-bold text-gray-900 dark:text-white">
+                {position.type === 'us_stock'
+                  ? `$${formatTurkishPrice(currentPrice)}`
+                  : `₺${position.type === 'fund' ? formatFundPrice(currentPrice) : formatTurkishPrice(currentPrice)}`
+                }
+              </p>
               <div className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${
                 change >= 0 ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400'
               }`}>
@@ -154,15 +159,15 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
           <div className="grid grid-cols-3 gap-3 mb-4">
             <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{position.type === 'fund' ? 'Pay' : 'Adet'}</p>
-              <p className="font-semibold text-gray-900 dark:text-white">{position.quantity.toLocaleString('tr-TR')}</p>
+              <p className="font-semibold text-gray-900 dark:text-white">{parseFloat(position.quantity).toLocaleString('tr-TR', { maximumFractionDigits: 10 })}</p>
             </div>
             <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Alış</p>
-              <p className="font-semibold text-gray-900 dark:text-white">₺{position.type === 'fund' ? formatFundPrice(parseFloat(position.buyPrice)) : formatTurkishPrice(parseFloat(position.buyPrice))}</p>
+              <p className="font-semibold text-gray-900 dark:text-white">{formatPositionPrice(parseFloat(position.buyPrice), position.type)}</p>
             </div>
             <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Değer</p>
-              <p className="font-semibold text-gray-900 dark:text-white">{formatTurkishCurrency(value)}</p>
+              <p className="font-semibold text-gray-900 dark:text-white">{formatPositionValue(value, position.type)}</p>
             </div>
           </div>
           
@@ -179,7 +184,7 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
                   <div className={`text-sm font-bold ${
                     pl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   }`}>
-                    {pl >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(pl))}
+                    {pl >= 0 ? '+' : '-'}{formatPositionValue(Math.abs(pl), position.type)}
                   </div>
                   <div className={`text-xs font-medium ${
                     pl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
@@ -260,7 +265,7 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
       >
         <div className="space-y-4">
           <div>
-            <Label htmlFor="sellPrice" className="text-sm font-medium">Satış Fiyatı (₺)</Label>
+            <Label htmlFor="sellPrice" className="text-sm font-medium">Satış Fiyatı ({position.type === 'us_stock' ? '$' : '₺'})</Label>
             <Input
               id="sellPrice"
               type="text"

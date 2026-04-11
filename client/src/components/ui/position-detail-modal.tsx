@@ -1,9 +1,10 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Position } from "@shared/schema";
 import { FullScreenModal } from './full-screen-modal';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { formatTurkishPrice, formatTurkishPercent, formatFundPrice } from "@/lib/format";
+import { formatTurkishPrice, formatTurkishPercent, formatFundPrice, formatPositionPrice, formatPositionValue } from "@/lib/format";
 import { RefreshCw, TrendingUp, TrendingDown, Calendar, Hash, Banknote, Target } from "lucide-react";
 
 interface PositionDetailModalProps {
@@ -17,21 +18,45 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
   const [isRefreshingPrice, setIsRefreshingPrice] = useState(false);
   const { toast } = useToast();
 
+  const { data: exchangeRateData } = useQuery<{pair: string; rate: number}>({
+    queryKey: ['/api/exchange-rates', 'USDTRY'],
+    queryFn: async () => {
+      const res = await fetch('/api/exchange-rates?pair=USDTRY');
+      return res.json();
+    },
+    enabled: !!position && position.type === 'us_stock',
+  });
+
   if (!position) return null;
+
+  const usdRate = exchangeRateData?.rate || 35.0;
 
   const calculatePL = () => {
     const buyPrice = parseFloat(position.buyPrice);
     const currentPrice = position.currentPrice ? parseFloat(position.currentPrice) : buyPrice;
-    const quantity = position.quantity;
+    const quantity = parseFloat(position.quantity);
+    const buyRate = parseFloat(position.buyRate || '1.0');
     
+    // Position metrics in native currency
     const pl = (currentPrice - buyPrice) * quantity;
-    const plPercent = ((currentPrice - buyPrice) / buyPrice) * 100;
+    const plPercent = buyPrice > 0 ? ((currentPrice - buyPrice) / buyPrice) * 100 : 0;
     const value = currentPrice * quantity;
     
-    return { pl, plPercent, value, currentPrice };
+    // TRY metrics including currency fluctuation
+    let plTRY = pl;
+    let valueTRY = value;
+    let costTRY = buyPrice * quantity;
+
+    if (position.type === 'us_stock') {
+      valueTRY = currentPrice * quantity * usdRate;
+      costTRY = buyPrice * quantity * usdRate;
+      plTRY = valueTRY - costTRY; // (CP - BP) * Q * usdRate
+    }
+    
+    return { pl, plPercent, value, currentPrice, plTRY, valueTRY, costTRY };
   };
 
-  const { pl, plPercent, value } = calculatePL();
+  const { pl, plPercent, value, plTRY } = calculatePL();
 
   const handleRefreshPrice = async () => {
     setIsRefreshingPrice(true);
@@ -80,14 +105,14 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
                 <TrendingDown className="w-6 h-6 text-red-600 dark:text-red-400" />
               )}
               <div className={`text-3xl font-bold ${pl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                {pl >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(pl))}
+                {pl >= 0 ? '+' : '-'}{formatPositionValue(Math.abs(pl), position.type)}
               </div>
             </div>
-            <div className={`text-lg font-medium ${pl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-              {pl >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(plPercent))}
+            <div className={`text-lg font-medium ${plTRY >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+              {plTRY >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(plTRY))}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">
-              {pl >= 0 ? 'Kar' : 'Zarar'}
+              {plTRY >= 0 ? 'Toplam Kar' : 'Toplam Zarar'} (TRY)
             </div>
           </div>
         </div>
@@ -99,13 +124,13 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
             <div className="grid grid-cols-2 divide-x divide-gray-100 dark:divide-gray-700">
               <div className="p-6 text-center">
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                  ₺{formatTurkishPrice(value)}
+                  {formatPositionValue(value, position.type)}
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">Güncel Değer</div>
               </div>
               <div className="p-6 text-center">
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                  ₺{formatTurkishPrice(parseFloat(position.buyPrice) * position.quantity)}
+                  {formatPositionValue(parseFloat(position.buyPrice) * parseFloat(position.quantity), position.type)}
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">Alış Tutarı</div>
               </div>
@@ -119,16 +144,18 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    position.type === 'us_stock' ? 'bg-purple-100 dark:bg-purple-900/30' :
                     position.type === 'stock' ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-green-100 dark:bg-green-900/30'
                   }`}>
                     <Hash className={`w-5 h-5 ${
+                      position.type === 'us_stock' ? 'text-purple-600 dark:text-purple-400' :
                       position.type === 'stock' ? 'text-blue-600 dark:text-blue-400' : 'text-green-600 dark:text-green-400'
                     }`} />
                   </div>
                   <div>
                     <div className="font-semibold text-gray-900 dark:text-white">{position.symbol}</div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {position.type === 'stock' ? 'Hisse Senedi' : 'Yatırım Fonu'}
+                      {position.type === 'us_stock' ? 'ABD Hisse Senedi' : position.type === 'stock' ? 'Hisse Senedi' : 'Yatırım Fonu'}
                     </div>
                   </div>
                 </div>
@@ -141,7 +168,7 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
                     <Target className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900 dark:text-white">{position.quantity.toLocaleString('tr-TR')}</div>
+                    <div className="font-semibold text-gray-900 dark:text-white">{parseFloat(position.quantity).toLocaleString('tr-TR', { maximumFractionDigits: 10 })}</div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
                       {position.type === 'fund' ? 'Pay Adedi' : 'Hisse Adedi'}
                     </div>
@@ -167,30 +194,27 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
                   </div>
                 </div>
               </div>
+
+              {/* Buy Price */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
+                    <Banknote className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900 dark:text-white">
+                      {formatPositionPrice(parseFloat(position.buyPrice), position.type)}
+                    </div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">Alış Fiyatı</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Prices */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
             <div className="space-y-4">
-              {/* Buy Price */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700/50 flex items-center justify-center">
-                    <Banknote className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-900 dark:text-white">
-                      {position.type === 'fund' 
-                        ? `${formatFundPrice(parseFloat(position.buyPrice))} TL`
-                        : `${formatTurkishPrice(parseFloat(position.buyPrice))} TL`
-                      }
-                    </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">Alış Fiyatı</div>
-                  </div>
-                </div>
-              </div>
-
               {/* Current Price */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
@@ -200,7 +224,9 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
                   <div>
                     <div className="font-semibold text-gray-900 dark:text-white">
                       {position.currentPrice ? 
-                        position.type === 'fund'
+                        position.type === 'us_stock'
+                          ? `$${formatTurkishPrice(parseFloat(position.currentPrice))}`
+                          : position.type === 'fund'
                           ? `${formatFundPrice(parseFloat(position.currentPrice))} TL`
                           : `${formatTurkishPrice(parseFloat(position.currentPrice))} TL`
                         : '-'

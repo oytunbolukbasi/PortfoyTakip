@@ -15,8 +15,9 @@ export const positions = pgTable("positions", {
   symbol: text("symbol").notNull(),
   name: text("name"),
   type: text("type").notNull(), // 'stock' or 'fund'
-  quantity: integer("quantity").notNull(),
+  quantity: decimal("quantity", { precision: 20, scale: 10 }).notNull(),
   buyPrice: decimal("buy_price", { precision: 12, scale: 6 }).notNull(),
+  buyRate: decimal("buy_rate", { precision: 10, scale: 4 }).notNull().default('1.0000'),
   buyDate: timestamp("buy_date").notNull(),
   currentPrice: decimal("current_price", { precision: 12, scale: 6 }),
   lastUpdated: timestamp("last_updated").default(sql`now()`),
@@ -29,8 +30,9 @@ export const closedPositions = pgTable("closed_positions", {
   symbol: text("symbol").notNull(),
   name: text("name"),
   type: text("type").notNull(),
-  quantity: integer("quantity").notNull(),
+  quantity: decimal("quantity", { precision: 20, scale: 10 }).notNull(),
   buyPrice: decimal("buy_price", { precision: 12, scale: 6 }).notNull(),
+  buyRate: decimal("buy_rate", { precision: 10, scale: 4 }).notNull().default('1.0000'),
   sellPrice: decimal("sell_price", { precision: 12, scale: 6 }).notNull(),
   buyDate: timestamp("buy_date").notNull(),
   sellDate: timestamp("sell_date").notNull(),
@@ -77,13 +79,17 @@ export const insertPositionSchema = createInsertSchema(positions).omit({
   createdAt: true,
 }).extend({
   symbol: z.string().min(1, "Varlık kodu gerekli"),
-  quantity: z.number().min(1, "Adet en az 1 olmalı"),
+  quantity: z.string().refine((val) => {
+    const parsed = parseFloat(val.replace(',', '.'));
+    return !isNaN(parsed) && parsed > 0;
+  }, "Adet 0'dan büyük olmalı"),
   buyPrice: z.string().refine((val) => {
     const parsed = parseFloat(val.replace(',', '.'));
     return !isNaN(parsed) && parsed > 0;
   }, "Alış fiyatı 0'dan büyük olmalı"),
+  buyRate: z.string().optional().default("1.0"),
   buyDate: z.string().refine((val) => !isNaN(Date.parse(val)), "Geçerli bir tarih giriniz"),
-  type: z.enum(["stock", "fund"], { required_error: "Varlık türü seçilmeli" }),
+  type: z.enum(["stock", "fund", "us_stock"], { required_error: "Varlık türü seçilmeli" }),
 });
 
 export const closePositionSchema = z.object({

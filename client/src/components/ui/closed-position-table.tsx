@@ -36,8 +36,8 @@ export function ClosedPositionTable({ closedPositions, onRefresh }: ClosedPositi
         bValue = b.symbol;
         break;
       case 'quantity':
-        aValue = a.quantity;
-        bValue = b.quantity;
+        aValue = parseFloat(a.quantity);
+        bValue = parseFloat(b.quantity);
         break;
       case 'buyPrice':
         aValue = parseFloat(a.buyPrice);
@@ -166,7 +166,7 @@ export function ClosedPositionTable({ closedPositions, onRefresh }: ClosedPositi
                   </td>
                   <td className="px-3 py-4 text-right">
                     <span className="text-sm text-gray-900 dark:text-white font-medium">
-                      {position.quantity.toLocaleString('tr-TR')}
+                      {parseFloat(position.quantity).toLocaleString('tr-TR', { maximumFractionDigits: 10 })}
                     </span>
                   </td>
                   <td className="px-3 py-4 text-right">

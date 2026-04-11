@@ -1,48 +1,110 @@
 import { useState } from "react";
-import { Position } from "@shared/schema";
-import { formatTurkishCurrency, formatTurkishPercent, formatTurkishPrice, formatFundPrice } from "@/lib/format";
+import { Position, ClosedPosition } from "@shared/schema";
+import { formatTurkishCurrency, formatTurkishPercent, formatTurkishPrice, formatFundPrice, formatPositionValue } from "@/lib/format";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, ArrowRightLeft, TrendingUp, TrendingDown } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 interface PortfolioSummaryProps {
   positions: Position[];
+  closedPositions?: ClosedPosition[];
 }
 
-export default function PortfolioSummary({ positions }: PortfolioSummaryProps) {
+export default function PortfolioSummary({ positions, closedPositions = [] }: PortfolioSummaryProps) {
   const [isVisible, setIsVisible] = useState(true);
+  const [displayCurrency, setDisplayCurrency] = useState<'TRY' | 'USD'>('TRY');
+  
+  const { data: exchangeRateData } = useQuery<{pair: string; rate: number}>({
+    queryKey: ['/api/exchange-rates', 'USDTRY'],
+    queryFn: async () => {
+      const res = await fetch('/api/exchange-rates?pair=USDTRY');
+      return res.json();
+    },
+  });
+  const usdRate = exchangeRateData?.rate || 35.0;
+
   const calculateSummary = () => {
     let totalValue = 0;
     let totalCost = 0;
-    let dailyPL = 0;
+    let realizedPL = 0;
+    let realizedCost = 0;
 
+    // Active positions
     positions.forEach((position) => {
       const quantity = position.quantity;
       const buyPrice = parseFloat(position.buyPrice);
       const currentPrice = position.currentPrice ? parseFloat(position.currentPrice) : buyPrice;
+      const buyRate = parseFloat(position.buyRate || '1.0');
       
-      const positionValue = currentPrice * quantity;
-      const positionCost = buyPrice * quantity;
-      
-      totalValue += positionValue;
-      totalCost += positionCost;
+      if (position.type === 'us_stock') {
+        const positionValueTRY = currentPrice * quantity * usdRate;
+        // Total Cost (TRY) is calculated using current rate to isolate USD profit
+        const positionCostTRY = buyPrice * quantity * usdRate;
+        totalValue += positionValueTRY;
+        totalCost += positionCostTRY;
+      } else {
+        totalValue += currentPrice * quantity;
+        totalCost += buyPrice * quantity;
+      }
     });
 
-    const totalPL = totalValue - totalCost;
-    const totalReturn = totalCost > 0 ? (totalPL / totalCost) * 100 : 0;
+    // Closed positions (Realized)
+    closedPositions.forEach((pos) => {
+      const buyRate = parseFloat(pos.buyRate || '1.0');
+      const rate = pos.type === 'us_stock' ? usdRate : 1;
+      
+      if (pos.type === 'us_stock') {
+        // Realized P/L in TRY = USD Gain * Current Rate (as per user request for current view)
+        const sellPrice = parseFloat(pos.sellPrice);
+        const buyPrice = parseFloat(pos.buyPrice);
+        const quantity = pos.quantity;
+        
+        const usdGain = (sellPrice - buyPrice) * quantity;
+        const realizedPL_TRY = usdGain * usdRate;
+        
+        realizedPL += realizedPL_TRY;
+        realizedCost += buyPrice * quantity * usdRate;
+      } else {
+        realizedPL += parseFloat(pos.pl);
+        realizedCost += parseFloat(pos.buyPrice) * pos.quantity;
+      }
+    });
+
+    const netPL = (totalValue - totalCost) + realizedPL;
+    // Lifetime total cost = Active cost + Cost of closed positions
+    // This gives a more accurate percentage of overall return
+    const lifetimeCost = totalCost + realizedCost;
+    const totalReturnPercent = lifetimeCost > 0 ? (netPL / lifetimeCost) * 100 : 0;
     
-    // Daily P/L would require previous day prices - using mock for now
-    dailyPL = totalPL * 0.1; // Mock 10% of total P/L as daily change
+    // For "daily change", we keep it simple for now as 0 or 
+    // we could try to get it if we had a more robust historical data system.
+    // Removing the 10% mock to avoid total confusion.
+    const dailyChange = 0; 
 
     return {
       totalValue,
       totalCost,
-      totalPL,
-      totalReturn,
-      dailyPL,
+      totalPL: netPL,
+      totalReturn: totalReturnPercent,
+      dailyPL: dailyChange,
     };
   };
 
-  const summary = calculateSummary();
+  const rawSummary = calculateSummary();
+  
+  const isUSD = displayCurrency === 'USD';
+  const summary = {
+    totalValue: isUSD ? rawSummary.totalValue / usdRate : rawSummary.totalValue,
+    totalCost: isUSD ? rawSummary.totalCost / usdRate : rawSummary.totalCost,
+    totalPL: isUSD ? rawSummary.totalPL / usdRate : rawSummary.totalPL,
+    totalReturn: rawSummary.totalReturn, // Return is a percentage, stays same
+    dailyPL: isUSD ? rawSummary.dailyPL / usdRate : rawSummary.dailyPL,
+  };
+
+  const fmtCurrency = (val: number) => {
+    const formatted = val.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return isUSD ? `$${formatted}` : `₺${formatted}`;
+  };
 
   return (
     <section className="mx-4 mt-3 mb-4">
@@ -60,16 +122,27 @@ export default function PortfolioSummary({ positions }: PortfolioSummaryProps) {
               {isVisible ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
             </Button>
           </div>
-          <p className="text-4xl font-bold text-gray-900 dark:text-white mb-1">
-            {isVisible ? formatTurkishCurrency(summary.totalValue) : "***.***.***,**"}
-          </p>
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <p className="text-4xl font-bold text-gray-900 dark:text-white">
+              {isVisible ? fmtCurrency(summary.totalValue) : "***.***.***,**"}
+            </p>
+            <button
+              onClick={() => setDisplayCurrency(prev => prev === 'TRY' ? 'USD' : 'TRY')}
+              className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+              title="Para birimini değiştir"
+            >
+              <ArrowRightLeft className="w-4 h-4" />
+            </button>
+          </div>
           <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
             summary.dailyPL >= 0 
               ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400' 
               : 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400'
           }`}>
             {isVisible 
-              ? `${summary.dailyPL >= 0 ? '+' : '-'}₺${formatTurkishPrice(Math.abs(summary.dailyPL))} bugün`
+              ? summary.dailyPL === 0 
+                ? 'Bugün değişim yok'
+                : `${summary.dailyPL >= 0 ? '+' : '-'}${fmtCurrency(Math.abs(summary.dailyPL))} bugün`
               : "***,** bugün"
             }
           </div>
@@ -91,7 +164,7 @@ export default function PortfolioSummary({ positions }: PortfolioSummaryProps) {
               summary.totalPL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
             }`}>
               {isVisible 
-                ? `${summary.totalPL >= 0 ? '+' : '-'}₺${formatTurkishPrice(Math.abs(summary.totalPL))}`
+                ? `${summary.totalPL >= 0 ? '+' : '-'}${fmtCurrency(Math.abs(summary.totalPL))}`
                 : "***.***.***,**"
               }
             </p>

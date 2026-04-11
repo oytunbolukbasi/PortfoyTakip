@@ -39,6 +39,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertPositionSchema.parse(rawData);
       const userId = "demo-user";
       
+      // Auto-fetch buyRate for US stocks if not provided or to ensure accuracy
+      let buyRate = validatedData.buyRate;
+      if (validatedData.type === 'us_stock') {
+        try {
+          const fetchedRate = await priceService.getHistoricalExchangeRate(new Date(validatedData.buyDate));
+          buyRate = fetchedRate.toString();
+          console.log(`Auto-assigned buyRate for ${validatedData.symbol}: ${buyRate}`);
+        } catch (error) {
+          console.warn(`Failed to auto-fetch buyRate for ${validatedData.symbol}, keeping existing or default.`);
+        }
+      }
+
       // Fetch current price for the new position
       let currentPrice = null;
       try {
@@ -55,6 +67,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const position = await storage.createPosition({
         ...validatedData,
+        buyRate,
         name: positionName,
         userId,
       });
@@ -202,10 +215,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/price/:symbol/:type", async (req, res) => {
     try {
       const { symbol, type } = req.params;
-      const price = await priceService.getPrice(symbol, type as 'stock' | 'fund');
+      const price = await priceService.getPrice(symbol, type as 'stock' | 'fund' | 'us_stock');
       res.json({ symbol, type, price });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch price" });
+    }
+  });
+
+  // Get exchange rates
+  app.get("/api/exchange-rates", async (req, res) => {
+    try {
+      const pair = (req.query.pair as string) || 'USDTRY';
+      const rate = await priceService.getExchangeRate(pair);
+      res.json({ pair, rate });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch exchange rate" });
     }
   });
 
@@ -327,5 +351,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+  // Maintenance endpoints
+  app.post("/api/maintenance/backfill-rates", async (req, res) => {
+    try {
+      const userId = "demo-user";
+      const positions = await storage.getPositions(userId);
+      const usStocks = positions.filter(p => p.type === 'us_stock');
+      
+      console.log(`Starting backfill for ${usStocks.length} US stock positions...`);
+      const results = [];
+      
+      for (const pos of usStocks) {
+        try {
+          const rate = await priceService.getHistoricalExchangeRate(new Date(pos.buyDate));
+          await storage.updatePosition(pos.id, {
+            buyRate: rate.toString()
+          });
+          results.push({ symbol: pos.symbol, date: pos.buyDate, rate });
+        } catch (err) {
+          results.push({ symbol: pos.symbol, date: pos.buyDate, error: (err as Error).message });
+        }
+      }
+      
+      res.json({ success: true, results });
+    } catch (error) {
+      res.status(500).json({ error: "Backfill failed" });
+    }
+  });
+
   return httpServer;
 }

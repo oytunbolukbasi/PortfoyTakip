@@ -1,5 +1,5 @@
 import { Position } from "@shared/schema";
-import { formatTurkishCurrency, formatTurkishPrice, formatTurkishPercent, formatFundPrice } from "@/lib/format";
+import { formatTurkishCurrency, formatTurkishPrice, formatTurkishPercent, formatFundPrice, formatPositionPrice, formatPositionValue } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { ChevronUp, ChevronDown, X, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -37,8 +37,8 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
         bValue = b.symbol;
         break;
       case 'quantity':
-        aValue = a.quantity;
-        bValue = b.quantity;
+        aValue = parseFloat(a.quantity);
+        bValue = parseFloat(b.quantity);
         break;
       case 'buyPrice':
         aValue = parseFloat(a.buyPrice);
@@ -51,20 +51,30 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
       case 'value':
         const aCurrentPrice = a.currentPrice ? parseFloat(a.currentPrice) : parseFloat(a.buyPrice);
         const bCurrentPrice = b.currentPrice ? parseFloat(b.currentPrice) : parseFloat(b.buyPrice);
-        aValue = aCurrentPrice * a.quantity;
-        bValue = bCurrentPrice * b.quantity;
+        aValue = aCurrentPrice * parseFloat(a.quantity);
+        bValue = bCurrentPrice * parseFloat(b.quantity);
         break;
       case 'pl':
-        const aPL = (a.currentPrice ? parseFloat(a.currentPrice) : parseFloat(a.buyPrice) - parseFloat(a.buyPrice)) * a.quantity;
-        const bPL = (b.currentPrice ? parseFloat(b.currentPrice) : parseFloat(b.buyPrice) - parseFloat(b.buyPrice)) * b.quantity;
-        aValue = aPL;
-        bValue = bPL;
+        const getPL = (p: Position) => {
+          const bp = parseFloat(p.buyPrice);
+          const cp = p.currentPrice ? parseFloat(p.currentPrice) : bp;
+          // For sorting, we use TRY value of the USD gain at today's rate
+          if (p.type === 'us_stock') {
+            return (cp - bp) * parseFloat(p.quantity) * 35.0; // Use 35.0 as a stable sorting proxy
+          }
+          return (cp - bp) * parseFloat(p.quantity);
+        };
+        aValue = getPL(a);
+        bValue = getPL(b);
         break;
       case 'plPercent':
-        const aPLPercent = a.currentPrice ? ((parseFloat(a.currentPrice) - parseFloat(a.buyPrice)) / parseFloat(a.buyPrice)) * 100 : 0;
-        const bPLPercent = b.currentPrice ? ((parseFloat(b.currentPrice) - parseFloat(b.buyPrice)) / parseFloat(b.buyPrice)) * 100 : 0;
-        aValue = aPLPercent;
-        bValue = bPLPercent;
+        const getPLP = (p: Position) => {
+          const bp = parseFloat(p.buyPrice);
+          const cp = p.currentPrice ? parseFloat(p.currentPrice) : bp;
+          return bp > 0 ? ((cp - bp) / bp) * 100 : 0;
+        };
+        aValue = getPLP(a);
+        bValue = getPLP(b);
         break;
       default:
         return 0;
@@ -196,13 +206,24 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
   const calculatePL = (position: Position) => {
     const buyPrice = parseFloat(position.buyPrice);
     const currentPrice = position.currentPrice ? parseFloat(position.currentPrice) : buyPrice;
-    const quantity = position.quantity;
+    const quantity = parseFloat(position.quantity);
+    const buyRate = parseFloat(position.buyRate || '1.0');
     
+    // Native currency P/L
     const pl = (currentPrice - buyPrice) * quantity;
-    const plPercent = ((currentPrice - buyPrice) / buyPrice) * 100;
+    const plPercent = buyPrice > 0 ? ((currentPrice - buyPrice) / buyPrice) * 100 : 0;
     const value = currentPrice * quantity;
     
-    return { pl, plPercent, value, currentPrice };
+    // TRY P/L
+    const usdRateMatch = document.body.innerText.match(/Kur: 1 USD = ₺([\d,]+)/);
+    const usdRate = usdRateMatch ? parseFloat(usdRateMatch[1].replace(',', '.')) : 35.0;
+    
+    let plTRY = pl;
+    if (position.type === 'us_stock') {
+       plTRY = (currentPrice - buyPrice) * quantity * usdRate;
+    }
+    
+    return { pl, plPercent, value, currentPrice, plTRY };
   };
 
   return (
@@ -215,38 +236,48 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
       </div>
       
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[800px]">
+        <table className="w-full table-fixed">
+          <colgroup>
+            <col className="w-[80px]" />  {/* Sticky Varlık */}
+            <col className="w-[70px]" />  {/* Adet */}
+            <col className="w-[110px]" /> {/* Alış */}
+            <col className="w-[110px]" /> {/* Güncel */}
+            <col className="w-[120px]" /> {/* Değer */}
+            <col className="w-[110px]" /> {/* K/Z */}
+            <col className="w-[80px]" />  {/* K/Z % */}
+            <col className="w-[76px]" />  {/* İşlemler */}
+          </colgroup>
           <thead className="bg-gray-50 dark:bg-gray-700/50">
             <tr>
-              <th className="sticky left-0 bg-gray-50 dark:bg-gray-700/50 px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[80px] z-10 border-r border-gray-200 dark:border-gray-600">
+              <th className="sticky left-0 bg-gray-50 dark:bg-gray-700/50 px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider z-10 border-r border-gray-200 dark:border-gray-600">
                 <SortButton field="symbol">Varlık</SortButton>
               </th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[70px]">
-                <SortButton field="quantity">Adet</SortButton>
+              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <div className="flex justify-end"><SortButton field="quantity">Adet</SortButton></div>
               </th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[90px]">
-                <SortButton field="buyPrice">Alış</SortButton>
+              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <div className="flex justify-end"><SortButton field="buyPrice">Alış</SortButton></div>
               </th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[90px]">
-                <SortButton field="currentPrice">Güncel</SortButton>
+              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <div className="flex justify-end"><SortButton field="currentPrice">Güncel</SortButton></div>
               </th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[100px]">
-                <SortButton field="value">Değer</SortButton>
+              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <div className="flex justify-end"><SortButton field="value">Değer</SortButton></div>
               </th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[80px]">
-                <SortButton field="pl">K/Z</SortButton>
+              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <div className="flex justify-end"><SortButton field="pl">K/Z</SortButton></div>
               </th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[70px]">
-                <SortButton field="plPercent">K/Z %</SortButton>
+              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <div className="flex justify-end"><SortButton field="plPercent">K/Z %</SortButton></div>
               </th>
-              <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[80px]">
+              <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 İşlemler
               </th>
             </tr>
           </thead>
           <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {sortedPositions.map((position) => {
-              const { pl, plPercent, value, currentPrice } = calculatePL(position);
+              const { pl, plPercent, value, currentPrice, plTRY } = calculatePL(position);
               
               return (
                 <tr
@@ -254,34 +285,40 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
                   className="hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
                   onClick={() => onRowClick(position)}
                 >
-                  <td className="sticky left-0 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 px-3 py-4 whitespace-nowrap z-10 border-r border-gray-200 dark:border-gray-600">
-                    <div className="flex items-center min-w-[80px]">
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white truncate">{position.symbol}</div>
-                      </div>
-                    </div>
+                  <td className="sticky left-0 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 px-3 py-3 z-10 border-r border-gray-200 dark:border-gray-600">
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">{position.symbol}</div>
+                    {position.type === 'us_stock' && (
+                      <div className="text-xs text-purple-500 dark:text-purple-400 font-medium">ABD</div>
+                    )}
                   </td>
-                  <td className="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-900 dark:text-white">
-                    {position.quantity.toLocaleString('tr-TR')}
+                  <td className="px-3 py-3 text-right text-sm text-gray-900 dark:text-white whitespace-nowrap">
+                    {parseFloat(position.quantity).toLocaleString('tr-TR', { maximumFractionDigits: 10 })}
                   </td>
-                  <td className="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-900 dark:text-white">
-                    ₺{position.type === 'fund' ? formatFundPrice(parseFloat(position.buyPrice)) : formatTurkishPrice(parseFloat(position.buyPrice))}
+                  <td className="px-3 py-3 text-right text-sm text-gray-900 dark:text-white whitespace-nowrap">
+                    {formatPositionPrice(parseFloat(position.buyPrice), position.type)}
                   </td>
-                  <td className="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-900 dark:text-white">
-                    ₺{position.type === 'fund' ? formatFundPrice(currentPrice) : formatTurkishPrice(currentPrice)}
+                  <td className="px-3 py-3 text-right text-sm text-gray-900 dark:text-white whitespace-nowrap">
+                    {formatPositionPrice(currentPrice, position.type)}
                   </td>
-                  <td className="px-3 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900 dark:text-white">
-                    {formatTurkishCurrency(value)}
+                  <td className="px-3 py-3 text-right text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                    {formatPositionValue(value, position.type)}
                   </td>
-                  <td className={`px-3 py-4 whitespace-nowrap text-right text-sm font-medium ${
-                    pl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                  <td className={`px-3 py-3 text-right text-sm font-medium whitespace-nowrap ${
+                    plTRY >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   }`}>
-                    {pl >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(pl))}
+                    {position.type === 'us_stock' ? (
+                      <div className="flex flex-col items-end">
+                        <span>₺{formatTurkishPrice(plTRY)}</span>
+                        <span className="text-[10px] opacity-60">(${formatTurkishPrice(pl)})</span>
+                      </div>
+                    ) : (
+                      <span>{pl >= 0 ? '+' : '-'}{formatPositionValue(Math.abs(pl), position.type)}</span>
+                    )}
                   </td>
-                  <td className={`px-3 py-4 whitespace-nowrap text-right text-sm font-medium ${
+                  <td className={`px-3 py-3 text-right text-sm font-medium whitespace-nowrap ${
                     plPercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   }`}>
-                    {plPercent >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(plPercent))}
+                    {plPercent >= 0 ? '+' : ''}{formatTurkishPercent(plPercent)}
                   </td>
                   <td className="px-3 py-4 whitespace-nowrap text-center">
                     <div className="flex items-center justify-center space-x-1">
@@ -321,7 +358,7 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
       >
         <div className="space-y-4">
                 <div>
-                  <Label htmlFor="sellPrice">Satış Fiyatı (₺)</Label>
+                  <Label htmlFor="sellPrice">Satış Fiyatı ({showCloseModal.position?.type === 'us_stock' ? '$' : '₺'})</Label>
                   <Input
                     id="sellPrice"
                     type="text"
