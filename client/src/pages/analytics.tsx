@@ -452,9 +452,7 @@ export default function Analytics() {
                         </span>
                       </div>
                     </div>
-                    <div className="text-[10px] text-right text-gray-400 dark:text-gray-500">
-                      Toplam Maliyet Temeli: ₺{formatTurkishPrice(lifetimeCost)}
-                    </div>
+
                   </div>
                 </div>
               )}
@@ -585,89 +583,102 @@ export default function Analytics() {
 
 
             {/* Asset Type P&L Analysis */}
-            <Card className="p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-gray-900 dark:text-white flex items-center">
-                  Hisse &amp; Fon Kar/Zarar
-                </h3>
-              </div>
-              <div className="space-y-4">
-                {/* Stock P&L */}
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800/30">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-blue-900 dark:text-blue-200">Hisse Senedi (BIST)</span>
-                    <span className="text-sm text-blue-700 dark:text-blue-300">{stockPositions.length} pozisyon</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <p className="text-blue-600 dark:text-blue-400">Değer</p>
-                      <p className="font-semibold text-blue-900 dark:text-blue-100">₺{formatTurkishPrice(stockValue)}</p>
-                    </div>
-                    <div>
-                      <p className="text-blue-600 dark:text-blue-400">K/Z</p>
-                      <p className={`font-semibold ${stockPL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                        {stockPL >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(stockPL))}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+            {(() => {
+              const stockPLPercent = stockCost > 0 ? (stockPL / stockCost) * 100 : 0;
+              const fundPLPercent = fundCost > 0 ? (fundPL / fundCost) * 100 : 0;
+              const usStockPLPercent = usStockCost > 0 ? (usStockPL / usStockCost) * 100 : 0;
 
-                {/* US Stock P&L - only shown when user has us_stock positions */}
-                {usStockPositions.length > 0 && (
-                  <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg border border-purple-100 dark:border-purple-800/30">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-purple-900 dark:text-purple-200">Yabancı Hisse (ABD)</span>
-                      <span className="text-sm text-purple-700 dark:text-purple-300">{usStockPositions.length} pozisyon</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div>
-                        <p className="text-purple-600 dark:text-purple-400">Değer (TL)</p>
-                        <p className="font-semibold text-purple-900 dark:text-purple-100">₺{formatTurkishPrice(usStockValue)}</p>
-                      </div>
-                      <div>
-                        <p className="text-purple-600 dark:text-purple-400">Değer (USD)</p>
-                        <p className="font-semibold text-purple-900 dark:text-purple-100">${formatTurkishPrice(usStockValueUSD)}</p>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 text-sm mt-2 pt-2 border-t border-purple-100 dark:border-purple-800/30">
-                      <div>
-                        <p className="text-purple-600 dark:text-purple-400">K/Z (TL)</p>
-                        <p className={`font-semibold ${usStockPL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                          {usStockPL >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(usStockPL))}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-purple-600 dark:text-purple-400">K/Z (USD)</p>
-                        <p className={`font-semibold ${usStockPLUSD >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                          {usStockPLUSD >= 0 ? '+' : '-'}${formatTurkishPrice(Math.abs(usStockPLUSD))}
-                        </p>
-                      </div>
-                    </div>
-                    <p className="text-xs text-purple-500 dark:text-purple-400 mt-2">Kur: 1 USD = ₺{formatTurkishPrice(usdRate)}</p>
-                  </div>
-                )}
+              const PLBadge = ({ value }: { value: number }) => (
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mt-1 ${
+                  value >= 0
+                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                    : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                }`}>
+                  {value >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(value))}
+                </span>
+              );
 
-                {/* Fund P&L */}
-                <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border border-green-100 dark:border-green-800/30">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-green-900 dark:text-green-200">Fon</span>
-                    <span className="text-sm text-green-700 dark:text-green-300">{fundPositions.length} pozisyon</span>
+              const CountPill = ({ count }: { count: number }) => (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
+                  {count} pozisyon
+                </span>
+              );
+
+              return (
+                <Card className="p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                      Hisse &amp; Fon Kar/Zarar
+                    </h3>
                   </div>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <p className="text-green-600 dark:text-green-400">Değer</p>
-                      <p className="font-semibold text-green-900 dark:text-green-100">₺{formatTurkishPrice(fundValue)}</p>
+
+                  <div className="divide-y divide-gray-100 dark:divide-gray-700">
+
+                    {/* BIST Row */}
+                    <div className="flex items-stretch py-4 gap-4">
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">Hisse Senedi (BIST)</p>
+                        <div><CountPill count={stockPositions.length} /></div>
+                        <p className="text-base font-bold text-gray-900 dark:text-white">₺{formatTurkishPrice(stockValue)}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">Güncel değer</p>
+                      </div>
+                      <div className="w-px bg-gray-100 dark:bg-gray-700 self-stretch" />
+                      <div className="text-right min-w-[120px] space-y-0.5">
+                        <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">KAR / ZARAR</p>
+                        <p className={`text-base font-bold ${stockPL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                          {stockPL >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(stockPL))}
+                        </p>
+                        <div><PLBadge value={stockPLPercent} /></div>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-green-600 dark:text-green-400">K/Z</p>
-                      <p className={`font-semibold ${fundPL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                        {fundPL >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(fundPL))}
-                      </p>
+
+                    {/* ABD Row */}
+                    {usStockPositions.length > 0 && (
+                      <div className="flex items-stretch py-4 gap-4">
+                        <div className="flex-1 min-w-0 space-y-1">
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white">Yabancı Hisse (ABD)</p>
+                          <div><CountPill count={usStockPositions.length} /></div>
+                          <p className="text-base font-bold text-gray-900 dark:text-white">${formatTurkishPrice(usStockValueUSD)}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500">
+                            ₺{formatTurkishPrice(usStockValue)} · @{formatTurkishPrice(usdRate)}
+                          </p>
+                        </div>
+                        <div className="w-px bg-gray-100 dark:bg-gray-700 self-stretch" />
+                        <div className="text-right min-w-[120px] space-y-0.5">
+                          <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">KAR / ZARAR</p>
+                          <p className={`text-base font-bold ${usStockPLUSD >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                            {usStockPLUSD >= 0 ? '+' : '-'}${formatTurkishPrice(Math.abs(usStockPLUSD))}
+                          </p>
+                          <p className={`text-xs ${usStockPL >= 0 ? 'text-green-500 dark:text-green-500' : 'text-red-400 dark:text-red-500'}`}>
+                            {usStockPL >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(usStockPL))}
+                          </p>
+                          <div><PLBadge value={usStockPLPercent} /></div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Fon Row */}
+                    <div className="flex items-stretch py-4 gap-4">
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">Fon</p>
+                        <div><CountPill count={fundPositions.length} /></div>
+                        <p className="text-base font-bold text-gray-900 dark:text-white">₺{formatTurkishPrice(fundValue)}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">Güncel değer</p>
+                      </div>
+                      <div className="w-px bg-gray-100 dark:bg-gray-700 self-stretch" />
+                      <div className="text-right min-w-[120px] space-y-0.5">
+                        <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">KAR / ZARAR</p>
+                        <p className={`text-base font-bold ${fundPL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                          {fundPL >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(fundPL))}
+                        </p>
+                        <div><PLBadge value={fundPLPercent} /></div>
+                      </div>
                     </div>
+
                   </div>
-                </div>
-              </div>
-            </Card>
+                </Card>
+              );
+            })()}
 
             {/* Asset Allocation Chart */}
             <Card className="p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
