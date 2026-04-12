@@ -1,5 +1,6 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import { getCachedFundPrice } from './fund-price-cache';
 
 export interface PriceData {
   symbol: string;
@@ -62,7 +63,12 @@ export class PriceService {
     console.log(`Getting price for ${symbol} (type: ${type})`);
     
     if (type === 'fund') {
-      // Always use TEFAS price system for funds
+      // Check in-memory daily cache first — avoids hammering TEFAS API
+      const cached = getCachedFundPrice(symbol);
+      if (cached !== null) {
+        console.log(`[Cache] Returning cached fund price for ${symbol}: ${cached}`);
+        return cached;
+      }
       return this.getTEFASPrice(symbol);
     } else if (type === 'us_stock') {
       return this.getUSStockPrice(symbol);
@@ -441,15 +447,15 @@ export class PriceService {
 
       // Fallback to recent TEFAS fund prices (these will be used if API fails)
       const knownFundPrices: Record<string, number> = {
-        'IRY': 2.654802, // INVEO PORTFÖY PARA PİYASASI (TL) FONU - Latest from TEFAS API
-        'GJH': 2.657665, // GARANTİ PORTFÖY PARA PİYASASI SERBEST (TL) FON
-        'YKT': 0.606051, // YAPI KREDİ PORTFÖY ALTIN FONU
+        'IRY': 2.654802,
+        'GJH': 2.657665,
+        'YKT': 0.606051,
         'YAC': 2.85,
         'ALC': 3.41,
         'TYS': 1.23,
         'AKB': 15.67,
         'GRO': 8.94,
-        'DCB': 1.15,
+        'DCB': 4.12871, // Updated April 2025
         'ZP8': 1.08,
         'DAS': 12.34,
         'EUZ': 7.89,

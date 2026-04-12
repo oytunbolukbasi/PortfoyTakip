@@ -1,12 +1,16 @@
+import * as cron from 'node-cron';
 import { PriceService } from './price-service';
 import { db } from '../db';
 import { positions, priceHistory } from '@shared/schema';
 import { eq } from 'drizzle-orm';
+import { setCachedFundPrice, getAllCachedFundPrices } from './fund-price-cache';
 
 export class PriceMonitor {
   private priceService: PriceService;
   private monitoringInterval: NodeJS.Timeout | null = null;
-  private readonly UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minutes
+  // Scheduled cron jobs for TEFAS fund prices (09:00 and 10:00 Turkey time = UTC+3)
+  private fundCronJobs: cron.ScheduledTask[] = [];
+  private readonly STOCK_UPDATE_INTERVAL = 15 * 60 * 1000; // 15 minutes for stocks only
 
   constructor() {
     this.priceService = new PriceService();
@@ -18,45 +22,66 @@ export class PriceMonitor {
     }
 
     console.log('Starting price monitoring service...');
-    
-    // Initial update
-    this.updateAllPrices();
-    
-    // Set up recurring updates
+
+    // --- STOCKS & US STOCKS: update every 15 minutes ---
+    this.updateStockPrices();
     this.monitoringInterval = setInterval(() => {
-      this.updateAllPrices();
-    }, this.UPDATE_INTERVAL);
+      this.updateStockPrices();
+    }, this.STOCK_UPDATE_INTERVAL);
+
+    // --- TEFAS FUNDS: update only at 09:00 and 10:00 Turkey time (UTC+3 = 06:00 and 07:00 UTC) ---
+    // First run: fetch fund prices immediately on startup so we have values right away
+    this.updateFundPrices();
+
+    // Scheduled: 09:00 Turkey time (06:00 UTC)
+    const job9 = cron.schedule('0 6 * * *', () => {
+      console.log('[CRON] 09:00 TR - Fetching TEFAS fund prices...');
+      this.updateFundPrices();
+    }, { timezone: 'UTC' });
+
+    // Scheduled: 10:00 Turkey time (07:00 UTC) — retry/backup run
+    const job10 = cron.schedule('0 7 * * *', () => {
+      console.log('[CRON] 10:00 TR - TEFAS fund price backup fetch...');
+      this.updateFundPrices();
+    }, { timezone: 'UTC' });
+
+    this.fundCronJobs = [job9, job10];
+    console.log('Fund price scheduler active: 09:00 and 10:00 Turkey time daily.');
   }
 
   stopMonitoring() {
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
-      console.log('Price monitoring stopped');
     }
+    this.fundCronJobs.forEach(job => job.stop());
+    this.fundCronJobs = [];
+    console.log('Price monitoring stopped');
   }
 
-  async updateAllPrices() {
+  // Only updates stock and us_stock positions
+  async updateStockPrices() {
     try {
-      console.log('Updating all position prices...');
-      
-      // Get all active positions
       const activePositions = await db.select().from(positions);
-      
-      const updatePromises = activePositions.map(async (position) => {
-        try {
-          const currentPrice = await this.priceService.getPrice(position.symbol, position.type as 'stock' | 'fund');
-          
-          // Update position with new price - preserve 6-digit precision
-          await db
-            .update(positions)
-            .set({
-              currentPrice: currentPrice.toFixed(6),
-              lastUpdated: new Date()
-            })
-            .where(eq(positions.id, position.id));
+      const stockPositions = activePositions.filter(
+        p => p.type === 'stock' || p.type === 'us_stock'
+      );
 
-          // Record price history - preserve 6-digit precision
+      if (stockPositions.length === 0) return;
+
+      console.log(`Updating ${stockPositions.length} stock/us_stock prices...`);
+
+      const updatePromises = stockPositions.map(async (position) => {
+        try {
+          const currentPrice = await this.priceService.getPrice(
+            position.symbol,
+            position.type as 'stock' | 'us_stock'
+          );
+          await db.update(positions).set({
+            currentPrice: currentPrice.toFixed(6),
+            lastUpdated: new Date()
+          }).where(eq(positions.id, position.id));
+
           await db.insert(priceHistory).values({
             symbol: position.symbol,
             type: position.type,
@@ -64,54 +89,102 @@ export class PriceMonitor {
             timestamp: new Date()
           });
 
-          console.log(`Updated ${position.symbol}: ${currentPrice} TL`);
+          console.log(`[Stock] Updated ${position.symbol}: ${currentPrice}`);
           return { symbol: position.symbol, price: currentPrice, success: true };
         } catch (error) {
-          console.warn(`Failed to update price for ${position.symbol}:`, error);
+          console.warn(`[Stock] Failed to update ${position.symbol}:`, error);
           return { symbol: position.symbol, price: null, success: false };
         }
       });
 
-      const results = await Promise.all(updatePromises);
-      const successful = results.filter(r => r.success).length;
-      const total = results.length;
-      
-      console.log(`Price update completed: ${successful}/${total} positions updated successfully`);
-      
-      return results;
+      await Promise.all(updatePromises);
     } catch (error) {
-      console.error('Error during price update cycle:', error);
+      console.error('Error during stock price update:', error);
     }
+  }
+
+  // Only updates fund positions — writes to cache AND database
+  async updateFundPrices() {
+    try {
+      const activePositions = await db.select().from(positions);
+      const fundPositions = activePositions.filter(p => p.type === 'fund');
+
+      if (fundPositions.length === 0) {
+        console.log('[TEFAS] No fund positions to update.');
+        return;
+      }
+
+      console.log(`[TEFAS] Fetching prices for ${fundPositions.length} fund(s)...`);
+
+      for (const position of fundPositions) {
+        try {
+          const currentPrice = await this.priceService.getPrice(position.symbol, 'fund');
+
+          // Store in shared cache module
+          setCachedFundPrice(position.symbol, currentPrice);
+
+          await db.update(positions).set({
+            currentPrice: currentPrice.toFixed(6),
+            lastUpdated: new Date()
+          }).where(eq(positions.id, position.id));
+
+          await db.insert(priceHistory).values({
+            symbol: position.symbol,
+            type: position.type,
+            price: currentPrice.toFixed(6),
+            timestamp: new Date()
+          });
+
+          console.log(`[TEFAS] Updated ${position.symbol}: ${currentPrice}`);
+
+          // Small delay between fund requests to be gentle on TEFAS
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        } catch (error) {
+          console.warn(`[TEFAS] Failed to update ${position.symbol}:`, error);
+        }
+      }
+
+      console.log('[TEFAS] Fund price update completed.');
+    } catch (error) {
+      console.error('[TEFAS] Error during fund price update:', error);
+    }
+  }
+
+  async updateAllPrices() {
+    await this.updateStockPrices();
+    await this.updateFundPrices();
   }
 
   async updateSinglePosition(positionId: string) {
     try {
       const [position] = await db.select().from(positions).where(eq(positions.id, positionId));
-      
+
       if (!position) {
         throw new Error(`Position not found: ${positionId}`);
       }
 
-      const currentPrice = await this.priceService.getPrice(position.symbol, position.type as 'stock' | 'fund');
-      
-      // Update position with new price
-      await db
-        .update(positions)
-        .set({
-          currentPrice: currentPrice.toString(),
-          lastUpdated: new Date()
-        })
-        .where(eq(positions.id, position.id));
+      const currentPrice = await this.priceService.getPrice(
+        position.symbol,
+        position.type as 'stock' | 'fund' | 'us_stock'
+      );
 
-      // Record price history
+      if (position.type === 'fund') {
+        setCachedFundPrice(position.symbol, currentPrice);
+      }
+
+      await db.update(positions).set({
+        currentPrice: currentPrice.toFixed(6),
+        lastUpdated: new Date()
+      }).where(eq(positions.id, position.id));
+
       await db.insert(priceHistory).values({
         symbol: position.symbol,
         type: position.type,
-        price: currentPrice.toString(),
+        price: currentPrice.toFixed(6),
         timestamp: new Date()
       });
 
-      console.log(`Manual update ${position.symbol}: ${currentPrice} TL`);
+      console.log(`Manual update ${position.symbol}: ${currentPrice}`);
       return currentPrice;
     } catch (error) {
       console.error(`Failed to update single position ${positionId}:`, error);
@@ -122,7 +195,9 @@ export class PriceMonitor {
   getMonitoringStatus() {
     return {
       isMonitoring: !!this.monitoringInterval,
-      updateInterval: this.UPDATE_INTERVAL,
+      stockUpdateIntervalMinutes: this.STOCK_UPDATE_INTERVAL / 60000,
+      fundSchedule: ['09:00 TR', '10:00 TR'],
+      cachedFunds: getAllCachedFundPrices(),
       lastUpdate: new Date().toISOString()
     };
   }

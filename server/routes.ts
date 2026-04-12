@@ -6,6 +6,7 @@ import { PriceService } from "./services/price-service";
 import { db } from "./db";
 import { bistSymbols } from "@shared/schema";
 import { ilike } from "drizzle-orm";
+import { getAllCachedFundPrices } from "./services/fund-price-cache";
 
 // Extend express-session with custom properties
 declare module "express-session" {
@@ -50,6 +51,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.json({ authenticated: true, username: req.session.username });
     }
     res.json({ authenticated: false });
+  });
+  // ────────────────────────────────────────────────────────────────────────
+
+  // ── TEFAS Health Check (no auth required for easy manual testing) ────────
+  app.get("/api/admin/tefas-health", async (_req: Request, res: Response) => {
+    const testSymbol = "DCB";
+    const started = Date.now();
+    try {
+      const today = new Date();
+      const startDate = new Date(today);
+      startDate.setDate(today.getDate() - 5);
+      const fmt = (d: Date) => d.toISOString().split("T")[0];
+
+      const axios = (await import("axios")).default;
+      const response = await axios.post(
+        "https://www.tefas.gov.tr/api/DB/BindHistoryInfo",
+        {
+          fontip: "YAT", sfontur: "", kurucukod: "", fongrup: "",
+          bastarih: fmt(startDate), bittarih: fmt(today),
+          fonkod: testSymbol, fonunvan: "", strperiod: "1,1,1,1,1,1,1", intdraw: "5"
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "User-Agent": "Mozilla/5.0",
+            "Accept": "application/json",
+            "Referer": "https://www.tefas.gov.tr/TarihselVeriler.aspx"
+          },
+          timeout: 8000
+        }
+      );
+
+      const latestPrice = response.data?.data?.[0]?.FIYAT ?? null;
+      res.json({
+        status: "ok",
+        tefasApiReachable: true,
+        testSymbol,
+        latestPrice,
+        latestDate: response.data?.data?.[0]?.TARIH ?? null,
+        responseMs: Date.now() - started,
+        cachedFunds: getAllCachedFundPrices(),
+        checkedAt: new Date().toISOString()
+      });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      res.status(503).json({
+        status: "error",
+        tefasApiReachable: false,
+        error: message,
+        responseMs: Date.now() - started,
+        cachedFunds: getAllCachedFundPrices(),
+        checkedAt: new Date().toISOString()
+      });
+    }
   });
   // ────────────────────────────────────────────────────────────────────────
 
