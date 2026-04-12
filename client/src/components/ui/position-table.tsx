@@ -1,13 +1,19 @@
 import { Position } from "@shared/schema";
 import { formatTurkishCurrency, formatTurkishPrice, formatTurkishPercent, formatFundPrice, formatPositionPrice, formatPositionValue } from "@/lib/format";
 import { Button } from "@/components/ui/button";
-import { ChevronUp, ChevronDown, X, Check, Pencil } from "lucide-react";
+import { ChevronUp, ChevronDown, Check, Pencil, Trash2, MoreHorizontal } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { FullScreenModal } from './full-screen-modal';
 import { EditPositionModal } from './edit-position-modal';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface PositionTableProps {
   positions: Position[];
@@ -250,32 +256,32 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
             <col className="w-[120px]" /> {/* Değer */}
             <col className="w-[110px]" /> {/* K/Z */}
             <col className="w-[80px]" />  {/* K/Z % */}
-            <col className="w-[76px]" />  {/* İşlemler */}
+            <col className="w-[80px]" />  {/* İşlemler */}
           </colgroup>
           <thead className="bg-gray-50 dark:bg-gray-700/50">
             <tr>
-              <th className="sticky left-0 bg-gray-50 dark:bg-gray-700/50 px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider z-10 border-r border-gray-200 dark:border-gray-600">
+              <th className="sticky left-0 bg-gray-50 dark:bg-gray-700/50 px-3 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider z-10 border-r border-gray-200 dark:border-gray-600">
                 <SortButton field="symbol">Varlık</SortButton>
               </th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-3 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 <div className="flex justify-end"><SortButton field="quantity">Adet</SortButton></div>
               </th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-3 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 <div className="flex justify-end"><SortButton field="buyPrice">Alış</SortButton></div>
               </th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-3 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 <div className="flex justify-end"><SortButton field="currentPrice">Güncel</SortButton></div>
               </th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-3 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 <div className="flex justify-end"><SortButton field="value">Değer</SortButton></div>
               </th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-3 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 <div className="flex justify-end"><SortButton field="pl">K/Z</SortButton></div>
               </th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-3 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 <div className="flex justify-end"><SortButton field="plPercent">K/Z %</SortButton></div>
               </th>
-              <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-3 py-4 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 İşlemler
               </th>
             </tr>
@@ -290,74 +296,86 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
                   className="hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
                   onClick={() => onRowClick(position)}
                 >
-                  <td className="sticky left-0 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 px-3 py-3 z-10 border-r border-gray-200 dark:border-gray-600">
+                  <td className="sticky left-0 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 px-3 py-5 z-10 border-r border-gray-200 dark:border-gray-600">
                     <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">{position.symbol}</div>
                     {position.type === 'us_stock' && (
-                      <div className="text-xs text-purple-500 dark:text-purple-400 font-medium">ABD</div>
+                      <div className="text-xs text-purple-500 dark:text-purple-400 font-medium tracking-wide">ABD</div>
                     )}
                   </td>
-                  <td className="px-3 py-3 text-right text-sm text-gray-900 dark:text-white whitespace-nowrap">
+                  <td className="px-3 py-5 text-right text-sm text-gray-900 dark:text-white whitespace-nowrap">
                     {parseFloat(position.quantity).toLocaleString('tr-TR', { maximumFractionDigits: 10 })}
                   </td>
-                  <td className="px-3 py-3 text-right text-sm text-gray-900 dark:text-white whitespace-nowrap">
+                  <td className="px-3 py-5 text-right text-sm text-gray-900 dark:text-white whitespace-nowrap">
                     {formatPositionPrice(parseFloat(position.buyPrice), position.type)}
                   </td>
-                  <td className="px-3 py-3 text-right text-sm text-gray-900 dark:text-white whitespace-nowrap">
+                  <td className="px-3 py-5 text-right text-sm text-gray-900 dark:text-white whitespace-nowrap">
                     {formatPositionPrice(currentPrice, position.type)}
                   </td>
-                  <td className="px-3 py-3 text-right text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                  <td className="px-3 py-5 text-right text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
                     {formatPositionValue(value, position.type)}
                   </td>
-                  <td className={`px-3 py-3 text-right text-sm font-medium whitespace-nowrap ${
+                  <td className={`px-3 py-5 text-right text-sm font-medium whitespace-nowrap ${
                     plTRY >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   }`}>
                     {position.type === 'us_stock' ? (
                       <div className="flex flex-col items-end">
-                        <span>₺{formatTurkishPrice(plTRY)}</span>
-                        <span className="text-[10px] opacity-60">(${formatTurkishPrice(pl)})</span>
+                        <span>{plTRY >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(plTRY))}</span>
+                        <span className="text-[10px] opacity-60">({pl >= 0 ? '+' : '-'}${formatTurkishPrice(Math.abs(pl))})</span>
                       </div>
                     ) : (
                       <span>{pl >= 0 ? '+' : '-'}{formatPositionValue(Math.abs(pl), position.type)}</span>
                     )}
                   </td>
-                  <td className={`px-3 py-3 text-right text-sm font-medium whitespace-nowrap ${
+                  <td className={`px-3 py-5 text-right text-sm font-medium whitespace-nowrap ${
                     plPercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   }`}>
                     {plPercent >= 0 ? '+' : ''}{formatTurkishPercent(plPercent)}
                   </td>
-                  <td className="px-3 py-4 whitespace-nowrap text-center">
-                    <div className="flex items-center justify-center space-x-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowEditModal({ show: true, position });
-                        }}
-                        title="Pozisyonu Düzenle"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="p-1.5 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-full"
-                        onClick={(e) => handleClosePosition(position, e)}
-                        title="Pozisyonu Kapat"
-                      >
-                        <Check className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="p-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
-                        onClick={(e) => handleDeletePosition(position, e)}
-                        title="Pozisyonu Sil"
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
+                  <td className="px-3 py-5 whitespace-nowrap text-center">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => e.stopPropagation()}
+                          className="h-8 w-8 p-0 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          <MoreHorizontal className="h-6 w-6" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56">
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowEditModal({ show: true, position });
+                          }}
+                          className="flex items-center gap-3 cursor-pointer py-2.5"
+                        >
+                          <Pencil className="h-5 w-5 text-blue-500" />
+                          <span className="text-sm font-medium">Pozisyonu Düzenle</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleClosePosition(position, e);
+                          }}
+                          className="flex items-center gap-3 cursor-pointer py-2.5"
+                        >
+                          <Check className="h-5 w-5 text-green-500" />
+                          <span className="text-sm font-medium">Pozisyonu Kapat</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeletePosition(position, e);
+                          }}
+                          className="flex items-center gap-3 cursor-pointer py-2.5 text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
+                        >
+                          <Trash2 className="h-5 w-5" />
+                          <span className="text-sm font-medium">Pozisyonu Sil</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </td>
                 </tr>
               );
