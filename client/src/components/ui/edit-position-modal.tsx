@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Position } from "@shared/schema";
-import { FullScreenModal } from "./full-screen-modal";
+import { DrawerModal } from "./drawer-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -82,7 +82,7 @@ export function EditPositionModal({
   const currency = position.type === "us_stock" ? "$" : "₺";
 
   return (
-    <FullScreenModal
+    <DrawerModal
       open={open}
       onOpenChange={onOpenChange}
       title={`${position.symbol} Düzenle`}
@@ -141,6 +141,6 @@ export function EditPositionModal({
           </Button>
         </div>
       </form>
-    </FullScreenModal>
+    </DrawerModal>
   );
 }

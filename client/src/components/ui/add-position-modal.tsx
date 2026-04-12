@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { insertPositionSchema, type InsertPosition } from "@shared/schema";
-import { FullScreenModal } from './full-screen-modal';
+import { DrawerModal } from './drawer-modal';
 import {
   Form,
   FormControl,
@@ -78,7 +78,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
   };
 
   return (
-    <FullScreenModal 
+    <DrawerModal 
       open={open} 
       onOpenChange={onOpenChange}
       title="Yeni Pozisyon"
@@ -86,7 +86,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
     >
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 drawer-content">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Asset Type Selection */}
             <div>
               <FormLabel className="text-sm font-medium text-gray-900 dark:text-white mb-3 block">
@@ -271,6 +271,6 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
             </Button>
           </form>
         </Form>
-    </FullScreenModal>
+    </DrawerModal>
   );
 }
