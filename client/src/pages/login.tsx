@@ -29,7 +29,6 @@ export default function LoginPage() {
           className="w-16 h-16 rounded-2xl shadow-md"
         />
         <h1 className="text-xl font-semibold text-foreground tracking-tight">Portföy Takip</h1>
-        <p className="text-sm text-muted-foreground">Hesabınıza giriş yapın</p>
       </div>
 
       {/* Card */}

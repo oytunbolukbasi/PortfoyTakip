@@ -240,36 +240,36 @@ export default function Analytics() {
 
       {/* Time Range Selector */}
       <div className="px-4 py-4">
-        <div className="flex space-x-2 mb-4">
+        <div className="bg-gray-100/50 dark:bg-gray-800/50 p-1 rounded-[14px] flex items-center mb-4 shadow-sm border border-gray-100 dark:border-gray-800">
           <Button
-            variant={timeRange === 'daily' ? 'default' : 'outline'}
+            variant="ghost"
             size="sm"
             onClick={() => setTimeRange('daily')}
-            className="flex-1"
+            className={`flex-1 rounded-xl transition-all ${timeRange === 'daily' ? 'bg-white dark:bg-gray-700 shadow-sm text-foreground font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'}`}
           >
             Günlük
           </Button>
           <Button
-            variant={timeRange === 'monthly' ? 'default' : 'outline'}
+            variant="ghost"
             size="sm"
             onClick={() => setTimeRange('monthly')}
-            className="flex-1"
+            className={`flex-1 rounded-xl transition-all ${timeRange === 'monthly' ? 'bg-white dark:bg-gray-700 shadow-sm text-foreground font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'}`}
           >
             Aylık
           </Button>
           <Button
-            variant={timeRange === 'all' ? 'default' : 'outline'}
+            variant="ghost"
             size="sm"
             onClick={() => setTimeRange('all')}
-            className="flex-1"
+            className={`flex-1 rounded-xl transition-all ${timeRange === 'all' ? 'bg-white dark:bg-gray-700 shadow-sm text-foreground font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'}`}
           >
             Tümü
           </Button>
           <Button
-            variant={timeRange === 'custom' ? 'default' : 'outline'}
+            variant="ghost"
             size="sm"
             onClick={() => setTimeRange('custom')}
-            className="flex-1"
+            className={`flex-1 rounded-xl transition-all ${timeRange === 'custom' ? 'bg-white dark:bg-gray-700 shadow-sm text-foreground font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'}`}
           >
             Özel
           </Button>
@@ -330,10 +330,10 @@ export default function Analytics() {
         )}
 
         {timeRange === 'daily' && (
-          <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-800/30">
-            <p className="text-sm text-green-800 dark:text-green-200 font-medium">
+          <div className={`mt-3 p-3 rounded-lg border ${filteredActivePositions.length === 0 && filteredClosedPositions.length === 0 ? 'bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700' : 'bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800/30'}`}>
+            <p className={`text-sm font-medium flex items-center ${filteredActivePositions.length === 0 && filteredClosedPositions.length === 0 ? 'text-gray-500 dark:text-gray-400' : 'text-green-800 dark:text-green-200'}`}>
               <CalendarDays className="w-4 h-4 inline mr-2" />
-              Bugün: {filteredActivePositions.length} pozisyon açıldı, {filteredClosedPositions.length} pozisyon kapatıldı
+              {filteredActivePositions.length === 0 && filteredClosedPositions.length === 0 ? 'Bugün işlem yapılmadı' : `Bugün: ${filteredActivePositions.length} pozisyon açıldı, ${filteredClosedPositions.length} pozisyon kapatıldı`}
             </p>
           </div>
         )}
@@ -359,28 +359,17 @@ export default function Analytics() {
         ) : (
           <>
             {/* Portfolio Overview */}
-            <Card className="p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-              <div className="flex items-center justify-between mb-3">
+            <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 overflow-hidden">
+              <div className="p-4 flex items-center justify-between mb-0 pb-3">
                 <h3 className="font-semibold text-gray-900 dark:text-white flex items-center">
                   Portföy Durumu
-                  {timeRange === 'custom' && startDate && endDate && (
-                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
-                      (Dönem: {filteredActivePositions.length} pozisyon)
-                    </span>
-                  )}
-                  {timeRange === 'daily' && (
-                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">(Bugün alınan: {filteredActivePositions.length})</span>
-                  )}
-                  {timeRange === 'monthly' && (
-                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">(Bu ay alınan: {filteredActivePositions.length})</span>
-                  )}
                 </h3>
               </div>
 
               {/* Show filtered period data if custom date range is selected */}
               {timeRange === 'custom' && startDate && endDate ? (
-                <div>
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col pb-4">
+                  <div className="grid grid-cols-2 gap-4 px-4">
                     <div>
                       <p className="text-sm text-gray-600 dark:text-gray-400">Dönem Değer</p>
                       <p className="text-xl font-bold text-gray-900 dark:text-white">₺{formatTurkishPrice(filteredTotalValue)}</p>
@@ -390,7 +379,7 @@ export default function Analytics() {
                       <p className="text-xl font-bold text-gray-900 dark:text-white">₺{formatTurkishPrice(filteredTotalCost)}</p>
                     </div>
                   </div>
-                  <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                  <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 px-4">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600 dark:text-gray-400">Dönem K/Z:</span>
                       <div className="text-right">
@@ -400,7 +389,7 @@ export default function Analytics() {
                       </div>
                     </div>
                   </div>
-                  <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                  <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 px-4">
                     <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Genel Portföy:</p>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -417,42 +406,50 @@ export default function Analytics() {
                   </div>
                 </div>
               ) : (
-                <div>
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col">
+                  <div className="px-4 pb-2 grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Toplam Değer</p>
+                      <p className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Güncel Değer</p>
                       <p className="text-xl font-bold text-gray-900 dark:text-white">₺{formatTurkishPrice(totalValue)}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Toplam Maliyet</p>
+                      <p className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Maliyet</p>
                       <p className="text-xl font-bold text-gray-900 dark:text-white">₺{formatTurkishPrice(totalCost)}</p>
                     </div>
                   </div>
-                  <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Aktif Pozisyonlar K/Z:</span>
-                      <div className="text-right">
-                        <span className={`font-bold ${totalProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                  <div className="mt-3 pt-4 border-t border-gray-100 dark:border-gray-700 flex flex-col">
+                    <div className="px-4 pb-4 flex justify-between items-center">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-gray-900 dark:text-gray-100">Aktif Pozisyonlar K/Z</span>
+                        <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">Unrealized</span>
+                      </div>
+                      <div className="text-right flex flex-col items-end">
+                        <span className={`text-[17px] font-bold ${totalProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                           {totalProfit >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(totalProfit))}
                         </span>
-                        <span className={`text-sm ml-2 ${totalProfitPercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                          ({totalProfitPercent >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(totalProfitPercent))})
+                        <span className={`text-[11px] font-semibold mt-0.5 px-2 py-0.5 tracking-wide rounded-md ${totalProfitPercent >= 0 ? 'bg-green-100/70 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100/70 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
+                          {totalProfitPercent >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(totalProfitPercent))}
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">Net Portföy Karı (Lifetime):</span>
-                      <div className="text-right">
-                        <span className={`font-bold ${netProfitTotal >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    <div className="flex items-center justify-between px-4 py-4 w-full bg-muted mt-auto">
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-[15px] font-bold text-gray-900 dark:text-white">Net Portföy K/Z</span>
+                          <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded flex items-center bg-gray-200/80 text-gray-600 dark:bg-gray-700 dark:text-gray-300">LIFETIME</span>
+                        </div>
+                        <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">Unrealized + Realized</span>
+                      </div>
+                      <div className="text-right flex flex-col items-end">
+                        <span className={`text-[17px] font-bold ${netProfitTotal >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                           {netProfitTotal >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(netProfitTotal))}
                         </span>
-                        <span className={`text-sm ml-2 ${netProfitPercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                          ({netProfitPercent >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(netProfitPercent))})
+                        <span className={`text-[11px] font-semibold mt-0.5 px-2 py-0.5 tracking-wide rounded-md ${netProfitPercent >= 0 ? 'bg-green-100/70 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100/70 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
+                          {netProfitPercent >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(netProfitPercent))}
                         </span>
                       </div>
                     </div>
-
                   </div>
                 </div>
               )}
