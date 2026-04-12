@@ -2,10 +2,8 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Position } from "@shared/schema";
 import { FullScreenModal } from './full-screen-modal';
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { formatTurkishPrice, formatTurkishPercent, formatFundPrice, formatPositionPrice, formatPositionValue } from "@/lib/format";
-import { RefreshCw, TrendingUp, TrendingDown, Calendar, Hash, Banknote, Target } from "lucide-react";
 
 interface PositionDetailModalProps {
   position: Position | null;
@@ -36,13 +34,11 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
     const currentPrice = position.currentPrice ? parseFloat(position.currentPrice) : buyPrice;
     const quantity = parseFloat(position.quantity);
     const buyRate = parseFloat(position.buyRate || '1.0');
-    
-    // Position metrics in native currency
+
     const pl = (currentPrice - buyPrice) * quantity;
     const plPercent = buyPrice > 0 ? ((currentPrice - buyPrice) / buyPrice) * 100 : 0;
     const value = currentPrice * quantity;
-    
-    // TRY metrics including currency fluctuation
+
     let plTRY = pl;
     let valueTRY = value;
     let costTRY = buyPrice * quantity;
@@ -50,9 +46,9 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
     if (position.type === 'us_stock') {
       valueTRY = currentPrice * quantity * usdRate;
       costTRY = buyPrice * quantity * usdRate;
-      plTRY = valueTRY - costTRY; // (CP - BP) * Q * usdRate
+      plTRY = valueTRY - costTRY;
     }
-    
+
     return { pl, plPercent, value, currentPrice, plTRY, valueTRY, costTRY };
   };
 
@@ -87,163 +83,107 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
     }
   };
 
+  const now = new Date();
+  const updateTime = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+
+  const typeLabel =
+    position.type === 'us_stock' ? 'ABD Hisse Senedi' :
+    position.type === 'stock' ? 'Hisse Senedi' : 'Yatırım Fonu';
+
+  const currentPriceFormatted = position.currentPrice
+    ? position.type === 'us_stock'
+      ? `$${formatTurkishPrice(parseFloat(position.currentPrice))}`
+      : position.type === 'fund'
+      ? `${formatFundPrice(parseFloat(position.currentPrice))} TL`
+      : `${formatTurkishPrice(parseFloat(position.currentPrice))} TL`
+    : '-';
+
+  const buyDateFormatted = new Date(position.buyDate).toLocaleDateString('tr-TR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+
+  const quantityFormatted = parseFloat(position.quantity).toLocaleString('tr-TR', {
+    maximumFractionDigits: 10,
+  });
+
   return (
-    <FullScreenModal 
-      open={open} 
+    <FullScreenModal
+      open={open}
       onOpenChange={onOpenChange}
       title={position.symbol}
       description={position.name || 'Pozisyon Detayları'}
     >
       <div className="space-y-6">
-        {/* iOS-style P&L Card */}
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-6 border border-blue-100 dark:border-blue-800">
-          <div className="text-center space-y-2">
-            <div className="flex items-center justify-center space-x-2">
-              {pl >= 0 ? (
-                <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
-              ) : (
-                <TrendingDown className="w-6 h-6 text-red-600 dark:text-red-400" />
-              )}
-              <div className={`text-3xl font-bold ${pl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                {pl >= 0 ? '+' : '-'}{formatPositionValue(Math.abs(pl), position.type)}
+        {/* P&L Card */}
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl py-5 px-6 border border-blue-100 dark:border-blue-800">
+          <div className="text-center space-y-1">
+            <div className={`text-3xl font-bold ${pl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+              {pl >= 0 ? '+' : '-'}{formatPositionValue(Math.abs(pl), position.type)}
+            </div>
+            {position.type === 'us_stock' && (
+              <div className="text-xs text-gray-400 dark:text-gray-500">
+                {plTRY >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(plTRY))}
               </div>
+            )}
+          </div>
+        </div>
+
+        {/* Değer Özeti */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+          <div className="grid grid-cols-2 divide-x divide-gray-100 dark:divide-gray-700">
+            <div className="p-6 text-center">
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                {formatPositionValue(value, position.type)}
+              </div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">Güncel Değer</div>
             </div>
-            <div className={`text-lg font-medium ${plTRY >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-              {plTRY >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(plTRY))}
-            </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              {plTRY >= 0 ? 'Toplam Kar' : 'Toplam Zarar'} (TRY)
+            <div className="p-6 text-center">
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                {formatPositionValue(parseFloat(position.buyPrice) * parseFloat(position.quantity), position.type)}
+              </div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">Alış Tutarı</div>
             </div>
           </div>
         </div>
 
-        {/* iOS-style Info Cards */}
-        <div className="space-y-4">
-          {/* Value Summary */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-            <div className="grid grid-cols-2 divide-x divide-gray-100 dark:divide-gray-700">
-              <div className="p-6 text-center">
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {formatPositionValue(value, position.type)}
-                </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">Güncel Değer</div>
-              </div>
-              <div className="p-6 text-center">
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {formatPositionValue(parseFloat(position.buyPrice) * parseFloat(position.quantity), position.type)}
-                </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">Alış Tutarı</div>
-              </div>
+        {/* Detay Tablosu */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+          <div className="divide-y divide-gray-100 dark:divide-gray-700">
+            <div className="flex items-center justify-between px-5 py-4">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Sembol</span>
+              <span className="text-sm font-semibold text-gray-900 dark:text-white">{position.symbol}</span>
             </div>
-          </div>
-
-          {/* Position Info */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
-            <div className="space-y-4">
-              {/* Symbol & Type */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    position.type === 'us_stock' ? 'bg-purple-100 dark:bg-purple-900/30' :
-                    position.type === 'stock' ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-green-100 dark:bg-green-900/30'
-                  }`}>
-                    <Hash className={`w-5 h-5 ${
-                      position.type === 'us_stock' ? 'text-purple-600 dark:text-purple-400' :
-                      position.type === 'stock' ? 'text-blue-600 dark:text-blue-400' : 'text-green-600 dark:text-green-400'
-                    }`} />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-900 dark:text-white">{position.symbol}</div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {position.type === 'us_stock' ? 'ABD Hisse Senedi' : position.type === 'stock' ? 'Hisse Senedi' : 'Yatırım Fonu'}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Quantity */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-                    <Target className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-900 dark:text-white">{parseFloat(position.quantity).toLocaleString('tr-TR', { maximumFractionDigits: 10 })}</div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {position.type === 'fund' ? 'Pay Adedi' : 'Hisse Adedi'}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Buy Date */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                    <Calendar className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-900 dark:text-white">
-                      {new Date(position.buyDate).toLocaleDateString('tr-TR', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric'
-                      })}
-                    </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">Alış Tarihi</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Buy Price */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-                    <Banknote className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-900 dark:text-white">
-                      {formatPositionPrice(parseFloat(position.buyPrice), position.type)}
-                    </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">Alış Fiyatı</div>
-                  </div>
-                </div>
-              </div>
+            <div className="flex items-center justify-between px-5 py-4">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Tür</span>
+              <span className="text-sm font-semibold text-gray-900 dark:text-white">{typeLabel}</span>
             </div>
-          </div>
-
-          {/* Prices */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
-            <div className="space-y-4">
-              {/* Current Price */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                    <Banknote className="w-5 h-5 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-900 dark:text-white">
-                      {position.currentPrice ? 
-                        position.type === 'us_stock'
-                          ? `$${formatTurkishPrice(parseFloat(position.currentPrice))}`
-                          : position.type === 'fund'
-                          ? `${formatFundPrice(parseFloat(position.currentPrice))} TL`
-                          : `${formatTurkishPrice(parseFloat(position.currentPrice))} TL`
-                        : '-'
-                      }
-                    </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">Güncel Fiyat</div>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleRefreshPrice}
-                  disabled={isRefreshingPrice}
-                  className="h-10 w-10 p-0 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  <RefreshCw className={`h-4 w-4 text-gray-600 dark:text-gray-400 ${isRefreshingPrice ? 'animate-spin' : ''}`} />
-                </Button>
+            <div className="flex items-center justify-between px-5 py-4">
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                {position.type === 'fund' ? 'Pay Adedi' : 'Adet'}
+              </span>
+              <span className="text-sm font-semibold text-gray-900 dark:text-white">{quantityFormatted}</span>
+            </div>
+            <div className="flex items-center justify-between px-5 py-4">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Alış Tarihi</span>
+              <span className="text-sm font-semibold text-gray-900 dark:text-white">{buyDateFormatted}</span>
+            </div>
+            <div className="flex items-center justify-between px-5 py-4">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Alış Fiyatı</span>
+              <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                {formatPositionPrice(parseFloat(position.buyPrice), position.type)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between px-5 py-4">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Güncel Fiyat</span>
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {currentPriceFormatted}
+                </span>
+                <span className="text-xs text-gray-400 dark:text-gray-500">
+                  Son güncelleme: {updateTime}
+                </span>
               </div>
             </div>
           </div>
