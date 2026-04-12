@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertPositionSchema, closePositionSchema, insertBistSymbolSchema } from "@shared/schema";
@@ -7,11 +7,54 @@ import { db } from "./db";
 import { bistSymbols } from "@shared/schema";
 import { ilike } from "drizzle-orm";
 
+// Extend express-session with custom properties
+declare module "express-session" {
+  interface SessionData {
+    authenticated: boolean;
+    username: string;
+  }
+}
+
+const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+  if (req.session?.authenticated) {
+    return next();
+  }
+  res.status(401).json({ error: "Unauthorized" });
+};
+
 export async function registerRoutes(app: Express): Promise<Server> {
   const priceService = new PriceService();
 
+  // ── Auth endpoints ──────────────────────────────────────────────────────
+  app.post("/api/auth/login", (req: Request, res: Response) => {
+    const { username, password } = req.body;
+    const validUsername = process.env.APP_USERNAME || "oytunbolukbasi";
+    const validPassword = process.env.APP_PASSWORD || "Slither1986";
+
+    if (username === validUsername && password === validPassword) {
+      req.session.authenticated = true;
+      req.session.username = username;
+      return res.json({ success: true, username });
+    }
+    res.status(401).json({ error: "Kullanıcı adı veya şifre hatalı" });
+  });
+
+  app.post("/api/auth/logout", (req: Request, res: Response) => {
+    req.session.destroy(() => {
+      res.json({ success: true });
+    });
+  });
+
+  app.get("/api/auth/me", (req: Request, res: Response) => {
+    if (req.session?.authenticated) {
+      return res.json({ authenticated: true, username: req.session.username });
+    }
+    res.json({ authenticated: false });
+  });
+  // ────────────────────────────────────────────────────────────────────────
+
   // Positions endpoints
-  app.get("/api/positions", async (req, res) => {
+  app.get("/api/positions", requireAuth, async (req, res) => {
     try {
       // For demo purposes, using a default user ID
       // In production, this would come from authentication
@@ -23,7 +66,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/positions", async (req, res) => {
+  app.post("/api/positions", requireAuth, async (req, res) => {
     try {
       const rawData = req.body;
       
@@ -92,7 +135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  app.delete("/api/positions/:id", async (req, res) => {
+  app.delete("/api/positions/:id", requireAuth, async (req, res) => {
     try {
       const userId = "demo-user";
       await storage.deletePosition(req.params.id, userId);
@@ -102,34 +145,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/positions/:id/close", async (req, res) => {
+  app.post("/api/positions/:id/refresh-price", requireAuth, async (req, res) => {
+    try {
+      const positionId = req.params.id;
+      const userId = "demo-user";
+      const positions = await storage.getPositions(userId);
+      const position = positions.find(p => p.id === positionId);
+      if (!position) {
+        return res.status(404).json({ error: "Position not found" });
+      }
+      const price = await priceService.getPrice(position.symbol, position.type as 'stock' | 'fund' | 'us_stock');
+      await storage.updatePosition(positionId, {
+        currentPrice: price.toFixed(6),
+        lastUpdated: new Date(),
+      });
+      res.json({ success: true, price });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to refresh price" });
+    }
+  });
+
+  app.post("/api/positions/:id/close", requireAuth, async (req, res) => {
     try {
       const positionId = req.params.id;
       const rawData = req.body;
-      
+
       console.log('Close position request:', { positionId, rawData });
-      
+
       // Convert Turkish number format to standard format for validation
       if (rawData.sellPrice && typeof rawData.sellPrice === 'string') {
-        // Handle Turkish decimal format: "22,94" -> "22.94"
         let normalizedPrice = rawData.sellPrice.trim();
-        
-        // If there's a comma but no dot, it's Turkish decimal format
         if (normalizedPrice.includes(',') && !normalizedPrice.includes('.')) {
           normalizedPrice = normalizedPrice.replace(',', '.');
-        }
-        // If there are both dots and comma, assume dot is thousand separator
-        else if (normalizedPrice.includes('.') && normalizedPrice.includes(',')) {
+        } else if (normalizedPrice.includes('.') && normalizedPrice.includes(',')) {
           normalizedPrice = normalizedPrice.replace(/\./g, '').replace(',', '.');
         }
-        
         rawData.sellPrice = normalizedPrice;
         console.log('Normalized sell price:', normalizedPrice);
       }
-      
+
       const validatedData = closePositionSchema.parse(rawData);
       const userId = "demo-user";
-      
+
       const closedPosition = await storage.closePosition(positionId, userId, validatedData);
       res.json(closedPosition);
     } catch (error) {
@@ -142,8 +199,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+
   // Closed positions endpoint
-  app.get("/api/closed-positions", async (req, res) => {
+  app.get("/api/closed-positions", requireAuth, async (req, res) => {
     try {
       const userId = "demo-user";
       const closedPositions = await storage.getClosedPositions(userId);
@@ -154,7 +212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Delete closed position endpoint
-  app.delete("/api/closed-positions/:id", async (req, res) => {
+  app.delete("/api/closed-positions/:id", requireAuth, async (req, res) => {
     try {
       const userId = "demo-user";
       await storage.deleteClosedPosition(req.params.id, userId);
@@ -176,7 +234,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Price update endpoint
-  app.post("/api/prices/refresh", async (req, res) => {
+  app.post("/api/prices/refresh", requireAuth, async (req, res) => {
     try {
       const userId = "demo-user";
       const positions = await storage.getPositions(userId);
@@ -234,7 +292,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Price monitor endpoints
-  app.post("/api/price-monitor/update-all", async (req, res) => {
+  app.post("/api/price-monitor/update-all", requireAuth, async (req, res) => {
     try {
       const userId = "demo-user";
       const positions = await storage.getPositions(userId);
@@ -352,7 +410,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
   // Maintenance endpoints
-  app.post("/api/maintenance/backfill-rates", async (req, res) => {
+  app.post("/api/maintenance/backfill-rates", requireAuth, async (req, res) => {
     try {
       const userId = "demo-user";
       const positions = await storage.getPositions(userId);
