@@ -145,6 +145,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update position (quantity, buyPrice, buyDate)
+  app.patch("/api/positions/:id", requireAuth, async (req, res) => {
+    try {
+      const positionId = req.params.id;
+      const userId = "demo-user";
+
+      // Verify ownership
+      const positions = await storage.getPositions(userId);
+      const existing = positions.find(p => p.id === positionId);
+      if (!existing) {
+        return res.status(404).json({ error: "Position not found" });
+      }
+
+      const { quantity, buyPrice, buyDate } = req.body;
+      const updates: Record<string, any> = {};
+
+      if (quantity !== undefined) {
+        const parsed = parseFloat(String(quantity).replace(',', '.'));
+        if (isNaN(parsed) || parsed <= 0) {
+          return res.status(400).json({ error: "Geçerli bir adet giriniz" });
+        }
+        updates.quantity = parsed.toString();
+      }
+
+      if (buyPrice !== undefined) {
+        // Handle Turkish decimal format: "1.234,56" -> "1234.56"
+        const normalized = String(buyPrice)
+          .replace(/\./g, '')
+          .replace(',', '.');
+        const parsed = parseFloat(normalized);
+        if (isNaN(parsed) || parsed <= 0) {
+          return res.status(400).json({ error: "Geçerli bir alış fiyatı giriniz" });
+        }
+        updates.buyPrice = parsed.toFixed(6);
+      }
+
+      if (buyDate !== undefined) {
+        updates.buyDate = new Date(buyDate);
+
+        // Re-fetch buyRate if this is a US stock and date changed
+        if (existing.type === 'us_stock') {
+          try {
+            const rate = await priceService.getHistoricalExchangeRate(new Date(buyDate));
+            updates.buyRate = rate.toString();
+            console.log(`Re-fetched buyRate for ${existing.symbol} on ${buyDate}: ${rate}`);
+          } catch (err) {
+            console.warn(`Failed to re-fetch buyRate for ${existing.symbol}:`, err);
+          }
+        }
+      }
+
+      const updated = await storage.updatePosition(positionId, updates);
+      res.json(updated);
+    } catch (error) {
+      console.error("Update position error:", error);
+      res.status(500).json({ error: "Failed to update position" });
+    }
+  });
+
   app.post("/api/positions/:id/refresh-price", requireAuth, async (req, res) => {
     try {
       const positionId = req.params.id;

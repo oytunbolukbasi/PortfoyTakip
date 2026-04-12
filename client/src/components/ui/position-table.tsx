@@ -1,10 +1,11 @@
 import { Position } from "@shared/schema";
 import { formatTurkishCurrency, formatTurkishPrice, formatTurkishPercent, formatFundPrice, formatPositionPrice, formatPositionValue } from "@/lib/format";
 import { Button } from "@/components/ui/button";
-import { ChevronUp, ChevronDown, X, Check } from "lucide-react";
+import { ChevronUp, ChevronDown, X, Check, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { FullScreenModal } from './full-screen-modal';
+import { EditPositionModal } from './edit-position-modal';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -88,6 +89,10 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
   });
 
   const [showCloseModal, setShowCloseModal] = useState<{ show: boolean; position: Position | null }>({
+    show: false,
+    position: null,
+  });
+  const [showEditModal, setShowEditModal] = useState<{ show: boolean; position: Position | null }>({
     show: false,
     position: null,
   });
@@ -325,6 +330,18 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
                       <Button
                         variant="ghost"
                         size="sm"
+                        className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowEditModal({ show: true, position });
+                        }}
+                        title="Pozisyonu Düzenle"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         className="p-1.5 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-full"
                         onClick={(e) => handleClosePosition(position, e)}
                         title="Pozisyonu Kapat"
@@ -395,6 +412,17 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
           </div>
         </div>
       </FullScreenModal>
+
+      {/* Edit Position Modal */}
+      <EditPositionModal
+        position={showEditModal.position}
+        open={showEditModal.show}
+        onOpenChange={(open) => setShowEditModal({ show: open, position: null })}
+        onSuccess={() => {
+          setShowEditModal({ show: false, position: null });
+          onRefresh();
+        }}
+      />
     </div>
   );
 }

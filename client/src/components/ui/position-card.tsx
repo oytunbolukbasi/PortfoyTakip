@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Position } from "@shared/schema";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, ArrowRightFromLine, Trash2 } from "lucide-react";
+import { MoreHorizontal, ArrowRightFromLine, Trash2, Pencil } from "lucide-react";
 import { formatTurkishCurrency, formatTurkishPrice, formatTurkishPercent, formatFundPrice, parseTurkishPrice, formatPositionPrice, formatPositionValue } from "@/lib/format";
 import {
   DropdownMenu,
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { FullScreenModal } from './full-screen-modal';
+import { EditPositionModal } from './edit-position-modal';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -25,6 +26,7 @@ interface PositionCardProps {
 export default function PositionCard({ position, onRefresh, onClick }: PositionCardProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showCloseDialog, setShowCloseDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [sellPrice, setSellPrice] = useState('');
   const [sellDate, setSellDate] = useState(new Date().toISOString().split('T')[0]);
   const { toast } = useToast();
@@ -210,6 +212,16 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
                   <DropdownMenuItem
                     onClick={(e) => {
                       e.stopPropagation();
+                      setShowEditDialog(true);
+                    }}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <Pencil className="h-4 w-4 text-gray-500" />
+                    <span>Pozisyonu Düzenle</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setShowCloseDialog(true);
                       setSellPrice(position.currentPrice ? parseFloat(position.currentPrice).toFixed(2).replace('.', ',') : '0,00');
                       setSellDate(new Date().toISOString().split('T')[0]);
@@ -304,6 +316,17 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
           </div>
         </div>
       </FullScreenModal>
+
+      {/* Edit Position Modal */}
+      <EditPositionModal
+        position={position}
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        onSuccess={() => {
+          setShowEditDialog(false);
+          onRefresh();
+        }}
+      />
     </>
   );
 }
