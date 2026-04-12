@@ -140,7 +140,17 @@ export class PriceMonitor {
           // Small delay between fund requests to be gentle on TEFAS
           await new Promise(resolve => setTimeout(resolve, 1500));
         } catch (error) {
-          console.warn(`[TEFAS] Failed to update ${position.symbol}:`, error);
+          console.warn(`[TEFAS] Failed to fetch live price for ${position.symbol}:`, (error as Error).message);
+
+          // Fallback: use last known price already stored in DB (updated by user or previous successful fetch)
+          const lastKnownPrice = parseFloat(position.currentPrice ?? '0');
+          if (lastKnownPrice > 0) {
+            console.log(`[TEFAS] Using last DB price for ${position.symbol}: ${lastKnownPrice}`);
+            // Seed cache so the app continues to show the last known value
+            setCachedFundPrice(position.symbol, lastKnownPrice);
+          } else {
+            console.warn(`[TEFAS] No fallback price available for ${position.symbol}`);
+          }
         }
       }
 

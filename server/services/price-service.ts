@@ -1,6 +1,6 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { getCachedFundPrice } from './fund-price-cache';
+import { getCachedFundPrice, setCachedFundPrice } from './fund-price-cache';
 
 export interface PriceData {
   symbol: string;
@@ -389,107 +389,54 @@ export class PriceService {
   }
 
   private async getTEFASPrice(symbol: string): Promise<number> {
-    try {
-      console.log(`Fetching TEFAS price for ${symbol}`);
-      
-      // Try TEFAS official API first
-      try {
-        const today = new Date();
-        const startDate = new Date(today);
-        startDate.setDate(today.getDate() - 30); // Get last 30 days
-        
-        const formatDate = (date: Date) => {
-          const year = date.getFullYear();
-          const month = String(date.getMonth() + 1).padStart(2, '0');
-          const day = String(date.getDate()).padStart(2, '0');
-          return `${year}-${month}-${day}`;
-        };
+    console.log(`Fetching TEFAS price for ${symbol}`);
 
-        const requestBody = {
-          fontip: "YAT",
-          sfontur: "",
-          kurucukod: "",
-          fongrup: "",
-          bastarih: formatDate(startDate),
-          bittarih: formatDate(today),
-          fonkod: symbol,
-          fonunvan: "",
-          strperiod: "1,1,1,1,1,1,1",
-          intdraw: "2000"
-        };
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - 30);
 
-        console.log(`Fetching from TEFAS official API for ${symbol}`);
-        const response = await axios.post('https://www.tefas.gov.tr/api/DB/BindHistoryInfo', requestBody, {
-          headers: {
-            'Content-Type': 'application/json',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            'Accept': 'application/json, text/plain, */*',
-            'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
-            'Referer': 'https://www.tefas.gov.tr/TarihselVeriler.aspx',
-          },
-          timeout: 15000,
-        });
+    const formatDate = (date: Date) => {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    };
 
-        if (response.data && response.data.data && Array.isArray(response.data.data) && response.data.data.length > 0) {
-          // Get the most recent price (first item is most recent)
-          const latestData = response.data.data[0];
-          if (latestData.FIYAT && !isNaN(parseFloat(latestData.FIYAT))) {
-            const price = parseFloat(latestData.FIYAT);
-            console.log(`Found official TEFAS price for ${symbol}: ${price} TL (${latestData.FONUNVAN})`);
-            return price;
-          }
-        }
-
-        console.log(`No recent data found in TEFAS API for ${symbol}`);
-      } catch (apiError) {
-        console.log(`TEFAS official API failed for ${symbol}:`, (apiError as Error).message);
+    const response = await axios.post(
+      'https://www.tefas.gov.tr/api/DB/BindHistoryInfo',
+      {
+        fontip: 'YAT', sfontur: '', kurucukod: '', fongrup: '',
+        bastarih: formatDate(startDate), bittarih: formatDate(today),
+        fonkod: symbol, fonunvan: '', strperiod: '1,1,1,1,1,1,1', intdraw: '2000'
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Accept': 'application/json, text/plain, */*',
+          'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
+          'Referer': 'https://www.tefas.gov.tr/TarihselVeriler.aspx',
+        },
+        timeout: 10000,
       }
+    );
 
-      // Fallback to recent TEFAS fund prices (these will be used if API fails)
-      const knownFundPrices: Record<string, number> = {
-        'IRY': 2.654802,
-        'GJH': 2.657665,
-        'YKT': 0.606051,
-        'YAC': 2.85,
-        'ALC': 3.41,
-        'TYS': 1.23,
-        'AKB': 15.67,
-        'GRO': 8.94,
-        'DCB': 4.12871, // Updated April 2025
-        'ZP8': 1.08,
-        'DAS': 12.34,
-        'EUZ': 7.89,
-        'AFT': 0.145,
-        'IPJ': 1.89,
-        'GAH': 3.25,
-        'HPP': 2.15
-      };
-      
-      if (knownFundPrices[symbol]) {
-        const basePrice = knownFundPrices[symbol];
-        
-        // For demo purposes, add minimal variation to simulate market changes
-        // Note: Real prices come from TEFAS API above
-        
-        // For other funds, create minimal daily variation (to simulate real market behavior)
-        const today = new Date();
-        const dayHash = today.getFullYear() * 10000 + today.getMonth() * 100 + today.getDate();
-        const dailyVariation = ((dayHash % 20) - 10) / 2000; // ±0.5% max variation
-        
-        const dailyPrice = basePrice * (1 + dailyVariation);
-        const finalPrice = Math.round(dailyPrice * 100000) / 100000; // 5 decimal precision
-        
-        console.log(`Using fallback TEFAS price for ${symbol}: ${finalPrice} TL`);
-        return finalPrice;
+    if (
+      response.data?.data &&
+      Array.isArray(response.data.data) &&
+      response.data.data.length > 0
+    ) {
+      const latestData = response.data.data[0];
+      if (latestData.FIYAT && !isNaN(parseFloat(latestData.FIYAT))) {
+        const price = parseFloat(latestData.FIYAT);
+        console.log(`[TEFAS] ${symbol}: ${price} TL (${latestData.FONUNVAN})`);
+        // Write to in-memory cache so subsequent calls skip the API
+        setCachedFundPrice(symbol, price);
+        return price;
       }
-      
-      // For unknown funds, generate consistent daily price
-      return this.getMockPrice(symbol, 'fund');
-      
-    } catch (error) {
-      console.warn(`Failed to fetch TEFAS price for ${symbol}:`, (error as Error).message);
-      return this.getMockPrice(symbol, 'fund');
     }
+
+    throw new Error(`TEFAS API returned no data for ${symbol}`);
   }
 
   private getMockPrice(symbol: string, type: 'stock' | 'fund' | 'us_stock'): number {

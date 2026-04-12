@@ -61,7 +61,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const today = new Date();
       const startDate = new Date(today);
-      startDate.setDate(today.getDate() - 5);
+      startDate.setDate(today.getDate() - 10);
       const fmt = (d: Date) => d.toISOString().split("T")[0];
 
       const axios = (await import("axios")).default;
