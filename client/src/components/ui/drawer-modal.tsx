@@ -19,7 +19,7 @@ export function DrawerModal({
   children 
 }: DrawerModalProps) {
   return (
-    <Drawer.Root open={open} onOpenChange={onOpenChange}>
+    <Drawer.Root open={open} onOpenChange={onOpenChange} repositionInputs={false}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/40 dark:bg-black/60 z-[60]" />
         <Drawer.Content 
@@ -43,7 +43,7 @@ export function DrawerModal({
             </Button>
           </div>
 
-          <div className="p-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] flex-1 outline-none">
+          <div className="p-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] outline-none">
             {children}
           </div>
         </Drawer.Content>
