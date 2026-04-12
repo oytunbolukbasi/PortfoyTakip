@@ -195,7 +195,7 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
             {/* Active days info and 3-dot menu */}
             <div className="flex items-center justify-between pt-1" data-dropdown>
               <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                {activeDays} günden beri aktif
+                {activeDays} gündür açık
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
