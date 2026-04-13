@@ -135,13 +135,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       );
 
-      const latestPrice = response.data?.data?.[0]?.FIYAT ?? null;
+      let latestPrice = response.data?.data?.[0]?.FIYAT ?? null;
+      let method = 'api';
+
+      if (!latestPrice) {
+        // Fallback to scraping for health check too
+        try {
+          const cheerio = await import("cheerio");
+          const htmlRes = await client.get(`https://www.tefas.gov.tr/FonAnaliz.aspx?FonKod=${testSymbol}`, {
+            headers: commonHeaders,
+            timeout: 8000
+          });
+          const $ = cheerio.load(htmlRes.data);
+          const priceText = $('.top-list li:nth-child(1) span').text().trim();
+          if (priceText) {
+            latestPrice = priceText;
+            method = 'scraper';
+          }
+        } catch (e) {
+          console.warn("[TEFAS Health] Scraper fallback failed");
+        }
+      }
+
       res.json({
         status: "ok",
         tefasApiReachable: true,
+        method,
         testSymbol,
         latestPrice,
-        latestDate: response.data?.data?.[0]?.TARIH ?? null,
+        latestDate: response.data?.data?.[0]?.TARIH ?? new Date().toISOString(),
         responseMs: Date.now() - started,
         cachedFunds: getAllCachedFundPrices(),
         checkedAt: new Date().toISOString()

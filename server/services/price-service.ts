@@ -490,16 +490,51 @@ export class PriceService {
       response.data.data.length > 0
     ) {
       const latestData = response.data.data[0];
-      if (latestData.FIYAT && !isNaN(parseFloat(latestData.FIYAT))) {
-        const price = parseFloat(latestData.FIYAT);
+      if (latestData.FIYAT && !isNaN(parseFloat(latestData.FIYAT.replace(',', '.')))) {
+        const price = parseFloat(latestData.FIYAT.replace(',', '.'));
         console.log(`[TEFAS] ${symbol}: ${price} TL (${latestData.FONUNVAN})`);
+        
         // Write to in-memory cache so subsequent calls skip the API
         setCachedFundPrice(symbol, price);
         return price;
       }
     }
 
-    throw new Error(`TEFAS API returned no data for ${symbol}`);
+    // Phase B: HTML Fallback — If the API returns no data (common for new funds like IJC/YJK), 
+    // scrape the public analysis page which always has the latest "live" price.
+    console.log(`[TEFAS] API returned no data for ${symbol}, triggering HTML scraper fallback...`);
+    return this.scrapeTEFASPrice(symbol, client, commonHeaders);
+  }
+
+  private async scrapeTEFASPrice(symbol: string, client: any, headers: any): Promise<number> {
+    try {
+      const url = `https://www.tefas.gov.tr/FonAnaliz.aspx?FonKod=${symbol}`;
+      const response = await client.get(url, { headers, timeout: 10000 });
+      
+      const $ = cheerio.load(response.data);
+      
+      // Selector verified for the "Son Fiyat" span in the top-list
+      const priceText = $('.top-list li:nth-child(1) span').text().trim();
+      
+      if (!priceText) {
+        throw new Error(`Could not find price on TEFAS HTML page for ${symbol}`);
+      }
+      
+      // Clean and parse the Turkish formatted decimal (e.g. 12,125602 -> 12.125602)
+      const cleanPrice = priceText.replace(/\./g, '').replace(',', '.');
+      const price = parseFloat(cleanPrice);
+      
+      if (isNaN(price) || price <= 0) {
+        throw new Error(`Invalid price parsed from TEFAS HTML for ${symbol}: ${priceText}`);
+      }
+      
+      console.log(`[TEFAS Scraper] Successfully retrieved price for ${symbol}: ${price} TL`);
+      setCachedFundPrice(symbol, price);
+      return price;
+    } catch (error) {
+      console.error(`[TEFAS Scraper] Failed to scrape price for ${symbol}:`, (error as Error).message);
+      throw new Error(`TEFAS Scraping failed for ${symbol}: ${(error as Error).message}`);
+    }
   }
 
   private getMockPrice(symbol: string, type: 'stock' | 'fund' | 'us_stock'): number {
