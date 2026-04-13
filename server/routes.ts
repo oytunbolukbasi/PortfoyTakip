@@ -85,99 +85,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return `${d_str}.${m}.${y}`;
       };
 
-      const axios = (await import("axios")).default;
-      const { wrapper } = await import("axios-cookiejar-support");
-      const { CookieJar } = await import("tough-cookie");
+      const proxyUrl = process.env.TEFAS_PROXY_URL || 'https://tefas-proxy.oytunbolukbasi.workers.dev/';
+      const targetUrl = 'https://www.tefas.gov.tr/api/DB/BindHistoryInfo';
+      const fullUrl = `${proxyUrl}?url=${encodeURIComponent(targetUrl)}`;
       
-      const jar = new CookieJar();
-      const client = wrapper(axios.create({ jar }));
-      const commonHeaders = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
-        "X-Requested-With": "XMLHttpRequest"
-      };
-
-      try {
-        await client.get('https://www.tefas.gov.tr/TarihselVeriler.aspx', {
-          headers: {
-            ...commonHeaders,
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
-          },
-          timeout: 8000
-        });
-      } catch (e) {
-        console.warn("[TEFAS Health] Pre-fetch failed");
-      }
-
       const formData = new URLSearchParams();
       formData.append('fontip', 'YAT');
-      formData.append('sfontur', '');
-      formData.append('kurucukod', '');
-      formData.append('fongrup', '');
       formData.append('bastarih', fmt(startDate));
       formData.append('bittarih', fmt(today));
       formData.append('fonkod', testSymbol);
-      formData.append('fonunvan', '');
       formData.append('strperiod', '1,1,1,1,1,1,1');
       formData.append('intdraw', '5');
 
-      const response = await client.post(
-        "https://www.tefas.gov.tr/api/DB/BindHistoryInfo",
-        formData.toString(),
-        {
-          headers: {
-            ...commonHeaders,
-            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-            "Accept": "application/json, text/plain, */*",
-            "Referer": "https://www.tefas.gov.tr/TarihselVeriler.aspx"
-          },
-          timeout: 8000
-        }
-      );
+      const axios = (await import("axios")).default;
+      const response = await axios.post(fullUrl, formData.toString(), {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        timeout: 10000
+      });
 
       let latestPrice = response.data?.data?.[0]?.FIYAT ?? null;
-      let method = 'api';
+      let method = 'proxy-api';
 
       if (!latestPrice) {
-        // Fallback to scraping for health check too
+        // Fallback to proxied scraping in health check
         try {
+          const scrapeUrl = `https://www.tefas.gov.tr/FonAnaliz.aspx?FonKod=${testSymbol}`;
+          const scrapeResponse = await axios.get(`${proxyUrl}?url=${encodeURIComponent(scrapeUrl)}`, { timeout: 10000 });
           const cheerio = await import("cheerio");
-          const htmlRes = await client.get(`https://www.tefas.gov.tr/FonAnaliz.aspx?FonKod=${testSymbol}`, {
-            headers: commonHeaders,
-            timeout: 8000
-          });
-          const $ = cheerio.load(htmlRes.data);
+          const $ = cheerio.load(scrapeResponse.data);
           const priceText = $('.top-list li:nth-child(1) span').text().trim();
           if (priceText) {
             latestPrice = priceText;
-            method = 'scraper';
+            method = 'proxy-scraper';
           }
         } catch (e) {
-          console.warn("[TEFAS Health] Scraper fallback failed");
-        }
-      }
-
-      if (!latestPrice) {
-        // Fallback to Phase C: Mirror Scrape (Halk Yatirim)
-        try {
-          const url = `https://fonbul.halkyatirim.com.tr/YatirimFonlari/FonProfilleri/FonFiyatTablosu/${testSymbol}`;
-          const axios = (await import("axios")).default;
-          const cheerio = await import("cheerio");
-          const htmlRes = await axios.get(url, { timeout: 8000 });
-          const $ = cheerio.load(htmlRes.data);
-          const priceText = $('.invest-table tbody tr:first-child td:nth-child(3)').text().trim();
-          if (priceText) {
-            latestPrice = priceText;
-            method = 'mirror';
-          }
-        } catch (e) {
-          console.warn("[TEFAS Health] Mirror fallback failed");
+          console.warn("[TEFAS Health] Proxied scraper fallback failed");
         }
       }
 
       res.json({
         status: "ok",
         tefasApiReachable: true,
+        proxyChannel: proxyUrl,
         method,
         testSymbol,
         latestPrice,

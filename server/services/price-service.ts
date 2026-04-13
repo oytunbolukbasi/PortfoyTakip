@@ -433,88 +433,57 @@ export class PriceService {
       return `${d}.${m}.${y}`; // TEFAS expects DD.MM.YYYY
     };
 
-    // Setup Cookie Jar and Session-Aware Axios
-    const jar = new CookieJar();
-    const client = wrapper(axios.create({ jar }));
-    const commonHeaders = {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
-      'X-Requested-With': 'XMLHttpRequest',
-    };
-
     try {
-      // 1. Visit the main page to grab valid ASP.NET session cookies and tokens
-      await client.get('https://www.tefas.gov.tr/TarihselVeriler.aspx', {
-        headers: {
-          ...commonHeaders,
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
-        },
-        timeout: 10000
-      });
-      console.log(`[TEFAS] Session established for ${symbol} fetch.`);
+      // Phase A: Official TEFAS JSON API (routed through Cloudflare Worker)
+      console.log(`[TEFAS] Fetching live through proxy for ${symbol}...`);
+      
+      const formData = new URLSearchParams();
+      formData.append('fontip', 'YAT');
+      formData.append('sfontur', '');
+      formData.append('kurucukod', '');
+      formData.append('fongrup', '');
+      formData.append('bastarih', formatDate(startDate));
+      formData.append('bittarih', formatDate(today));
+      formData.append('fonkod', symbol);
+      formData.append('fonunvan', '');
+      formData.append('strperiod', '1,1,1,1,1,1,1');
+      formData.append('intdraw', '2000');
+
+      const response = await this.makeProxiedRequest(
+        'https://www.tefas.gov.tr/api/DB/BindHistoryInfo',
+        'POST',
+        formData.toString()
+      );
+
+      if (
+        response.data?.data &&
+        Array.isArray(response.data.data) &&
+        response.data.data.length > 0
+      ) {
+        const latestData = response.data.data[0];
+        if (latestData.FIYAT && !isNaN(parseFloat(latestData.FIYAT.replace(',', '.')))) {
+          const price = parseFloat(latestData.FIYAT.replace(',', '.'));
+          console.log(`[TEFAS Proxy] ${symbol}: ${price} TL (${latestData.FONUNVAN})`);
+          setCachedFundPrice(symbol, price);
+          return price;
+        }
+      }
     } catch (err) {
-      console.warn(`[TEFAS] Failed to establish main page session before API request: ${(err as Error).message}`);
-      // Proceeding anyway because sometimes the API doesn't strictly need a fresh session, but often it helps.
+      console.warn(`[TEFAS Proxy API] Failed for ${symbol}:`, (err as Error).message);
     }
 
-    // 2. Perform the actual API POST Request (TEFAS strictly requires x-www-form-urlencoded)
-    const formData = new URLSearchParams();
-    formData.append('fontip', 'YAT');
-    formData.append('sfontur', '');
-    formData.append('kurucukod', '');
-    formData.append('fongrup', '');
-    formData.append('bastarih', formatDate(startDate));
-    formData.append('bittarih', formatDate(today));
-    formData.append('fonkod', symbol);
-    formData.append('fonunvan', '');
-    formData.append('strperiod', '1,1,1,1,1,1,1');
-    formData.append('intdraw', '2000');
-
-    const response = await client.post(
-      'https://www.tefas.gov.tr/api/DB/BindHistoryInfo',
-      formData.toString(),
-      {
-        headers: {
-          ...commonHeaders,
-          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-          'Accept': 'application/json, text/plain, */*',
-          'Referer': 'https://www.tefas.gov.tr/TarihselVeriler.aspx',
-        },
-        timeout: 10000,
-      }
-    );
-
-    if (
-      response.data?.data &&
-      Array.isArray(response.data.data) &&
-      response.data.data.length > 0
-    ) {
-      const latestData = response.data.data[0];
-      if (latestData.FIYAT && !isNaN(parseFloat(latestData.FIYAT.replace(',', '.')))) {
-        const price = parseFloat(latestData.FIYAT.replace(',', '.'));
-        console.log(`[TEFAS] ${symbol}: ${price} TL (${latestData.FONUNVAN})`);
-        
-        // Write to in-memory cache so subsequent calls skip the API
-        setCachedFundPrice(symbol, price);
-        return price;
-      }
-    }
-
-    // Phase B: HTML Fallback — If the API returns no data (common for new funds like IJC/YJK), 
-    // scrape the public analysis page which always has the latest "live" price.
+    // Phase B: HTML Fallback — Also through Proxy
     try {
-      console.log(`[TEFAS] API returned no data for ${symbol}, triggering Phase B (Official HTML Scraper)...`);
-      return await this.scrapeTEFASPrice(symbol, client, commonHeaders);
+      console.log(`[TEFAS Proxy] API returned no data for ${symbol}, trying HTML Scraper fallback...`);
+      return await this.scrapeTEFASPrice(symbol);
     } catch (e) {
-      // Phase C: Alternative Source — If TEFAS official site is blockading our IP (common on Railway),
-      // use Halk Yatırım as a mirror source that is typically less aggressive with blocks.
+      // Phase C: Alternative Source — Also through Proxy if needed, but Halk Yatirim Fallback
       try {
         console.log(`[TEFAS] Official HTML failed for ${symbol}, triggering Phase C (Halk Yatirim Fallback)...`);
         return await this.halkYatirimScrapePrice(symbol);
       } catch (halkError) {
         console.warn(`[TEFAS] All external sources failed for ${symbol}. Using last known DB price as safety...`);
         
-        // Final Safety: Try to get from last known database value
         try {
           const [pos] = await db.select().from(positions).where(eq(positions.symbol, symbol)).limit(1);
           if (pos && pos.currentPrice) {
@@ -522,64 +491,47 @@ export class PriceService {
           }
         } catch (dbErr) { /* ignore */ }
         
-        // Last-resort fallback to a realistic generated price (as per original code)
         return this.getMockPrice(symbol, 'fund');
       }
     }
   }
 
-  private async halkYatirimScrapePrice(symbol: string): Promise<number> {
-    try {
-      // Halk Yatirim Fonbul is a reliable mirror for TEFAS data
-      const url = `https://fonbul.halkyatirim.com.tr/YatirimFonlari/FonProfilleri/FonFiyatTablosu/${symbol}`;
-      const response = await axios.get(url, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        },
-        timeout: 10000
-      });
+  private async makeProxiedRequest(targetUrl: string, method: 'GET' | 'POST', data: any = null) {
+    const proxyBase = process.env.TEFAS_PROXY_URL || 'https://tefas-proxy.oytunbolukbasi.workers.dev/';
+    const proxyUrl = `${proxyBase}?url=${encodeURIComponent(targetUrl)}`;
+    
+    const config: any = {
+      method,
+      url: proxyUrl,
+      headers: {
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
+      },
+      timeout: 15000
+    };
 
-      const $ = cheerio.load(response.data);
-      
-      // Data is in a table, the first row's 3rd cell (usually) is the price
-      // Selector: Find the first <tr> in the pricing table
-      const priceText = $('.invest-table tbody tr:first-child td:nth-child(3)').text().trim();
-      
-      if (!priceText) {
-        throw new Error(`Price not found on Halk Yatirim for ${symbol}`);
-      }
-
-      // Convert Turkish decimal format (1,351283 -> 1.351283)
-      const cleanPrice = priceText.replace(/\./g, '').replace(',', '.');
-      const price = parseFloat(cleanPrice);
-
-      if (isNaN(price) || price <= 0) {
-        throw new Error(`Invalid price from Halk Yatirim: ${priceText}`);
-      }
-
-      console.log(`[Halk Yatirim] Successfully retrieved price for ${symbol}: ${price} TL`);
-      setCachedFundPrice(symbol, price);
-      return price;
-    } catch (error) {
-      throw new Error(`Halk Yatirim Scraper failed: ${(error as Error).message}`);
+    if (method === 'POST') {
+      config.data = data;
+      config.headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=UTF-8';
+      config.headers['X-Requested-With'] = 'XMLHttpRequest';
     }
+
+    return axios(config);
   }
 
-  private async scrapeTEFASPrice(symbol: string, client: any, headers: any): Promise<number> {
+  private async scrapeTEFASPrice(symbol: string): Promise<number> {
     try {
       const url = `https://www.tefas.gov.tr/FonAnaliz.aspx?FonKod=${symbol}`;
-      const response = await client.get(url, { headers, timeout: 10000 });
+      // Route the GET through the proxy
+      const response = await this.makeProxiedRequest(url, 'GET');
       
       const $ = cheerio.load(response.data);
-      
-      // Selector verified for the "Son Fiyat" span in the top-list
       const priceText = $('.top-list li:nth-child(1) span').text().trim();
       
       if (!priceText) {
         throw new Error(`Could not find price on TEFAS HTML page for ${symbol}`);
       }
       
-      // Clean and parse the Turkish formatted decimal (e.g. 12,125602 -> 12.125602)
       const cleanPrice = priceText.replace(/\./g, '').replace(',', '.');
       const price = parseFloat(cleanPrice);
       
@@ -587,11 +539,10 @@ export class PriceService {
         throw new Error(`Invalid price parsed from TEFAS HTML for ${symbol}: ${priceText}`);
       }
       
-      console.log(`[TEFAS Scraper] Successfully retrieved price for ${symbol}: ${price} TL`);
+      console.log(`[TEFAS Proxy Scraper] Successfully retrieved price for ${symbol}: ${price} TL`);
       setCachedFundPrice(symbol, price);
       return price;
     } catch (error) {
-      console.error(`[TEFAS Scraper] Failed to scrape price for ${symbol}:`, (error as Error).message);
       throw new Error(`TEFAS Scraping failed for ${symbol}: ${(error as Error).message}`);
     }
   }
