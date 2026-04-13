@@ -36,13 +36,13 @@ export class PriceMonitor {
     // Scheduled: 09:00 Turkey time (06:00 UTC)
     const job9 = cron.schedule('0 6 * * *', () => {
       console.log('[CRON] 09:00 TR - Fetching TEFAS fund prices...');
-      this.updateFundPrices();
+      this.updateFundPrices(true);
     }, { timezone: 'UTC' });
 
     // Scheduled: 10:00 Turkey time (07:00 UTC) — retry/backup run
     const job10 = cron.schedule('0 7 * * *', () => {
       console.log('[CRON] 10:00 TR - TEFAS fund price backup fetch...');
-      this.updateFundPrices();
+      this.updateFundPrices(true);
     }, { timezone: 'UTC' });
 
     this.fundCronJobs = [job9, job10];
@@ -103,8 +103,8 @@ export class PriceMonitor {
     }
   }
 
-  // Only updates fund positions — writes to cache AND database
-  async updateFundPrices() {
+  // Only updates fund positions — writes to cache  // Updates TEFAS funds only. If forceLiveFetch is true, it rigorously bypasses the DB cache protection.
+  async updateFundPrices(forceLiveFetch = false) {
     try {
       const activePositions = await db.select().from(positions);
       const fundPositions = activePositions.filter(p => p.type === 'fund');
@@ -118,7 +118,9 @@ export class PriceMonitor {
 
       for (const position of fundPositions) {
         try {
-          const currentPrice = await this.priceService.getPrice(position.symbol, 'fund');
+          const currentPrice = forceLiveFetch 
+            ? await this.priceService.forceTEFASUpdate(position.symbol)
+            : await this.priceService.getPrice(position.symbol, 'fund');
 
           // Store in shared cache module
           setCachedFundPrice(position.symbol, currentPrice);
@@ -173,10 +175,16 @@ export class PriceMonitor {
         throw new Error(`Position not found: ${positionId}`);
       }
 
-      const currentPrice = await this.priceService.getPrice(
-        position.symbol,
-        position.type as 'stock' | 'fund' | 'us_stock'
-      );
+      let currentPrice: number;
+      if (position.type === 'fund') {
+         // Manual request from the frontend -> Bypasses DB fetch protection and goes to TEFAS directly
+         currentPrice = await this.priceService.forceTEFASUpdate(position.symbol);
+      } else {
+         currentPrice = await this.priceService.getPrice(
+           position.symbol,
+           position.type as 'stock' | 'us_stock'
+         );
+      }
 
       if (position.type === 'fund') {
         setCachedFundPrice(position.symbol, currentPrice);

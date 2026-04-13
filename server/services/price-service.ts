@@ -1,6 +1,11 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { getCachedFundPrice, setCachedFundPrice } from './fund-price-cache';
+import { db } from '../db';
+import { positions } from '@shared/schema';
+import { eq } from 'drizzle-orm';
+import { wrapper } from 'axios-cookiejar-support';
+import { CookieJar } from 'tough-cookie';
 
 export interface PriceData {
   symbol: string;
@@ -63,12 +68,31 @@ export class PriceService {
     console.log(`Getting price for ${symbol} (type: ${type})`);
     
     if (type === 'fund') {
-      // Check in-memory daily cache first — avoids hammering TEFAS API
+      // 1. Check in-memory daily cache first
       const cached = getCachedFundPrice(symbol);
       if (cached !== null) {
         console.log(`[Cache] Returning cached fund price for ${symbol}: ${cached}`);
         return cached;
       }
+      
+      // 2. Check DB if any existing price is present (so we avoid hammering TEFAS out-of-schedule)
+      try {
+        const [position] = await db.select().from(positions).where(eq(positions.symbol, symbol)).limit(1);
+        if (position && position.currentPrice) {
+           const dbPrice = parseFloat(position.currentPrice);
+           if (dbPrice > 0) {
+              console.log(`[DB Fallback] Using DB price for existing fund ${symbol}: ${dbPrice}`);
+              // Seed cache so subsequent checks don't hit DB
+              setCachedFundPrice(symbol, dbPrice);
+              return dbPrice;
+           }
+        }
+      } catch (err) {
+         console.warn(`[DB Error] Failed to check fallback price for ${symbol}:`, err);
+      }
+
+      // 3. Fallthrough happens ONLY if the fund has no previous DB price (e.g. completely new fund being added)
+      console.log(`[TEFAS On-Demand] New or zero-priced fund ${symbol}, fetching live...`);
       return this.getTEFASPrice(symbol);
     } else if (type === 'us_stock') {
       return this.getUSStockPrice(symbol);
@@ -388,6 +412,13 @@ export class PriceService {
     return results;
   }
 
+  // Manually bypass DB caching mechanism to force a live hit to TEFAS API (e.g. for Cron jobs or Manual UI refreshes)
+  async forceTEFASUpdate(symbol: string): Promise<number> {
+    const price = await this.getTEFASPrice(symbol);
+    setCachedFundPrice(symbol, price);
+    return price;
+  }
+
   private async getTEFASPrice(symbol: string): Promise<number> {
     console.log(`Fetching TEFAS price for ${symbol}`);
 
@@ -402,7 +433,31 @@ export class PriceService {
       return `${y}-${m}-${d}`;
     };
 
-    const response = await axios.post(
+    // Setup Cookie Jar and Session-Aware Axios
+    const jar = new CookieJar();
+    const client = wrapper(axios.create({ jar }));
+    const commonHeaders = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36',
+      'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
+    };
+
+    try {
+      // 1. Visit the main page to grab valid ASP.NET session cookies and tokens
+      await client.get('https://www.tefas.gov.tr/TarihselVeriler.aspx', {
+        headers: {
+          ...commonHeaders,
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+        },
+        timeout: 10000
+      });
+      console.log(`[TEFAS] Session established for ${symbol} fetch.`);
+    } catch (err) {
+      console.warn(`[TEFAS] Failed to establish main page session before API request: ${(err as Error).message}`);
+      // Proceeding anyway because sometimes the API doesn't strictly need a fresh session, but often it helps.
+    }
+
+    // 2. Perform the actual API POST Request
+    const response = await client.post(
       'https://www.tefas.gov.tr/api/DB/BindHistoryInfo',
       {
         fontip: 'YAT', sfontur: '', kurucukod: '', fongrup: '',
@@ -411,10 +466,9 @@ export class PriceService {
       },
       {
         headers: {
+          ...commonHeaders,
           'Content-Type': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
           'Accept': 'application/json, text/plain, */*',
-          'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
           'Referer': 'https://www.tefas.gov.tr/TarihselVeriler.aspx',
         },
         timeout: 10000,

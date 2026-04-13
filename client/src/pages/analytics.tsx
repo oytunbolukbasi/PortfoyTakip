@@ -586,11 +586,10 @@ export default function Analytics() {
               const usStockPLPercent = usStockCost > 0 ? (usStockPL / usStockCost) * 100 : 0;
 
               const PLBadge = ({ value }: { value: number }) => (
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mt-1 ${
-                  value >= 0
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mt-1 ${value >= 0
                     ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
                     : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-                }`}>
+                  }`}>
                   {value >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(value))}
                 </span>
               );
@@ -605,7 +604,7 @@ export default function Analytics() {
                 <Card className="p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-semibold text-gray-900 dark:text-white">
-                      Hisse &amp; Fon Kar/Zarar
+                      Kar/Zarar Dağılımı
                     </h3>
                   </div>
 

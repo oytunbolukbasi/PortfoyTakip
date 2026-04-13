@@ -7,6 +7,7 @@ import { db } from "./db";
 import { bistSymbols } from "@shared/schema";
 import { ilike } from "drizzle-orm";
 import { getAllCachedFundPrices } from "./services/fund-price-cache";
+import { priceMonitor } from "./services/price-monitor";
 
 // Extend express-session with custom properties
 declare module "express-session" {
@@ -27,6 +28,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const priceService = new PriceService();
 
   // ── Auth endpoints ──────────────────────────────────────────────────────
+  // Manual override endpoint for the user to force-refresh all funds NOW bypassing DB cache
+  app.get("/api/admin/force-refresh-tefas", async (_req: Request, res: Response) => {
+    try {
+      console.log("[ADMIN] Manual forced TEFAS refresh initiated by user.");
+      await priceMonitor.updateFundPrices(true);
+      res.json({
+         status: "success",
+         message: "All TEFAS funds successfully force-updated bypassing DB protection.",
+         cachedFunds: getAllCachedFundPrices()
+      });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   app.post("/api/auth/login", (req: Request, res: Response) => {
     const { username, password } = req.body;
     const validUsername = process.env.APP_USERNAME || "oytunbolukbasi";
@@ -65,7 +81,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fmt = (d: Date) => d.toISOString().split("T")[0];
 
       const axios = (await import("axios")).default;
-      const response = await axios.post(
+      const { wrapper } = await import("axios-cookiejar-support");
+      const { CookieJar } = await import("tough-cookie");
+      
+      const jar = new CookieJar();
+      const client = wrapper(axios.create({ jar }));
+      const commonHeaders = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36",
+        "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
+      };
+
+      try {
+        await client.get('https://www.tefas.gov.tr/TarihselVeriler.aspx', {
+          headers: {
+            ...commonHeaders,
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+          },
+          timeout: 8000
+        });
+      } catch (e) {
+        console.warn("[TEFAS Health] Pre-fetch failed");
+      }
+
+      const response = await client.post(
         "https://www.tefas.gov.tr/api/DB/BindHistoryInfo",
         {
           fontip: "YAT", sfontur: "", kurucukod: "", fongrup: "",
@@ -74,9 +112,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         {
           headers: {
+            ...commonHeaders,
             "Content-Type": "application/json",
-            "User-Agent": "Mozilla/5.0",
-            "Accept": "application/json",
+            "Accept": "application/json, text/plain, */*",
             "Referer": "https://www.tefas.gov.tr/TarihselVeriler.aspx"
           },
           timeout: 8000
