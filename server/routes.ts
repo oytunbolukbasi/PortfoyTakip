@@ -78,7 +78,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const today = new Date();
       const startDate = new Date(today);
       startDate.setDate(today.getDate() - 10);
-      const fmt = (d: Date) => d.toISOString().split("T")[0];
+      const fmt = (d: Date) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const d_str = String(d.getDate()).padStart(2, '0');
+        return `${d_str}.${m}.${y}`;
+      };
 
       const axios = (await import("axios")).default;
       const { wrapper } = await import("axios-cookiejar-support");
@@ -87,8 +92,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const jar = new CookieJar();
       const client = wrapper(axios.create({ jar }));
       const commonHeaders = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Accept-Language": "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
+        "X-Requested-With": "XMLHttpRequest"
       };
 
       try {
@@ -103,17 +109,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.warn("[TEFAS Health] Pre-fetch failed");
       }
 
+      const formData = new URLSearchParams();
+      formData.append('fontip', 'YAT');
+      formData.append('sfontur', '');
+      formData.append('kurucukod', '');
+      formData.append('fongrup', '');
+      formData.append('bastarih', fmt(startDate));
+      formData.append('bittarih', fmt(today));
+      formData.append('fonkod', testSymbol);
+      formData.append('fonunvan', '');
+      formData.append('strperiod', '1,1,1,1,1,1,1');
+      formData.append('intdraw', '5');
+
       const response = await client.post(
         "https://www.tefas.gov.tr/api/DB/BindHistoryInfo",
-        {
-          fontip: "YAT", sfontur: "", kurucukod: "", fongrup: "",
-          bastarih: fmt(startDate), bittarih: fmt(today),
-          fonkod: testSymbol, fonunvan: "", strperiod: "1,1,1,1,1,1,1", intdraw: "5"
-        },
+        formData.toString(),
         {
           headers: {
             ...commonHeaders,
-            "Content-Type": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
             "Accept": "application/json, text/plain, */*",
             "Referer": "https://www.tefas.gov.tr/TarihselVeriler.aspx"
           },

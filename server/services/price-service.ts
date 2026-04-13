@@ -430,15 +430,16 @@ export class PriceService {
       const y = date.getFullYear();
       const m = String(date.getMonth() + 1).padStart(2, '0');
       const d = String(date.getDate()).padStart(2, '0');
-      return `${y}-${m}-${d}`;
+      return `${d}.${m}.${y}`; // TEFAS expects DD.MM.YYYY
     };
 
     // Setup Cookie Jar and Session-Aware Axios
     const jar = new CookieJar();
     const client = wrapper(axios.create({ jar }));
     const commonHeaders = {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
+      'X-Requested-With': 'XMLHttpRequest',
     };
 
     try {
@@ -456,18 +457,26 @@ export class PriceService {
       // Proceeding anyway because sometimes the API doesn't strictly need a fresh session, but often it helps.
     }
 
-    // 2. Perform the actual API POST Request
+    // 2. Perform the actual API POST Request (TEFAS strictly requires x-www-form-urlencoded)
+    const formData = new URLSearchParams();
+    formData.append('fontip', 'YAT');
+    formData.append('sfontur', '');
+    formData.append('kurucukod', '');
+    formData.append('fongrup', '');
+    formData.append('bastarih', formatDate(startDate));
+    formData.append('bittarih', formatDate(today));
+    formData.append('fonkod', symbol);
+    formData.append('fonunvan', '');
+    formData.append('strperiod', '1,1,1,1,1,1,1');
+    formData.append('intdraw', '2000');
+
     const response = await client.post(
       'https://www.tefas.gov.tr/api/DB/BindHistoryInfo',
-      {
-        fontip: 'YAT', sfontur: '', kurucukod: '', fongrup: '',
-        bastarih: formatDate(startDate), bittarih: formatDate(today),
-        fonkod: symbol, fonunvan: '', strperiod: '1,1,1,1,1,1,1', intdraw: '2000'
-      },
+      formData.toString(),
       {
         headers: {
           ...commonHeaders,
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
           'Accept': 'application/json, text/plain, */*',
           'Referer': 'https://www.tefas.gov.tr/TarihselVeriler.aspx',
         },
