@@ -157,6 +157,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      if (!latestPrice) {
+        // Fallback to Phase C: Mirror Scrape (Halk Yatirim)
+        try {
+          const url = `https://fonbul.halkyatirim.com.tr/YatirimFonlari/FonProfilleri/FonFiyatTablosu/${testSymbol}`;
+          const axios = (await import("axios")).default;
+          const cheerio = await import("cheerio");
+          const htmlRes = await axios.get(url, { timeout: 8000 });
+          const $ = cheerio.load(htmlRes.data);
+          const priceText = $('.invest-table tbody tr:first-child td:nth-child(3)').text().trim();
+          if (priceText) {
+            latestPrice = priceText;
+            method = 'mirror';
+          }
+        } catch (e) {
+          console.warn("[TEFAS Health] Mirror fallback failed");
+        }
+      }
+
       res.json({
         status: "ok",
         tefasApiReachable: true,
