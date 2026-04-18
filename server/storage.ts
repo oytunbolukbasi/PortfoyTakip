@@ -3,13 +3,15 @@ import {
   positions, 
   closedPositions, 
   priceHistory,
+  aiChatHistory,
   type User, 
   type InsertUser,
   type Position,
   type InsertPosition,
   type ClosedPosition,
   type ClosePosition,
-  type PriceHistory
+  type PriceHistory,
+  type AiChatHistory
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -35,6 +37,11 @@ export interface IStorage {
   // Price history
   savePriceHistory(priceData: Omit<PriceHistory, 'id' | 'timestamp'>): Promise<void>;
   getLatestPrice(symbol: string, type: string): Promise<PriceHistory | undefined>;
+
+  // AI Chat History
+  getAiChatHistory(userId: string): Promise<AiChatHistory[]>;
+  saveAiChatMessage(data: { userId: string, role: string, content: string }): Promise<AiChatHistory>;
+  deleteAiChatHistory(userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -159,6 +166,28 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(priceHistory.timestamp))
       .limit(1);
     return latest || undefined;
+  }
+
+  async getAiChatHistory(userId: string): Promise<AiChatHistory[]> {
+    return await db
+      .select()
+      .from(aiChatHistory)
+      .where(eq(aiChatHistory.userId, userId))
+      .orderBy(desc(aiChatHistory.timestamp));
+  }
+
+  async saveAiChatMessage(data: { userId: string, role: string, content: string }): Promise<AiChatHistory> {
+    const [message] = await db
+      .insert(aiChatHistory)
+      .values(data)
+      .returning();
+    return message;
+  }
+
+  async deleteAiChatHistory(userId: string): Promise<void> {
+    await db
+      .delete(aiChatHistory)
+      .where(eq(aiChatHistory.userId, userId));
   }
 }
 

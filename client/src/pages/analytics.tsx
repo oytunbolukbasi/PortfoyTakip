@@ -1,24 +1,99 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Position, ClosedPosition } from "@shared/schema";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Position, ClosedPosition, AiChatHistory } from "@shared/schema";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CalendarDays, TrendingUp, TrendingDown, DollarSign, Percent, BarChart3, Moon, Sun } from "lucide-react";
+import { CalendarDays, TrendingUp, TrendingDown, DollarSign, Percent, BarChart3, Moon, Sun, Send, Loader2, History, ChevronRight, Metadata, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { useTheme } from "@/components/ui/theme-provider";
 import { formatTurkishPrice, formatTurkishPercent } from "@/lib/format";
+import { LuSparkles } from "react-icons/lu";
+import { Drawer } from "vaul";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function Analytics() {
   const { theme, toggleTheme } = useTheme();
   const [timeRange, setTimeRange] = useState<'daily' | 'monthly' | 'all' | 'custom'>('daily');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [isAiDrawerOpen, setIsAiDrawerOpen] = useState(false);
+  const [aiMessage, setAiMessage] = useState("");
+  const [showAllHistory, setShowAllHistory] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: positions = [], isLoading: positionsLoading } = useQuery<Position[]>({
     queryKey: ['/api/positions'],
   });
+
+  const { data: aiHistory = [], isLoading: historyLoading } = useQuery<AiChatHistory[]>({
+    queryKey: ['/api/ai/history'],
+  });
+
+  const analyzeMutation = useMutation({
+    mutationFn: async (message?: string) => {
+      const res = await apiRequest("POST", "/api/ai/analyze", { message });
+      return res.json() as Promise<AiChatHistory>;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/ai/history'] });
+      setAiMessage("");
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: error.message || "Analiz yapılamadı",
+      });
+    }
+  });
+
+  const deleteHistoryMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("DELETE", "/api/ai/history");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/ai/history'] });
+      toast({
+        title: "Başarılı",
+        description: "Sohbet geçmişi temizlendi",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Hata",
+        description: error.message || "Geçmiş silinemedi",
+      });
+    }
+  });
+
+  const handleAiAnalyze = () => {
+    setIsAiDrawerOpen(true);
+    if (aiHistory.length === 0) {
+      analyzeMutation.mutate();
+    }
+  };
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!aiMessage.trim() || analyzeMutation.isPending) return;
+    analyzeMutation.mutate(aiMessage);
+  };
 
   const { data: closedPositions = [], isLoading: closedLoading } = useQuery<ClosedPosition[]>({
     queryKey: ['/api/closed-positions'],
@@ -455,6 +530,33 @@ export default function Analytics() {
               )}
             </Card>
 
+            {/* Yapay Zeka Görüşü Card */}
+            <Card 
+              className="relative overflow-hidden cursor-pointer border-none bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-[1px] shadow-lg active:scale-[0.98] transition-all"
+              onClick={handleAiAnalyze}
+            >
+              <div className="bg-white dark:bg-gray-900 rounded-[calc(1rem-1px)] p-4 relative overflow-hidden h-full">
+                {/* Visual effects */}
+                <div className="absolute -right-6 -top-6 w-24 h-24 bg-purple-500/10 blur-2xl rounded-full" />
+                <div className="absolute -left-6 -bottom-6 w-24 h-24 bg-indigo-500/10 blur-2xl rounded-full" />
+                
+                <div className="flex items-center justify-between relative z-10">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-100 to-purple-100 dark:from-indigo-900/40 dark:to-purple-900/40 flex items-center justify-center">
+                      <LuSparkles className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900 dark:text-white">Yapay Zeka Görüşü</h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Portföyünüzü Gemini ile analiz edin</p>
+                    </div>
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+                    <ChevronRight className="w-5 h-5 text-gray-400" />
+                  </div>
+                </div>
+              </div>
+            </Card>
+
             {/* Profit/Loss Summary */}
             <Card className="p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between mb-3">
@@ -576,9 +678,6 @@ export default function Analytics() {
               </div>
             </Card>
 
-            {/* Coming Soon - Charts */}
-
-
             {/* Asset Type P&L Analysis */}
             {(() => {
               const stockPLPercent = stockCost > 0 ? (stockPL / stockCost) * 100 : 0;
@@ -612,7 +711,7 @@ export default function Analytics() {
 
                     {/* BIST Row */}
                     <div className="flex items-stretch py-4 gap-4">
-                      <div className="flex-1 min-w-0 space-y-1">
+                      <div className="flex-1 min-0 space-y-1">
                         <p className="text-sm font-semibold text-gray-900 dark:text-white">Hisse Senedi (BIST)</p>
                         <div><CountPill count={stockPositions.length} /></div>
                         <p className="text-base font-bold text-gray-900 dark:text-white">₺{formatTurkishPrice(stockValue)}</p>
@@ -784,9 +883,180 @@ export default function Analytics() {
                 </div>
               </div>
             </Card>
+
+            {/* Geçmiş Analizler */}
+            <div className="mt-8 pb-12">
+              <div className="flex items-center justify-between mb-4 px-1">
+                <div className="flex items-center gap-2">
+                  <History className="w-5 h-5 text-gray-500" />
+                  <h3 className="font-bold text-gray-900 dark:text-white">Geçmiş Analizler</h3>
+                </div>
+                {aiHistory.length > 0 && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-gray-400 hover:text-red-500 transition-colors h-8 w-8 p-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Geçmişi Temizle</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Tüm yapay zeka analiz geçmişiniz kalıcı olarak silinecektir. Bu işlem geri alınamaz. Devam etmek istiyor musunuz?
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>İptal</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={() => deleteHistoryMutation.mutate()}
+                          className="bg-red-500 hover:bg-red-600 focus:ring-red-500"
+                        >
+                          Sil
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+              </div>
+              
+              <div className="space-y-3">
+                {aiHistory
+                  .filter(h => h.role === 'model')
+                  .slice(0, showAllHistory ? undefined : 3)
+                  .map((history) => (
+                    <Card key={history.id} className="p-4 bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <p className="text-xs text-muted-foreground mb-1">
+                            {new Date(history.timestamp!).toLocaleString('tr-TR')}
+                          </p>
+                          <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
+                            {history.content}
+                          </p>
+                        </div>
+                        <Button variant="ghost" size="sm" className="ml-2 h-8 w-8 p-0" onClick={() => {
+                          setAiMessage(""); 
+                          setIsAiDrawerOpen(true);
+                        }}>
+                          <ChevronRight className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </Card>
+                  ))}
+                
+                {aiHistory.filter(h => h.role === 'model').length > 3 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full text-xs text-indigo-600 dark:text-indigo-400 font-medium py-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
+                    onClick={() => setShowAllHistory(!showAllHistory)}
+                  >
+                    {showAllHistory ? (
+                      <span className="flex items-center justify-center gap-1"><ChevronUp className="w-3 h-3" /> Daha Az Göster</span>
+                    ) : (
+                      <span className="flex items-center justify-center gap-1"><ChevronDown className="w-3 h-3" /> Daha Fazla Göster ({aiHistory.filter(h => h.role === 'model').length - 3})</span>
+                    )}
+                  </Button>
+                )}
+                
+                {aiHistory.length === 0 && !historyLoading && (
+                  <div className="text-center py-8 bg-gray-50 dark:bg-gray-800/30 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-800">
+                    <p className="text-sm text-gray-500">Henüz bir analiz yapılmadı.</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </>
         )}
       </div>
+
+      {/* AI Bottom Sheet (Drawer) */}
+      <Drawer.Root open={isAiDrawerOpen} onOpenChange={setIsAiDrawerOpen} shouldScaleBackground>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[60]" />
+          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[70] flex flex-col h-[85vh] outline-none">
+            <div className="flex-1 bg-white dark:bg-gray-900 rounded-t-[20px] flex flex-col overflow-hidden p-4">
+              <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300 dark:bg-gray-700 mb-6" />
+              
+              <div className="flex items-center justify-between mb-4">
+                <Drawer.Title className="text-lg font-bold flex items-center gap-2">
+                  <LuSparkles className="text-indigo-600" />
+                  Yapay Zeka Analisti
+                </Drawer.Title>
+              </div>
+
+              <div className="flex-1 overflow-y-auto px-1 space-y-4 pb-4">
+                {aiHistory.length === 0 && analyzeMutation.isPending ? (
+                  <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
+                    <Loader2 className="w-10 h-10 text-indigo-500 animate-spin" />
+                    <div>
+                      <p className="font-semibold text-gray-900 dark:text-white">Portföyünüz Analiz Ediliyor...</p>
+                      <p className="text-sm text-gray-500 italic">Varlıklarınız ve performansınız Gemini 2.5 Flash ile inceleniyor.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col space-y-4">
+                    {[...aiHistory].reverse().map((msg) => (
+                      <div 
+                        key={msg.id}
+                        className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-sm ${
+                          msg.role === 'user' 
+                            ? 'bg-indigo-600 text-white rounded-tr-none' 
+                            : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-tl-none border border-gray-200 dark:border-gray-700'
+                        }`}>
+                          <div className="text-sm whitespace-pre-wrap leading-relaxed">
+                            {msg.content}
+                          </div>
+                          <p className={`text-[10px] mt-1.5 opacity-50 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
+                            {new Date(msg.timestamp!).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    {analyzeMutation.isPending && aiHistory.length > 0 && (
+                      <div className="flex justify-start">
+                        <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-tl-none px-4 py-3 border border-gray-200 dark:border-gray-700">
+                          <Loader2 className="w-5 h-5 text-indigo-500 animate-spin" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Chat Input Area */}
+              <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
+                <form onSubmit={handleSendMessage} className="flex gap-2 relative">
+                  <Input 
+                    placeholder="Analiz hakkında soru sor..."
+                    value={aiMessage}
+                    onChange={(e) => setAiMessage(e.target.value)}
+                    disabled={analyzeMutation.isPending}
+                    className="flex-1 pr-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 focus:ring-indigo-500"
+                  />
+                  <Button 
+                    type="submit" 
+                    size="icon" 
+                    disabled={!aiMessage.trim() || analyzeMutation.isPending}
+                    className="absolute right-1 top-1 h-10 w-10 rounded-lg bg-indigo-600 hover:bg-indigo-700 transition-colors"
+                  >
+                    <Send className="w-5 h-5 text-white" />
+                  </Button>
+                </form>
+                <p className="text-[10px] text-center text-gray-400 mt-2">
+                  Gemini 2.5 Flash tarafından desteklenmektedir. Yatırım tavsiyesi değildir.
+                </p>
+              </div>
+            </div>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
     </div>
   );
 }

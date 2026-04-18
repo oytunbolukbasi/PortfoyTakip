@@ -111,6 +111,21 @@ export const bistSymbols = pgTable("bist_symbols", {
   updatedAt: timestamp("updated_at").default(sql`now()`),
 });
 
+export const aiChatHistory = pgTable("ai_chat_history", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  role: text("role").notNull(), // 'user' or 'model'
+  content: text("content").notNull(),
+  timestamp: timestamp("timestamp").default(sql`now()`),
+});
+
+export const aiChatHistoryRelations = relations(aiChatHistory, ({ one }) => ({
+  user: one(users, {
+    fields: [aiChatHistory.userId],
+    references: [users.id],
+  }),
+}));
+
 export const insertBistSymbolSchema = createInsertSchema(bistSymbols).omit({
   id: true,
   createdAt: true,
@@ -126,3 +141,10 @@ export type ClosePosition = z.infer<typeof closePositionSchema>;
 export type PriceHistory = typeof priceHistory.$inferSelect;
 export type BistSymbol = typeof bistSymbols.$inferSelect;
 export type InsertBistSymbol = z.infer<typeof insertBistSymbolSchema>;
+export type AiChatHistory = typeof aiChatHistory.$inferSelect;
+export type InsertAiChat = z.infer<typeof insertAiChatSchema>;
+
+export const insertAiChatSchema = createInsertSchema(aiChatHistory).omit({
+  id: true,
+  timestamp: true,
+});

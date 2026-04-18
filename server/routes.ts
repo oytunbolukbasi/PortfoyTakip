@@ -4,10 +4,12 @@ import { storage } from "./storage";
 import { insertPositionSchema, closePositionSchema, insertBistSymbolSchema } from "@shared/schema";
 import { PriceService } from "./services/price-service";
 import { db } from "./db";
-import { bistSymbols } from "@shared/schema";
+import { bistSymbols, aiChatHistory } from "@shared/schema";
 import { ilike } from "drizzle-orm";
 import { getAllCachedFundPrices } from "./services/fund-price-cache";
 import { priceMonitor } from "./services/price-monitor";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { getSystemPrompt } from "./prompt";
 
 // Extend express-session with custom properties
 declare module "express-session" {
@@ -34,9 +36,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("[ADMIN] Manual forced TEFAS refresh initiated by user.");
       await priceMonitor.updateFundPrices(true);
       res.json({
-         status: "success",
-         message: "All TEFAS funds successfully force-updated bypassing DB protection.",
-         cachedFunds: getAllCachedFundPrices()
+        status: "success",
+        message: "All TEFAS funds successfully force-updated bypassing DB protection.",
+        cachedFunds: getAllCachedFundPrices()
       });
     } catch (e: any) {
       res.status(500).json({ error: e.message });
@@ -89,7 +91,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const targetUrl = 'https://www.tefas.gov.tr/api/DB/BindHistoryInfo';
       // NO render=true for POST requests
       const fullUrl = `http://api.scraperapi.com?api_key=${apiKey}&url=${encodeURIComponent(targetUrl)}`;
-      
+
       const formData = new URLSearchParams();
       formData.append('fontip', 'YAT');
       formData.append('bastarih', fmt(startDate));
@@ -170,7 +172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/positions", requireAuth, async (req, res) => {
     try {
       const rawData = req.body;
-      
+
       // Convert Turkish number format to standard format for validation
       if (rawData.buyPrice && typeof rawData.buyPrice === 'string') {
         // Convert 1.234,56 or 234,56 to 1234.56 or 234.56
@@ -179,10 +181,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .replace(',', '.'); // Replace decimal comma with dot
         rawData.buyPrice = normalizedPrice;
       }
-      
+
       const validatedData = insertPositionSchema.parse(rawData);
       const userId = "demo-user";
-      
+
       // Auto-fetch buyRate for US stocks if not provided or to ensure accuracy
       let buyRate = validatedData.buyRate;
       if (validatedData.type === 'us_stock') {
@@ -405,7 +407,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = "demo-user";
       const positions = await storage.getPositions(userId);
-      
+
       const updatePromises = positions.map(async (position) => {
         try {
           const price = await priceService.getPrice(position.symbol, position.type as 'stock' | 'fund');
@@ -413,7 +415,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             currentPrice: price.toString(),
             lastUpdated: new Date(),
           });
-          
+
           // Save to price history
           await storage.savePriceHistory({
             symbol: position.symbol,
@@ -428,7 +430,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       await Promise.all(updatePromises);
-      
+
       const updatedPositions = await storage.getPositions(userId);
       res.json(updatedPositions);
     } catch (error) {
@@ -463,19 +465,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = "demo-user";
       const positions = await storage.getPositions(userId);
-      
+
       const results = [];
-      
+
       for (const position of positions) {
         try {
           const price = await priceService.getPrice(position.symbol, position.type as 'stock' | 'fund');
-          
+
           // Update position with new price
           const updateData: any = {
             currentPrice: price.toString(),
             lastUpdated: new Date(),
           };
-          
+
           // Also update fund names if they're missing or generic
           if (position.type === 'fund' && (!position.name || position.name === position.symbol)) {
             const fundName = priceService.getFundName(position.symbol, position.type as 'stock' | 'fund');
@@ -483,9 +485,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               updateData.name = fundName;
             }
           }
-          
+
           await storage.updatePosition(position.id, updateData);
-          
+
           console.log(`Updated ${position.symbol}: ${price} TL`);
           results.push({ symbol: position.symbol, success: true, price });
         } catch (error) {
@@ -563,7 +565,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Clear existing symbols and insert new ones
       await db.delete(bistSymbols);
-      
+
       for (const symbolData of sampleSymbols) {
         await db.insert(bistSymbols).values(symbolData);
       }
@@ -582,10 +584,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = "demo-user";
       const positions = await storage.getPositions(userId);
       const usStocks = positions.filter(p => p.type === 'us_stock');
-      
+
       console.log(`Starting backfill for ${usStocks.length} US stock positions...`);
       const results = [];
-      
+
       for (const pos of usStocks) {
         try {
           const rate = await priceService.getHistoricalExchangeRate(new Date(pos.buyDate));
@@ -597,10 +599,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
           results.push({ symbol: pos.symbol, date: pos.buyDate, error: (err as Error).message });
         }
       }
-      
+
       res.json({ success: true, results });
     } catch (error) {
       res.status(500).json({ error: "Backfill failed" });
+    }
+  });
+
+  // ── AI Portfolio Analyst Endpoints ─────────────────────────────────────
+  app.get("/api/ai/history", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = "demo-user";
+      const history = await storage.getAiChatHistory(userId);
+      res.json(history);
+    } catch (error) {
+      res.status(500).json({ error: "Analiz geçmişi yüklenemedi" });
+    }
+  });
+
+  app.post("/api/ai/analyze", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = "demo-user";
+      const userMessage = req.body.message;
+
+
+      // 3. Initialize Gemini
+      if (!process.env.GEMINI_API_KEY) {
+        throw new Error("GEMINI_API_KEY is not configured");
+      }
+
+      // Dynamic Context: Fetch current portfolio on every request
+      const positions = await storage.getPositions(userId);
+      const closedPositions = await storage.getClosedPositions(userId);
+      const portfolioSummary = {
+        active: positions.map(p => ({
+          symbol: p.symbol,
+          quantity: p.quantity,
+          buyPrice: p.buyPrice,
+          currentPrice: p.currentPrice,
+          type: p.type
+        })),
+        closed: closedPositions.map(p => ({
+          symbol: p.symbol,
+          pl: p.pl,
+          plPercent: p.plPercent
+        }))
+      };
+
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string);
+      const model = genAI.getGenerativeModel({
+        model: "gemini-2.5-flash",
+        systemInstruction: getSystemPrompt(JSON.stringify(portfolioSummary, null, 2))
+      });
+
+      // 4. Get chat history for context
+      const dbHistory = await storage.getAiChatHistory(userId);
+      let geminiHistory = dbHistory.reverse().map(h => ({
+        role: h.role === 'user' ? 'user' : 'model',
+        parts: [{ text: h.content }]
+      }));
+
+      // ENSURE history starts with 'user' role as required by Gemini API
+      if (geminiHistory.length > 0 && geminiHistory[0].role === 'model') {
+        geminiHistory.unshift({
+          role: 'user',
+          parts: [{ text: 'Lütfen portföyümün güncel durumunu analiz et.' }]
+        });
+      }
+
+      const chat = model.startChat({
+        history: geminiHistory,
+        generationConfig: {
+          maxOutputTokens: 2000,
+        },
+      });
+
+      // 5. Build prompt
+      const prompt = userMessage || "Lütfen portföyümün güncel durumunu yukarıdaki verilere göre analiz et.";
+
+      // Save user message to history if it's a follow-up
+      if (userMessage) {
+        await storage.saveAiChatMessage({ userId, role: 'user', content: userMessage });
+      }
+
+      // 6. Generate AI response
+      const result = await chat.sendMessage(prompt);
+      const response = await result.response;
+      const aiContent = response.text();
+
+      // 7. Save AI response to history
+      const savedMessage = await storage.saveAiChatMessage({ userId, role: 'model', content: aiContent });
+
+      res.json(savedMessage);
+    } catch (error: any) {
+      console.error("Gemini AI error:", error);
+      res.status(500).json({ error: error.message || "Yapay zeka analizi sırasında bir hata oluştu" });
+    }
+  });
+
+  app.delete("/api/ai/history", requireAuth, async (req, res) => {
+    try {
+      const userId = "demo-user";
+      await storage.deleteAiChatHistory(userId);
+      res.status(200).json({ message: "Sohbet geçmişi başarıyla silindi" });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
     }
   });
 
