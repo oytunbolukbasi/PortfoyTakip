@@ -531,29 +531,63 @@ export class PriceService {
 
   private async scrapeTEFASPrice(symbol: string): Promise<number> {
     try {
-      const url = `https://www.tefas.gov.tr/FonAnaliz.aspx?FonKod=${symbol}`;
-      // Route the GET through the proxy
+      const url = `https://fintables.com/fonlar/${symbol}`;
+      console.log(`[Fintables Scraper] Fetching price for ${symbol}...`);
+      
+      // Route the GET through the ScraperAPI proxy with render=true
       const response = await this.makeProxiedRequest(url, 'GET');
+      const html = response.data;
+      const $ = cheerio.load(html);
       
-      const $ = cheerio.load(response.data);
-      const priceText = $('.top-list li:nth-child(1) span').text().trim();
-      
-      if (!priceText) {
-        throw new Error(`Could not find price on TEFAS HTML page for ${symbol}`);
+      let price: number | null = null;
+
+      // Tier 1: Try __NEXT_DATA__ script (Legacy/Cached Next.js pattern)
+      try {
+        const nextData = $('#__NEXT_DATA__').html();
+        if (nextData) {
+          const jsonData = JSON.parse(nextData);
+          const foundPrice = jsonData?.props?.pageProps?.fund?.price;
+          if (foundPrice && !isNaN(parseFloat(foundPrice))) {
+            price = parseFloat(foundPrice);
+            console.log(`[Fintables Scraper] Found price in __NEXT_DATA__ for ${symbol}: ${price}`);
+          }
+        }
+      } catch (e) {
+        console.warn(`[Fintables Scraper] JSON parse failed, moving to selector fallback...`);
+      }
+
+      // Tier 2: CSS Selector (Rendered HTML pattern)
+      if (!price) {
+        const selectorPriceText = $('span.inline-flex.items-center.tabular-nums').first().text().trim();
+        if (selectorPriceText) {
+          // Fintables uses comma (,) for decimals in browser rendering: e.g. "3,484151"
+          const cleanPrice = selectorPriceText.replace(/\./g, '').replace(',', '.');
+          const parsedPrice = parseFloat(cleanPrice);
+          if (!isNaN(parsedPrice) && parsedPrice > 0) {
+            price = parsedPrice;
+            console.log(`[Fintables Scraper] Found price via CSS selector for ${symbol}: ${price}`);
+          }
+        }
+      }
+
+      // Tier 3: Regex Fallback (Streaming/Raw JS pattern)
+      if (!price) {
+        const priceMatch = html.match(/"price":\s*(\d+\.\d+)/);
+        if (priceMatch && priceMatch[1]) {
+          price = parseFloat(priceMatch[1]);
+          console.log(`[Fintables Scraper] Found price via Regex for ${symbol}: ${price}`);
+        }
       }
       
-      const cleanPrice = priceText.replace(/\./g, '').replace(',', '.');
-      const price = parseFloat(cleanPrice);
-      
-      if (isNaN(price) || price <= 0) {
-        throw new Error(`Invalid price parsed from TEFAS HTML for ${symbol}: ${priceText}`);
+      if (!price || price <= 0) {
+        throw new Error(`Could not find valid price on Fintables for ${symbol}`);
       }
       
-      console.log(`[TEFAS Proxy Scraper] Successfully retrieved price for ${symbol}: ${price} TL`);
+      console.log(`[Fintables Scraper] Successfully retrieved price for ${symbol}: ${price} TL`);
       setCachedFundPrice(symbol, price);
       return price;
     } catch (error) {
-      throw new Error(`TEFAS Scraping failed for ${symbol}: ${(error as Error).message}`);
+      throw new Error(`Fintables Scraping failed for ${symbol}: ${(error as Error).message}`);
     }
   }
 
