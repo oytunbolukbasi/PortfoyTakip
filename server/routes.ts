@@ -87,7 +87,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const apiKey = process.env.SCRAPER_API_KEY;
       const targetUrl = 'https://www.tefas.gov.tr/api/DB/BindHistoryInfo';
-      const fullUrl = `http://api.scraperapi.com?api_key=${apiKey}&url=${encodeURIComponent(targetUrl)}&render=true`;
+      // NO render=true for POST requests
+      const fullUrl = `http://api.scraperapi.com?api_key=${apiKey}&url=${encodeURIComponent(targetUrl)}`;
       
       const formData = new URLSearchParams();
       formData.append('fontip', 'YAT');
@@ -103,7 +104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
           "X-Requested-With": "XMLHttpRequest"
         },
-        timeout: 15000 // A bit longer for render=true
+        timeout: 60000 // 60s for Cloudflare challenge
       });
 
       let latestPrice = response.data?.data?.[0]?.FIYAT ?? null;
@@ -114,7 +115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           const scrapeUrl = `https://www.tefas.gov.tr/FonAnaliz.aspx?FonKod=${testSymbol}`;
           const scrapeFullUrl = `http://api.scraperapi.com?api_key=${apiKey}&url=${encodeURIComponent(scrapeUrl)}&render=true`;
-          const scrapeResponse = await axios.get(scrapeFullUrl, { timeout: 15000 });
+          const scrapeResponse = await axios.get(scrapeFullUrl, { timeout: 60000 });
           const cheerio = await import("cheerio");
           const $ = cheerio.load(scrapeResponse.data);
           const priceText = $('.top-list li:nth-child(1) span').text().trim();

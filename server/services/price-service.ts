@@ -505,8 +505,10 @@ export class PriceService {
       console.error('[ScraperAPI] MISSING API KEY in environment variables!');
     }
     
-    // ScraperAPI URL format with render=true for JS execution
-    const proxyUrl = `http://api.scraperapi.com?api_key=${apiKey}&url=${encodeURIComponent(targetUrl)}&render=true`;
+    // ScraperAPI URL format - render=true only for GET (HTML scraping)
+    // ScraperAPI does not support render=true for POST requests (results in 400 Bad Request)
+    const renderParam = method === 'GET' ? '&render=true' : '';
+    const proxyUrl = `http://api.scraperapi.com?api_key=${apiKey}&url=${encodeURIComponent(targetUrl)}${renderParam}`;
     
     const config: any = {
       method,
@@ -515,7 +517,7 @@ export class PriceService {
         'Accept': 'application/json, text/plain, */*',
         'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
       },
-      timeout: 25000 // Increased to 25s for render=true requests
+      timeout: 60000 // Increased to 60s for Cloudflare challenge resolution
     };
 
     if (method === 'POST') {
