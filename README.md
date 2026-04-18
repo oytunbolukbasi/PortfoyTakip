@@ -1,92 +1,78 @@
-# Turkish Portfolio Tracker
+# Portföy Takip (Portfolio Tracker)
 
-Türkiye borsaları için gelişmiş, mobil benzeri kullanıcı deneyimi sunan bir yatırım portföy takip uygulaması.
+Türkiye borsaları, ABD piyasaları ve yatırım fonları için geliştirilmiş, mobil öncelikli (Mobile-First) tasarım anlayışına sahip gelişmiş bir portföy yönetim ve analitik uygulaması.
 
-## Özellikler
+## 🏗️ Mimari ve Teknoloji Yığını
 
-- 📱 **Mobil-First Tasarım**: iPhone-style native UX/UI deneyimi
-- 📊 **Gerçek Zamanlı Takip**: BIST hisseleri ve TEFAS fonları için otomatik fiyat güncellemesi
-- 💰 **Kar/Zarar Analizi**: Detaylı performans metrikleri ve analitik
-- 🌙 **Dark Mode**: Kapsamlı karanlık mod desteği
-- 📈 **Analytics Dashboard**: Tarih bazlı filtreleme ve performans analizi
-- 🔄 **Çoklu Görünüm**: Kart ve tablo görünümleri arası geçiş
+- **Önyüz (Frontend)**: React 18, TypeScript, Vite. Native benzeri bir deneyim için Tailwind CSS ve Radix UI üzerine inşaa edilmiş özel UI bileşenleri.
+- **Sunucu (Backend)**: Node.js, Express.js. API güvenliği için `Passport.js` tabanlı authentication.
+- **Veritabanı (Database)**: PostgreSQL (Neon Serverless). Şema yönetimi ve query builder olarak `Drizzle ORM` kullanımı.
+- **Deployment**: Railway platformu üzerinde Docker/Nixpacks konteyner yapısında çalışır.
 
-## Teknoloji Stack
+## 🌐 Veri Toplama ve Network Katmanı
 
-- **Frontend**: React 18, TypeScript, Vite
-- **Backend**: Node.js, Express.js
-- **Database**: PostgreSQL (Neon Serverless)
-- **UI**: Tailwind CSS, shadcn/ui, Radix UI
-- **State Management**: TanStack Query
-- **ORM**: Drizzle ORM
+Uygulama, veri kaynaklarına olan erişimi stabilize etmek ve IP engellerini aşmak için gelişmiş bir tünelleme mimarisi kullanır.
 
-## Admin & Debugging Endpoints
+### 1. Yatırım Fonları (TEFAS)
+- **Kaynak**: `fintables.com/fonlar/${symbol}` (Agresif TEFAS IP bloklarını aşmak için alternatif kaynak).
+- **Yöntem**: Tüm istekler **ScraperAPI** üzerinden yönlendirilir.
+- **Bypass**: Cloudflare ve Bot Fight Mode korumalarını aşmak için `render=true` (JS Rendering) aktif edilir.
+- **Konfigürasyon**: Ağ gecikmeleri ve render süreleri için **60 saniyelik timeout** tanımlıdır.
 
-Uygulamanın çalışmasını kontrol etmek ve güvenli bir şekilde fiyat güncellemeye zorlamak için aşağıdaki gizli admin servislerini kullanabilirsiniz (Sadece yetkili/yerel ortamda test etmek için):
+### 2. Borsa İstanbul (BIST) ve ABD Hisseleri
+- **Kaynak**: Google Finance.
+- **Yöntem**: Doğrudan HTML kazıma (Cheerio).
+- **BIST**: `:IST` borsası üzerinden TL fiyat çekilir.
+- **ABD**: `NASDAQ` ve `NYSE` borsaları üzerinden USD fiyat çekilir.
 
-- **TEFAS Zorunlu Güncelleme**  
-  `GET /api/admin/force-refresh-tefas`  
-  *Kullanım:* Tarayıcı üzerinden `http://localhost:5001/api/admin/force-refresh-tefas` adresine gidildiğinde, saat 09:00 Cron işini beklemeden ve lokal fiyat veritabanı korumasını baypas ederek tüm TEFAS fonlarının son güncel fiyatlarını canlı olarak TEFAS resmi sitesini ziyaret edip(cookie/session kalkanını da aşarak) zorla günceller.
-  
-- **TEFAS Canlılık Kontrolü**  
-  `GET /api/admin/tefas-health`  
-  *Kullanım:* TEFAS API'sine bağlı olup olmadığınızı (IP ban/Soft-block testleri) kontrol eden genel bir diagnostic endpoint'tir.
+### 3. Döviz Kuru (USD/TRY)
+- **Kaynak**: Frankfurter API (Birincil), Google Finance Currency (Yedek).
+- **Mantık**: Amerikan hisselerinin TL karşılığını hesaplamak ve alış tarihindeki geçmiş kurları (Historical Rate) yakalamak için kullanılır.
 
-## Kurulum
+## ⏱️ Zamanlanmış Görevler (Cron Jobs) ve Kota Yönetimi
 
-1. Bağımlılıkları yükle:
-```bash
-npm install
-```
+ScraperAPI ve dış kaynak maliyetlerini/kotalarını optimize etmek için katı bir güncelleme politikası uygulanır:
 
-2. Veritabanı şemasını güncelle:
-```bash
-npm run db:push
-```
+- **Fon Güncellemeleri**: Her gün sadece Türkiye saati ile **09:00 ve 10:00**'da (UTC 06:00/07:00) otomatik olarak yapılır.
+- **Hisse Güncellemeleri**: Her **15 dakikada bir** otomatik olarak güncellenir.
+- **Kota Koruması (On-Demand Fetch)**: Kullanıcı yeni bir fon eklediğinde veya sayfa görüntülendiğinde **canlı istek atılmaz**. Sistem veritabanındaki veya cache'teki son fiyatı kullanır.
+- **Manuel Zorlama (Forced Refresh)**: 
+    - Admin endpoint: `/api/admin/force-refresh-tefas` (Tüm fonlar için canlı güncellemeyi zorlar).
+    - Pozisyon Detay: Pozisyon kartı içindeki "Fiyatı Güncelle" butonu sadece ilgili fon için canlı sorgu başlatır.
 
-3. Geliştirme modunda çalıştır:
-```bash
-npm run dev
-```
+## 📈 Hesaplama Mantığı ve Business Logic
 
-4. Production build:
-```bash
-npm run build
-npm run start
-```
+Uygulama içindeki tüm matematiksel gösterimler aşağıdaki kurallara göre hesaplanır:
 
-## Deployment
+- **Kar/Zarar (TRY)**: `(Güncel Fiyat - Alış Fiyatı) * Adet`.
+- **ABD Hisse Senetleri**:
+    - **Maliyet (TRY)**: `Alış Fiyatı (USD) * Adet * Güncel USD/TRY Kuru`. (Not: Özet ekranında kur etkisini izole etmek için hem maliyet hem değer güncel kurla normalize edilir).
+    - **Detay Görünümü**: Alış tarihindeki kur (`buyRate`) üzerinden gerçek TL maliyeti de takip edilebilir.
+- **Portföy Özeti**: Gerçekleşen (Satılmış) ve Bekleyen (Aktif) pozisyonların toplam k/z verisi konsolide edilir.
+- **Sayı Formatı**: Türkiye standartlarına uygun; ondalık ayırıcı virgül (`,`), binlik ayırıcı nokta (`.`) olarak kullanılır.
 
-Bu uygulama Replit platformunda deploy edilmek üzere optimize edilmiştir:
+## 🛠️ Kurulum ve Deployment
 
-- PostgreSQL veritabanı otomatik olarak hazırlanır
-- Environment variables (DATABASE_URL, vb.) otomatik olarak ayarlanır
-- Build script production için optimize edilmiştir
+### Gereksinimler
+- Node.js >= 20.0
+- ScraperAPI Hesabı (API Key)
+- Neon DB veya herhangi bir PostgreSQL bağlantısı
 
-## Fiyat Servisleri ve Veri Kaynakları
+### Kurulum Adımları
+1. Bağımlılıklar: `npm install`
+2. DB Şeması: `npm run db:push`
+3. Dev: `npm run dev`
 
-Portföy Takip uygulaması, piyasa verilerini en güvenilir ve optimize edilmiş şekilde çekmek için farklı stratejiler kullanır:
+### Kritik Environment Variables
+- `DATABASE_URL`: PostgreSQL bağlantı dizesi.
+- `SCRAPER_API_KEY`: ScraperAPI erişim anahtarı.
+- `APP_USERNAME` / `APP_PASSWORD`: Giriş bilgileri.
 
-### 1. TEFAS Yatırım Fonları
-- **Kaynak:** `https://www.tefas.gov.tr/api/DB/BindHistoryInfo`
-- **İşleyiş:** TEFAS sunucuları botlara karşı katı IP sınırlandırmalarına sahiptir (Soft-block / Socket hang up hataları). Bu korumayı aşmak için sistem, önce `TarihselVeriler.aspx` sayfasına bir arka plan isteği atarak gerçek bir tarayıcı oturumu (Session Cookie) başlatır. Ardından bu çerezleri kullanarak API'den verileri çeker.
-- **Optimizasyon:** Uygulama içerisinde sürekli fiyat güncellemek, anında IP ban yemenize sebep olur. Bu yüzden sistem; fiyatları **sadece 09:00 ve 10:00 saatlerinde arka plan Cron Job'u ile** TEFAS'tan günceller. Gün içindeki uygulamayı açıp kapamalarınızda (yeni eklenen fonlar hariç) tamamen yerel PostgreSQL veritabanındaki son başarılı fiyatı kullanır (Fallback mekanizması).
+## 📂 API Endpoints
 
-### 2. BIST Hisseleri
-- **Kaynak:** Google Finance (`https://www.google.com/finance/quote/SEMBOL:IST`)
-- **İşleyiş:** Doğrudan HTML scraping (Cheerio) kullanılarak canlı fiyat okunur. Google Finance DOM node'ları (`.YMlKec.fxKbKc` vb.) ve Türkçe para birimi/ondalık formatları (örn. `₺119,30`) Regex ile parse edilip matematiksel değerlere dönüştürülür.
-- **Optimizasyon:** Google sunucuları yüksek trafik kaldırabildiği için BIST verileri her **15 dakikada bir** güncellenir. Eğer Google Finance hata verirse lokal mock/yedek fiyatlara geri dönülür.
+- `GET /api/admin/force-refresh-tefas`: Manuel tüm fonları güncelleme.
+- `GET /api/admin/tefas-health`: Bağlantı ve proxy durum testi.
+- `POST /api/positions/:id/refresh-price`: Tekil pozisyon fiyatını zorla güncelleme.
 
-### 3. ABD Hisseleri (US Stocks)
-- **Kaynak:** Google Finance (`NASDAQ` veya `NYSE`)
-- **İşleyiş:** Hisse senedinin borsası kesin bilinmediği için, sistem akıllı tarama yapar. Önce `NASDAQ` borsasında sembolü arar; eğer bulamazsa (veya sıfır dönerse) otomatik olarak `NYSE` borsasını dener ve amerikan doları ($) cinsinden hisse fiyatını parse eder.
-- **Optimizasyon:** BIST ile birlikte 15 dakikalık cron takviminde güncellenir.
-
-### 4. Döviz Kuru (USD/TRY vb.)
-- **Kaynak:** Frankfurter API (`https://api.frankfurter.app`) ve Google Finance
-- **İşleyiş:** Sisteme eklenen Amerikan hisselerinin Türk Lirası cinsinden güncel değerini, veya geçmiş tarihli "Alış Kuru" detaylarını hesaplamak için kullanılır. 
-- Eğer **güncel (live)** kur çekmek gerekirse Frankfurter API `latest` endpoint'ine, **geçmiş (historical)** bir alış kurunu çekmek gerekirse `1999-01-04` stili spesifik tarih endpoint'ine istek atılarak isabetli Merkez Bankası kur verisi alınır. Frankfurter çökükse Google Finance'in `/quote/USD-TRY:CURRENCY` adresine fallback atar.
-
-## Lisans
-
-MIT License
+---
+*Bu proje Railway platformu üzerinde koşturulmak üzere optimize edilmiştir.*
