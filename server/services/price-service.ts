@@ -92,8 +92,10 @@ export class PriceService {
       }
 
       // 3. Fallthrough happens ONLY if the fund has no previous DB price (e.g. completely new fund being added)
-      console.log(`[TEFAS On-Demand] New or zero-priced fund ${symbol}, fetching live...`);
-      return this.getTEFASPrice(symbol);
+      // !!! QUOTA PROTECTION !!! — ScraperAPI credits are limited.
+      // We no longer fetch live for new funds on-demand. They will stay at 0 until the next 09:00/10:00 cron run.
+      console.log(`[TEFAS Quota Protection] No live fetch for ${symbol}. Price will update in the next scheduled cycle.`);
+      return 0;
     } else if (type === 'us_stock') {
       return this.getUSStockPrice(symbol);
     } else {
@@ -497,8 +499,14 @@ export class PriceService {
   }
 
   private async makeProxiedRequest(targetUrl: string, method: 'GET' | 'POST', data: any = null) {
-    const proxyBase = process.env.TEFAS_PROXY_URL || 'https://tefas-proxy.oytunbolukbasi.workers.dev/';
-    const proxyUrl = `${proxyBase}?url=${encodeURIComponent(targetUrl)}`;
+    // Switch to ScraperAPI for JS Challenge bypass (render=true)
+    const apiKey = process.env.SCRAPER_API_KEY;
+    if (!apiKey) {
+      console.error('[ScraperAPI] MISSING API KEY in environment variables!');
+    }
+    
+    // ScraperAPI URL format with render=true for JS execution
+    const proxyUrl = `http://api.scraperapi.com?api_key=${apiKey}&url=${encodeURIComponent(targetUrl)}&render=true`;
     
     const config: any = {
       method,
@@ -507,7 +515,7 @@ export class PriceService {
         'Accept': 'application/json, text/plain, */*',
         'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
       },
-      timeout: 15000
+      timeout: 25000 // Increased to 25s for render=true requests
     };
 
     if (method === 'POST') {

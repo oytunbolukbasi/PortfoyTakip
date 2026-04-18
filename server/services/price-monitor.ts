@@ -30,8 +30,8 @@ export class PriceMonitor {
     }, this.STOCK_UPDATE_INTERVAL);
 
     // --- TEFAS FUNDS: update only at 09:00 and 10:00 Turkey time (UTC+3 = 06:00 and 07:00 UTC) ---
-    // First run: fetch fund prices immediately on startup so we have values right away
-    this.updateFundPrices();
+    // !!! QUOTA PROTECTION !!! — No fetch on startup.
+    // this.updateFundPrices();
 
     // Scheduled: 09:00 Turkey time (06:00 UTC)
     const job9 = cron.schedule('0 6 * * *', () => {
@@ -177,8 +177,10 @@ export class PriceMonitor {
 
       let currentPrice: number;
       if (position.type === 'fund') {
-         // Manual request from the frontend -> Bypasses DB fetch protection and goes to TEFAS directly
-         currentPrice = await this.priceService.forceTEFASUpdate(position.symbol);
+         // !!! QUOTA PROTECTION !!! — Manual refreshes for funds are disabled.
+         // They will only update during the 09:00 and 10:00 TRT cron jobs.
+         console.log(`[TEFAS Quota Protection] Manual update skipped for ${position.symbol}.`);
+         currentPrice = parseFloat(position.currentPrice ?? '0');
       } else {
          currentPrice = await this.priceService.getPrice(
            position.symbol,

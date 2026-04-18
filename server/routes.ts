@@ -85,9 +85,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return `${d_str}.${m}.${y}`;
       };
 
-      const proxyUrl = process.env.TEFAS_PROXY_URL || 'https://tefas-proxy.oytunbolukbasi.workers.dev/';
+      const apiKey = process.env.SCRAPER_API_KEY;
       const targetUrl = 'https://www.tefas.gov.tr/api/DB/BindHistoryInfo';
-      const fullUrl = `${proxyUrl}?url=${encodeURIComponent(targetUrl)}`;
+      const fullUrl = `http://api.scraperapi.com?api_key=${apiKey}&url=${encodeURIComponent(targetUrl)}&render=true`;
       
       const formData = new URLSearchParams();
       formData.append('fontip', 'YAT');
@@ -103,7 +103,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
           "X-Requested-With": "XMLHttpRequest"
         },
-        timeout: 10000
+        timeout: 15000 // A bit longer for render=true
       });
 
       let latestPrice = response.data?.data?.[0]?.FIYAT ?? null;
@@ -113,7 +113,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Fallback to proxied scraping in health check
         try {
           const scrapeUrl = `https://www.tefas.gov.tr/FonAnaliz.aspx?FonKod=${testSymbol}`;
-          const scrapeResponse = await axios.get(`${proxyUrl}?url=${encodeURIComponent(scrapeUrl)}`, { timeout: 10000 });
+          const scrapeFullUrl = `http://api.scraperapi.com?api_key=${apiKey}&url=${encodeURIComponent(scrapeUrl)}&render=true`;
+          const scrapeResponse = await axios.get(scrapeFullUrl, { timeout: 15000 });
           const cheerio = await import("cheerio");
           const $ = cheerio.load(scrapeResponse.data);
           const priceText = $('.top-list li:nth-child(1) span').text().trim();
@@ -129,7 +130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         status: "ok",
         tefasApiReachable: true,
-        proxyChannel: proxyUrl,
+        proxyChannel: 'ScraperAPI',
         method,
         testSymbol,
         latestPrice,
