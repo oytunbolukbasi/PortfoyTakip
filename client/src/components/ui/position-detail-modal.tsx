@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Position } from "@shared/schema";
 import { FullScreenModal } from './full-screen-modal';
+import { RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatTurkishPrice, formatTurkishPercent, formatFundPrice, formatPositionPrice, formatPositionValue } from "@/lib/format";
 
@@ -177,13 +178,29 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
             </div>
             <div className="flex items-center justify-between px-5 py-4">
               <span className="text-sm text-gray-500 dark:text-gray-400">Güncel Fiyat</span>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col items-end gap-1">
                 <span className="text-sm font-semibold text-gray-900 dark:text-white">
                   {currentPriceFormatted}
                 </span>
-                <span className="text-xs text-gray-400 dark:text-gray-500">
-                  Son güncelleme: {updateTime}
-                </span>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                    {position.lastUpdated ? new Date(position.lastUpdated).toLocaleString('tr-TR', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    }) : updateTime}
+                  </span>
+                  <button 
+                    onClick={handleRefreshPrice}
+                    disabled={isRefreshingPrice}
+                    className="flex items-center gap-1 text-[10px] text-blue-600 dark:text-blue-400 font-medium hover:underline disabled:opacity-50"
+                  >
+                    <RefreshCw className={`h-3 w-3 ${isRefreshingPrice ? 'animate-spin' : ''}`} />
+                    Fiyatı Güncelle
+                  </button>
+                </div>
               </div>
             </div>
           </div>

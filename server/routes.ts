@@ -314,7 +314,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!position) {
         return res.status(404).json({ error: "Position not found" });
       }
-      const price = await priceService.getPrice(position.symbol, position.type as 'stock' | 'fund' | 'us_stock');
+      let price: number;
+      if (position.type === 'fund') {
+        // Manual refresh for a specific fund -> Bypass quota protection and fetch live
+        price = await priceService.forceTEFASUpdate(position.symbol);
+      } else {
+        price = await priceService.getPrice(position.symbol, position.type as 'stock' | 'us_stock');
+      }
+
       await storage.updatePosition(positionId, {
         currentPrice: price.toFixed(6),
         lastUpdated: new Date(),
