@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Position, ClosedPosition, AiChatHistory } from "@shared/schema";
 import { Card } from "@/components/ui/card";
@@ -33,6 +33,8 @@ export default function Analytics() {
   const [isAiDrawerOpen, setIsAiDrawerOpen] = useState(false);
   const [aiMessage, setAiMessage] = useState("");
   const [showAllHistory, setShowAllHistory] = useState(false);
+  const [viewportHeight, setViewportHeight] = useState(typeof window !== 'undefined' ? window.innerHeight : 0);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -88,6 +90,34 @@ export default function Analytics() {
       analyzeMutation.mutate();
     }
   };
+
+  // Keyboard and Viewport handling for iOS PWA
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.visualViewport) return;
+
+    const handleResize = () => {
+      if (window.visualViewport) {
+        setViewportHeight(window.visualViewport.height);
+      }
+    };
+
+    window.visualViewport.addEventListener('resize', handleResize);
+    window.visualViewport.addEventListener('scroll', handleResize);
+    
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handleResize);
+      window.visualViewport?.removeEventListener('scroll', handleResize);
+    };
+  }, []);
+
+  // Auto-scroll to bottom
+  useEffect(() => {
+    if (isAiDrawerOpen) {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
+  }, [aiHistory.length, isAiDrawerOpen, viewportHeight]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -530,32 +560,6 @@ export default function Analytics() {
               )}
             </Card>
 
-            {/* Yapay Zeka Görüşü Card */}
-            <Card 
-              className="relative overflow-hidden cursor-pointer border-none bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-[1px] shadow-lg active:scale-[0.98] transition-all"
-              onClick={handleAiAnalyze}
-            >
-              <div className="bg-white dark:bg-gray-900 rounded-[calc(1rem-1px)] p-4 relative overflow-hidden h-full">
-                {/* Visual effects */}
-                <div className="absolute -right-6 -top-6 w-24 h-24 bg-purple-500/10 blur-2xl rounded-full" />
-                <div className="absolute -left-6 -bottom-6 w-24 h-24 bg-indigo-500/10 blur-2xl rounded-full" />
-                
-                <div className="flex items-center justify-between relative z-10">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-100 to-purple-100 dark:from-indigo-900/40 dark:to-purple-900/40 flex items-center justify-center">
-                      <LuSparkles className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-gray-900 dark:text-white">Yapay Zeka Görüşü</h3>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Portföyünüzü Gemini ile analiz edin</p>
-                    </div>
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
-                    <ChevronRight className="w-5 h-5 text-gray-400" />
-                  </div>
-                </div>
-              </div>
-            </Card>
 
             {/* Profit/Loss Summary */}
             <Card className="p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
@@ -693,9 +697,9 @@ export default function Analytics() {
                 </span>
               );
 
-              const CountPill = ({ count }: { count: number }) => (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
-                  {count} pozisyon
+              const CountBadge = ({ count }: { count: number }) => (
+                <span className="bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-[10px] font-bold px-2 py-0.5 rounded-full ring-1 ring-gray-200 dark:ring-gray-700">
+                  {count}
                 </span>
               );
 
@@ -711,62 +715,63 @@ export default function Analytics() {
 
                     {/* BIST Row */}
                     <div className="flex items-stretch py-4 gap-4">
-                      <div className="flex-1 min-0 space-y-1">
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white">Hisse Senedi (BIST)</p>
-                        <div><CountPill count={stockPositions.length} /></div>
+                      <div className="flex-1 min-0 space-y-0.5">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white">Hisse Senedi (BIST)</p>
+                          <CountBadge count={stockPositions.length} />
+                        </div>
                         <p className="text-base font-bold text-gray-900 dark:text-white">₺{formatTurkishPrice(stockValue)}</p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500">Güncel değer</p>
                       </div>
                       <div className="w-px bg-gray-100 dark:bg-gray-700 self-stretch" />
-                      <div className="text-right min-w-[120px] space-y-0.5">
-                        <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">KAR / ZARAR</p>
+                      <div className="text-right min-w-[120px] space-y-0.5 flex flex-col justify-center">
                         <p className={`text-base font-bold ${stockPL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                           {stockPL >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(stockPL))}
                         </p>
-                        <div><PLBadge value={stockPLPercent} /></div>
+                        <div className="flex justify-end"><PLBadge value={stockPLPercent} /></div>
                       </div>
                     </div>
 
                     {/* ABD Row */}
                     {usStockPositions.length > 0 && (
                       <div className="flex items-stretch py-4 gap-4">
-                        <div className="flex-1 min-w-0 space-y-1">
-                          <p className="text-sm font-semibold text-gray-900 dark:text-white">Yabancı Hisse (ABD)</p>
-                          <div><CountPill count={usStockPositions.length} /></div>
+                        <div className="flex-1 min-w-0 space-y-0.5">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white">Yabancı Hisse (ABD)</p>
+                            <CountBadge count={usStockPositions.length} />
+                          </div>
                           <p className="text-base font-bold text-gray-900 dark:text-white">${formatTurkishPrice(usStockValueUSD)}</p>
                           <p className="text-xs text-gray-400 dark:text-gray-500">
                             ₺{formatTurkishPrice(usStockValue)} · @{formatTurkishPrice(usdRate)}
                           </p>
                         </div>
                         <div className="w-px bg-gray-100 dark:bg-gray-700 self-stretch" />
-                        <div className="text-right min-w-[120px] space-y-0.5">
-                          <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">KAR / ZARAR</p>
+                        <div className="text-right min-w-[120px] space-y-0.5 flex flex-col justify-center">
                           <p className={`text-base font-bold ${usStockPLUSD >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                             {usStockPLUSD >= 0 ? '+' : '-'}${formatTurkishPrice(Math.abs(usStockPLUSD))}
                           </p>
                           <p className={`text-xs ${usStockPL >= 0 ? 'text-green-500 dark:text-green-500' : 'text-red-400 dark:text-red-500'}`}>
                             {usStockPL >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(usStockPL))}
                           </p>
-                          <div><PLBadge value={usStockPLPercent} /></div>
+                          <div className="flex justify-end"><PLBadge value={usStockPLPercent} /></div>
                         </div>
                       </div>
                     )}
 
                     {/* Fon Row */}
                     <div className="flex items-stretch py-4 gap-4">
-                      <div className="flex-1 min-w-0 space-y-1">
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white">Fon</p>
-                        <div><CountPill count={fundPositions.length} /></div>
+                      <div className="flex-1 min-w-0 space-y-0.5">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white">Fon</p>
+                          <CountBadge count={fundPositions.length} />
+                        </div>
                         <p className="text-base font-bold text-gray-900 dark:text-white">₺{formatTurkishPrice(fundValue)}</p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500">Güncel değer</p>
                       </div>
                       <div className="w-px bg-gray-100 dark:bg-gray-700 self-stretch" />
-                      <div className="text-right min-w-[120px] space-y-0.5">
-                        <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">KAR / ZARAR</p>
+                      <div className="text-right min-w-[120px] space-y-0.5 flex flex-col justify-center">
                         <p className={`text-base font-bold ${fundPL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                           {fundPL >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(fundPL))}
                         </p>
-                        <div><PLBadge value={fundPLPercent} /></div>
+                        <div className="flex justify-end"><PLBadge value={fundPLPercent} /></div>
                       </div>
                     </div>
 
@@ -845,130 +850,161 @@ export default function Analytics() {
                 </div>
 
                 {/* Legend */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
+                <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                  <div className="flex items-center justify-between py-3">
                     <div className="flex items-center">
                       <div className="w-3 h-3 bg-blue-500 dark:bg-blue-400 rounded-full mr-2"></div>
                       <span className="text-sm text-gray-700 dark:text-gray-300">Hisse Senedi (BIST)</span>
                     </div>
-                    <div className="text-right">
-                      <span className="font-semibold text-gray-900 dark:text-white">{formatTurkishPercent(stockPercentage)}</span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">₺{formatTurkishPrice(stockValue)}</span>
+                    <div className="flex flex-col items-end">
+                      <span className="text-sm font-semibold text-gray-900 dark:text-white">{formatTurkishPercent(stockPercentage)}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">₺{formatTurkishPrice(stockValue)}</span>
                     </div>
                   </div>
 
                   {usStockPositions.length > 0 && (
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between py-3">
                       <div className="flex items-center">
                         <div className="w-3 h-3 bg-purple-500 dark:bg-purple-400 rounded-full mr-2"></div>
                         <span className="text-sm text-gray-700 dark:text-gray-300">Yabancı Hisse (ABD)</span>
                       </div>
-                      <div className="text-right">
-                        <span className="font-semibold text-gray-900 dark:text-white">{formatTurkishPercent(usStockPercentage)}</span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">₺{formatTurkishPrice(usStockValue)}</span>
+                      <div className="flex flex-col items-end">
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white">{formatTurkishPercent(usStockPercentage)}</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">₺{formatTurkishPrice(usStockValue)}</span>
                       </div>
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between py-3">
                     <div className="flex items-center">
                       <div className="w-3 h-3 bg-green-500 dark:bg-green-400 rounded-full mr-2"></div>
                       <span className="text-sm text-gray-700 dark:text-gray-300">Fon</span>
                     </div>
-                    <div className="text-right">
-                      <span className="font-semibold text-gray-900 dark:text-white">{formatTurkishPercent(fundPercentage)}</span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">₺{formatTurkishPrice(fundValue)}</span>
+                    <div className="flex flex-col items-end">
+                      <span className="text-sm font-semibold text-gray-900 dark:text-white">{formatTurkishPercent(fundPercentage)}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">₺{formatTurkishPrice(fundValue)}</span>
                     </div>
                   </div>
                 </div>
               </div>
             </Card>
 
-            {/* Geçmiş Analizler */}
-            <div className="mt-8 pb-12">
-              <div className="flex items-center justify-between mb-4 px-1">
-                <div className="flex items-center gap-2">
-                  <History className="w-5 h-5 text-gray-500" />
-                  <h3 className="font-bold text-gray-900 dark:text-white">Geçmiş Analizler</h3>
-                </div>
-                {aiHistory.length > 0 && (
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-gray-400 hover:text-red-500 transition-colors h-8 w-8 p-0"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Geçmişi Temizle</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Tüm yapay zeka analiz geçmişiniz kalıcı olarak silinecektir. Bu işlem geri alınamaz. Devam etmek istiyor musunuz?
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>İptal</AlertDialogCancel>
-                        <AlertDialogAction 
-                          onClick={() => deleteHistoryMutation.mutate()}
-                          className="bg-red-500 hover:bg-red-600 focus:ring-red-500"
-                        >
-                          Sil
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                )}
-              </div>
+            {/* Unified AI Hub Card (Modern Glow Edition) */}
+            <div className="relative group mt-8 mb-12">
+              {/* SHARED Glow Background for the entire Hub */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-2xl blur-2xl opacity-50 group-hover:opacity-100 transition duration-1000 animate-pulse" />
               
-              <div className="space-y-3">
-                {aiHistory
-                  .filter(h => h.role === 'model')
-                  .slice(0, showAllHistory ? undefined : 3)
-                  .map((history) => (
-                    <Card key={history.id} className="p-4 bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <p className="text-xs text-muted-foreground mb-1">
-                            {new Date(history.timestamp!).toLocaleString('tr-TR')}
-                          </p>
-                          <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
-                            {history.content}
-                          </p>
-                        </div>
-                        <Button variant="ghost" size="sm" className="ml-2 h-8 w-8 p-0" onClick={() => {
-                          setAiMessage(""); 
-                          setIsAiDrawerOpen(true);
-                        }}>
-                          <ChevronRight className="w-4 h-4" />
-                        </Button>
+              <Card className="relative z-10 overflow-hidden border-gray-100 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-xl">
+                {/* Top Section: AI Trigger */}
+                <div 
+                  className="p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                  onClick={handleAiAnalyze}
+                >
+                  <div className="flex items-center justify-between relative z-10">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-100 to-purple-100 dark:from-indigo-900/40 dark:to-purple-900/40 flex items-center justify-center">
+                        <LuSparkles className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                       </div>
-                    </Card>
-                  ))}
-                
-                {aiHistory.filter(h => h.role === 'model').length > 3 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full text-xs text-indigo-600 dark:text-indigo-400 font-medium py-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
-                    onClick={() => setShowAllHistory(!showAllHistory)}
-                  >
-                    {showAllHistory ? (
-                      <span className="flex items-center justify-center gap-1"><ChevronUp className="w-3 h-3" /> Daha Az Göster</span>
-                    ) : (
-                      <span className="flex items-center justify-center gap-1"><ChevronDown className="w-3 h-3" /> Daha Fazla Göster ({aiHistory.filter(h => h.role === 'model').length - 3})</span>
-                    )}
-                  </Button>
-                )}
-                
-                {aiHistory.length === 0 && !historyLoading && (
-                  <div className="text-center py-8 bg-gray-50 dark:bg-gray-800/30 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-800">
-                    <p className="text-sm text-gray-500">Henüz bir analiz yapılmadı.</p>
+                      <div>
+                        <h3 className="font-bold text-gray-900 dark:text-white">Yapay Zeka Görüşü</h3>
+                      </div>
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+                      <ChevronRight className="w-5 h-5 text-gray-400" />
+                    </div>
                   </div>
-                )}
-              </div>
+                </div>
+
+                {/* Integrated Divider */}
+                <div className="border-t border-gray-100 dark:border-gray-800" />
+
+                {/* Bottom Section: Past Analyses */}
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <History className="w-4 h-4 text-gray-400" />
+                      <h4 className="font-bold text-gray-700 dark:text-gray-300 text-sm">Geçmiş Analizler</h4>
+                    </div>
+                    {aiHistory.length > 0 && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-gray-400 hover:text-red-500 transition-colors h-7 w-7 p-0"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="z-[100]">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Geçmişi Temizle</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Tüm yapay zeka analiz geçmişiniz kalıcı olarak silinecektir.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>İptal</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => deleteHistoryMutation.mutate()}
+                              className="bg-red-500 hover:bg-red-600 focus:ring-red-500"
+                            >
+                              Sil
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {aiHistory
+                      .filter(h => h.role === 'model')
+                      .slice(0, showAllHistory ? undefined : 3)
+                      .map((history) => (
+                        <div key={history.id} className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700/50 hover:border-indigo-100 dark:hover:border-indigo-900/40 transition-colors">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[10px] text-muted-foreground mb-1">
+                                {new Date(history.timestamp!).toLocaleString('tr-TR')}
+                              </p>
+                              <p className="text-xs text-gray-700 dark:text-gray-300 line-clamp-2 leading-relaxed">
+                                {history.content}
+                              </p>
+                            </div>
+                            <Button variant="ghost" size="sm" className="ml-2 h-7 w-7 p-0" onClick={() => {
+                              setAiMessage(""); 
+                              setIsAiDrawerOpen(true);
+                            }}>
+                              <ChevronRight className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    
+                    {aiHistory.filter(h => h.role === 'model').length > 3 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full text-[11px] text-indigo-600 dark:text-indigo-400 font-medium py-1.5 hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
+                        onClick={() => setShowAllHistory(!showAllHistory)}
+                      >
+                        {showAllHistory ? (
+                          <span className="flex items-center justify-center gap-1"><ChevronUp className="w-3 h-3" /> Daha Az Göster</span>
+                        ) : (
+                          <span className="flex items-center justify-center gap-1"><ChevronDown className="w-3 h-3" /> Daha Fazla Göster ({aiHistory.filter(h => h.role === 'model').length - 3})</span>
+                        )}
+                      </Button>
+                    )}
+                    
+                    {aiHistory.length === 0 && !historyLoading && (
+                      <div className="text-center py-6 bg-gray-50/50 dark:bg-gray-800/20 rounded-xl border border-dashed border-gray-200 dark:border-gray-800">
+                        <p className="text-[11px] text-gray-400">Henüz bir analiz yapılmadı.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Card>
             </div>
           </>
         )}
@@ -978,7 +1014,10 @@ export default function Analytics() {
       <Drawer.Root open={isAiDrawerOpen} onOpenChange={setIsAiDrawerOpen} shouldScaleBackground>
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[60]" />
-          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[70] flex flex-col h-[85vh] outline-none">
+          <Drawer.Content 
+            className="fixed bottom-0 left-0 right-0 z-[70] flex flex-col outline-none transition-[height] duration-200"
+            style={{ height: isAiDrawerOpen ? `${viewportHeight * 0.85}px` : 'auto', maxHeight: '85dvh' }}
+          >
             <div className="flex-1 bg-white dark:bg-gray-900 rounded-t-[20px] flex flex-col overflow-hidden p-4">
               <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300 dark:bg-gray-700 mb-6" />
               
@@ -1026,12 +1065,13 @@ export default function Analytics() {
                         </div>
                       </div>
                     )}
+                    <div ref={messagesEndRef} />
                   </div>
                 )}
               </div>
 
               {/* Chat Input Area */}
-              <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
+              <div className="pt-4 pb-[env(safe-area-inset-bottom,16px)] border-t border-gray-100 dark:border-gray-800">
                 <form onSubmit={handleSendMessage} className="flex gap-2 relative">
                   <Input 
                     placeholder="Analiz hakkında soru sor..."
