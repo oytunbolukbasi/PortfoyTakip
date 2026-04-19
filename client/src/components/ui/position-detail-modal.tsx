@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Position } from "@shared/schema";
-import { FullScreenModal } from './full-screen-modal';
+import { DrawerModal } from "./drawer-modal";
 import { RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatTurkishPrice, formatTurkishPercent, formatFundPrice, formatPositionPrice, formatPositionValue } from "@/lib/format";
@@ -110,7 +110,7 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
   });
 
   return (
-    <FullScreenModal
+    <DrawerModal
       open={open}
       onOpenChange={onOpenChange}
       title={position.symbol}
@@ -206,6 +206,6 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
           </div>
         </div>
       </div>
-    </FullScreenModal>
+    </DrawerModal>
   );
 }
