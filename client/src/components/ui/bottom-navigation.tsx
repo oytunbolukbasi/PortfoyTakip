@@ -58,7 +58,7 @@ export default function BottomNavigation({ activeTab }: BottomNavigationProps) {
           {/* Logout */}
           <button
             onClick={logout}
-            className="flex items-center justify-center p-2 rounded-lg transition-colors cursor-pointer text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+            className="flex items-center justify-center p-2 rounded-lg transition-colors cursor-pointer text-text-secondary hover:text-error-500 hover:bg-error-100"
           >
             <LogOut className="w-6 h-6" />
           </button>

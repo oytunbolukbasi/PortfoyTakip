@@ -1,14 +1,51 @@
-  # Portfolio Tracker Application
+# Portfolio Tracker — Version History
 
-  ## Overview
+> Bu dosya projenin geliştirme tarihini kronolojik olarak belgelemektedir.
+> İlk bölümler Replit ortamında yapılan geçmiş çalışmaları, sonraki bölümler lokal ortamda sürdürülen geliştirmeyi kapsar.
 
-  This is a Turkish investment portfolio tracking application built for Turkish investors to monitor their positions in BIST (Borsa Istanbul) stocks and TEFAS mutual funds. The application provides real-time portfolio tracking, profit/loss calculations, and position management capabilities.
+---
 
-  **Recent Changes (January 2025):** 
-  - Removed Markets tab/page initially to focus on portfolio management
-  - Added back bottom navigation with two tabs: "Portföy" (Portfolio) and "Analiz" (Analytics)
-  - Created Analytics page with profit/loss analysis and performance metrics
-  - Removed floating action button per user preference
+## v2.0 — Design System Migration (Nisan 2026)
+
+### Hedef
+Projenin tüm UI bileşenlerini token tabanlı bir renk sistemine geçirmek; hardcoded renkleri ve `dark:` Tailwind prefix'lerini ortadan kaldırarak sürdürülebilir, tutarlı ve merkezi yönetilebilir bir design language oluşturmak.
+
+### Eklenen Dosyalar
+- `design_system.md` — Design system spesifikasyonu, token tanımları, mimari kararlar ve migration kurallarını içeren tek kaynak doküman.
+
+### Değiştirilen Dosyalar
+
+**Altyapı:**
+- `client/src/index.css` — Light ve Dark mode CSS custom property token'ları eklendi (`--color-primary-500`, `--color-success-500`, `--color-bg-card`, vb.). Mevcut shadcn token'larına dokunulmadı.
+- `tailwind.config.ts` — Yeni token mapping'leri eklendi: `success`, `error`, `subtle`, `text.*`, `asset.*`, `insight`, `primary.500/400/100`.
+
+**Bileşenler (Renk Migration):**
+- `components/ui/portfolio-summary.tsx` — K/Z badge renkleri, kart arka planları, metric kutuları → token
+- `components/ui/position-card.tsx` — K/Z bar, stats row, dropdown butonları, delete → token
+- `components/ui/position-detail-modal.tsx` — P&L kartı, detay tablosu, refresh linki → token
+- `components/ui/closed-position-table.tsx` — Tablo header/body, K/Z sütunları, delete → token
+- `components/ui/drawer-modal.tsx` — Arka plan `bg-card` ile güncellendi
+- `components/ui/bottom-navigation.tsx` — Logout hover rengi → `error-500/error-100`
+- `pages/analytics.tsx` — SVG semi-donut grafik arc renkleri palette hex değerleriyle güncellendi:
+  - Hisse (BIST): `#4C7DFF`
+  - ABD Hisse: `#9B6BFF`
+  - Fon: `#2FA36B`
+  - Track (boş): `#D3DADA`
+
+### Mimari Kararlar
+1. **shadcn Token'larına Dokunulmaz**: shadcn/Radix bileşenleri kendi namespace'inden çalışmaya devam eder.
+2. **`dark:` Prefix Temizliği**: Tüm Tailwind dark prefix class'ları kaldırıldı; dark mode tek noktadan `.dark {}` CSS bloğu ile yönetilir.
+3. **SVG Renkleri Şimdilik Hardcoded**: Grafik altyapısı genişlediğinde merkezi `chartColors` objesi oluşturulacak.
+
+### Sonuç
+Moodboard prensipleri (**Minimal · Fresh · Trustworthy**) uygulandı. Tüm renk değişiklikleri artık tek dosyadan (`index.css`) yönetilebilir durumda.
+
+---
+
+## v1.x — Replit Geliştirme Dönemi (Ocak 2025)
+
+*Aşağıdaki içerik Replit ortamında yapılan geçmiş çalışmaları belgelemektedir. Historical referans olarak korunmaktadır.*
+
   - Added prominent "Pozisyon Ekle" button at top of portfolio page
   - Fixed date filtering in Analytics to work with position open/close dates
   - Implemented proper minus (-) sign display for all loss positions across the app

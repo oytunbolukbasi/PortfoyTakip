@@ -23,7 +23,7 @@ textarea:focus {
 }
 
 :root {
-  /* iOS-style Light Theme */
+  /* iOS-style Light Theme (shadcn — do not modify) */
   --background: hsl(0, 0%, 98%);
   --foreground: hsl(213, 13%, 13%);
   --muted: hsl(60, 4.8%, 95.9%);
@@ -44,10 +44,47 @@ textarea:focus {
   --destructive-foreground: hsl(0, 0%, 100%);
   --ring: hsl(221, 83%, 53%);
   --radius: 12px;
+
+  /* ── Portfolio Design System Tokens (Light) ── */
+
+  /* Primary — teal accent */
+  --color-primary-500: #3F6F73;
+  --color-primary-400: #5F8F92;
+  --color-primary-100: #E6F0F0;
+
+  /* Semantic: Success (Kâr) */
+  --color-success-500: #2FA36B;
+  --color-success-100: #EAF7F1;
+
+  /* Semantic: Error (Zarar) */
+  --color-error-500: #D65C5C;
+  --color-error-100: #FBECEC;
+
+  /* Backgrounds */
+  --color-bg-primary: #F7F8F8;
+  --color-bg-card:    #FFFFFF;
+  --color-bg-subtle:  #F1F3F3;
+
+  /* Text */
+  --color-text-primary:   #1C1F1F;
+  --color-text-secondary: #6B7373;
+  --color-text-tertiary:  #9AA3A3;
+
+  /* Borders */
+  --color-border-default: #D3DADA;
+  --color-border-light:   #E3E7E7;
+
+  /* Asset Category Colors */
+  --color-asset-hisse: #4C7DFF;
+  --color-asset-usd:   #9B6BFF;
+  --color-asset-fon:   #2FA36B;
+
+  /* AI / Insight */
+  --color-insight: #7B61FF;
 }
 
 .dark {
-  /* iOS-style Dark Theme */
+  /* iOS-style Dark Theme (shadcn — do not modify) */
   --background: hsl(0, 0%, 8%);
   --foreground: hsl(0, 0%, 95%);
   --muted: hsl(0, 0%, 14%);
@@ -67,6 +104,35 @@ textarea:focus {
   --destructive: hsl(0, 90%, 71%);
   --destructive-foreground: hsl(0, 0%, 8%);
   --ring: hsl(214, 100%, 67%);
+
+  /* ── Portfolio Design System Tokens (Dark) ── */
+
+  --color-primary-500: #5F8F92;
+  --color-primary-400: #7FAFB2;
+  --color-primary-100: #1F2E2F;
+
+  --color-success-500: #3CBF84;
+  --color-success-100: #1D3A2F;
+
+  --color-error-500: #E07A7A;
+  --color-error-100: #3A1F1F;
+
+  --color-bg-primary: #0F1414;
+  --color-bg-card:    #151A1A;
+  --color-bg-subtle:  #1C2323;
+
+  --color-text-primary:   #E6ECEC;
+  --color-text-secondary: #AAB4B4;
+  --color-text-tertiary:  #7D8787;
+
+  --color-border-default: #2A3333;
+  --color-border-light:   #1F2626;
+
+  --color-asset-hisse: #6C8FFF;
+  --color-asset-usd:   #B08CFF;
+  --color-asset-fon:   #3CBF84;
+
+  --color-insight: #9A84FF;
 }
 
 @layer base {

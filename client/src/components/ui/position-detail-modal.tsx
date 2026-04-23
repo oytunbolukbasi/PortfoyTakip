@@ -118,13 +118,13 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
     >
       <div className="space-y-6">
         {/* P&L Card */}
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl py-5 px-6 border border-blue-100 dark:border-blue-800">
+        <div className={`rounded-2xl py-5 px-6 border ${pl >= 0 ? 'bg-success-100 border-success-100' : 'bg-error-100 border-error-100'}`}>
           <div className="text-center space-y-1">
-            <div className={`text-3xl font-bold ${pl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+            <div className={`text-3xl font-bold ${pl >= 0 ? 'text-success-500' : 'text-error-500'}`}>
               {pl >= 0 ? '+' : '-'}{formatPositionValue(Math.abs(pl), position.type)}
             </div>
             {position.type === 'us_stock' && (
-              <div className="text-xs text-gray-400 dark:text-gray-500">
+              <div className="text-xs text-text-tertiary">
                 {plTRY >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(plTRY))}
               </div>
             )}
@@ -132,58 +132,58 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
         </div>
 
         {/* Değer Özeti */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-          <div className="grid grid-cols-2 divide-x divide-gray-100 dark:divide-gray-700">
+        <div className="bg-card rounded-2xl border border-border overflow-hidden">
+          <div className="grid grid-cols-2 divide-x divide-border">
             <div className="p-6 text-center">
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">
+              <div className="text-2xl font-bold text-text-primary">
                 {formatPositionValue(value, position.type)}
               </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">Güncel Değer</div>
+              <div className="text-sm text-text-secondary mt-1">Güncel Değer</div>
             </div>
             <div className="p-6 text-center">
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">
+              <div className="text-2xl font-bold text-text-primary">
                 {formatPositionValue(parseFloat(position.buyPrice) * parseFloat(position.quantity), position.type)}
               </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">Alış Tutarı</div>
+              <div className="text-sm text-text-secondary mt-1">Alış Tutarı</div>
             </div>
           </div>
         </div>
 
         {/* Detay Tablosu */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-          <div className="divide-y divide-gray-100 dark:divide-gray-700">
+        <div className="bg-card rounded-2xl border border-border overflow-hidden">
+          <div className="divide-y divide-border">
             <div className="flex items-center justify-between px-5 py-4">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Sembol</span>
-              <span className="text-sm font-semibold text-gray-900 dark:text-white">{position.symbol}</span>
+              <span className="text-sm text-text-secondary">Sembol</span>
+              <span className="text-sm font-semibold text-text-primary">{position.symbol}</span>
             </div>
             <div className="flex items-center justify-between px-5 py-4">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Tür</span>
-              <span className="text-sm font-semibold text-gray-900 dark:text-white">{typeLabel}</span>
+              <span className="text-sm text-text-secondary">Tür</span>
+              <span className="text-sm font-semibold text-text-primary">{typeLabel}</span>
             </div>
             <div className="flex items-center justify-between px-5 py-4">
-              <span className="text-sm text-gray-500 dark:text-gray-400">
+              <span className="text-sm text-text-secondary">
                 {position.type === 'fund' ? 'Pay Adedi' : 'Adet'}
               </span>
-              <span className="text-sm font-semibold text-gray-900 dark:text-white">{quantityFormatted}</span>
+              <span className="text-sm font-semibold text-text-primary">{quantityFormatted}</span>
             </div>
             <div className="flex items-center justify-between px-5 py-4">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Alış Tarihi</span>
-              <span className="text-sm font-semibold text-gray-900 dark:text-white">{buyDateFormatted}</span>
+              <span className="text-sm text-text-secondary">Alış Tarihi</span>
+              <span className="text-sm font-semibold text-text-primary">{buyDateFormatted}</span>
             </div>
             <div className="flex items-center justify-between px-5 py-4">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Alış Fiyatı</span>
-              <span className="text-sm font-semibold text-gray-900 dark:text-white">
+              <span className="text-sm text-text-secondary">Alış Fiyatı</span>
+              <span className="text-sm font-semibold text-text-primary">
                 {formatPositionPrice(parseFloat(position.buyPrice), position.type)}
               </span>
             </div>
             <div className="flex items-center justify-between px-5 py-4">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Güncel Fiyat</span>
+              <span className="text-sm text-text-secondary">Güncel Fiyat</span>
               <div className="flex flex-col items-end gap-1">
-                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                <span className="text-sm font-semibold text-text-primary">
                   {currentPriceFormatted}
                 </span>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                  <span className="text-[10px] text-text-tertiary">
                     {position.lastUpdated ? new Date(position.lastUpdated).toLocaleString('tr-TR', {
                       day: '2-digit',
                       month: '2-digit',
@@ -192,10 +192,10 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
                       minute: '2-digit'
                     }) : updateTime}
                   </span>
-                  <button 
+                  <button
                     onClick={handleRefreshPrice}
                     disabled={isRefreshingPrice}
-                    className="flex items-center gap-1 text-[10px] text-blue-600 dark:text-blue-400 font-medium hover:underline disabled:opacity-50"
+                    className="flex items-center gap-1 text-[10px] text-primary-500 font-medium hover:underline disabled:opacity-50"
                   >
                     <RefreshCw className={`h-3 w-3 ${isRefreshingPrice ? 'animate-spin' : ''}`} />
                     Fiyatı Güncelle

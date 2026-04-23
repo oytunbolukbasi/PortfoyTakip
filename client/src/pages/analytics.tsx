@@ -798,7 +798,7 @@ export default function Analytics() {
                         fill="none"
                         strokeWidth="16"
                         strokeLinecap="round"
-                        className="stroke-gray-200 dark:stroke-gray-600"
+                        style={{ stroke: '#D3DADA' }}
                       />
 
                       {/* Stock allocation arc */}
@@ -810,7 +810,7 @@ export default function Analytics() {
                           strokeLinecap="round"
                           strokeDasharray={`${(stockPercentage / 100) * 251.3} 251.3`}
                           strokeDashoffset="0"
-                          className="drop-shadow-sm stroke-blue-500 dark:stroke-blue-400"
+                          style={{ stroke: '#4C7DFF' }}
                         />
                       )}
 
@@ -823,7 +823,7 @@ export default function Analytics() {
                           strokeLinecap="round"
                           strokeDasharray={`${(usStockPercentage / 100) * 251.3} 251.3`}
                           strokeDashoffset={`${-(stockPercentage / 100) * 251.3}`}
-                          className="drop-shadow-sm stroke-purple-500 dark:stroke-purple-400"
+                          style={{ stroke: '#9B6BFF' }}
                         />
                       )}
 
@@ -836,7 +836,7 @@ export default function Analytics() {
                           strokeLinecap="round"
                           strokeDasharray={`${(fundPercentage / 100) * 251.3} 251.3`}
                           strokeDashoffset={`${-((stockPercentage + usStockPercentage) / 100) * 251.3}`}
-                          className="drop-shadow-sm stroke-green-500 dark:stroke-green-400"
+                          style={{ stroke: '#2FA36B' }}
                         />
                       )}
                     </svg>

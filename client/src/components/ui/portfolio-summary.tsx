@@ -109,61 +109,61 @@ export default function PortfolioSummary({ positions, closedPositions = [] }: Po
   return (
     <section className="mx-4 mt-3 mb-4">
       {/* Main Portfolio Value Card */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+      <div className="bg-card rounded-2xl p-6 shadow-sm border border-border">
         <div className="text-center mb-6">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Portföy Değeri</h2>
+            <h2 className="text-lg font-semibold text-text-primary">Portföy Değeri</h2>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setIsVisible(!isVisible)}
-              className="p-1 h-auto text-muted-foreground hover:text-foreground"
+              className="p-1 h-auto text-text-secondary hover:text-text-primary"
             >
               {isVisible ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
             </Button>
           </div>
           <div className="flex items-center justify-center gap-2 mb-1">
-            <p className="text-4xl font-bold text-gray-900 dark:text-white">
+            <p className="text-4xl font-bold text-text-primary">
               {isVisible ? fmtCurrency(summary.totalValue) : "***.***.***,**"}
             </p>
             <button
               onClick={() => setDisplayCurrency(prev => prev === 'TRY' ? 'USD' : 'TRY')}
-              className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="text-text-secondary hover:text-text-primary transition-colors p-1 rounded-full hover:bg-subtle"
               title="Para birimini değiştir"
             >
               <ArrowRightLeft className="w-4 h-4" />
             </button>
           </div>
           <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-            summary.dailyPL >= 0 
-              ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400' 
-              : 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400'
+            summary.dailyPL >= 0
+              ? 'bg-success-100 text-success-500'
+              : 'bg-error-100 text-error-500'
           }`}>
-            {isVisible 
-              ? summary.dailyPL === 0 
+            {isVisible
+              ? summary.dailyPL === 0
                 ? 'Bugün değişim yok'
                 : `${summary.dailyPL >= 0 ? '+' : '-'}${fmtCurrency(Math.abs(summary.dailyPL))} bugün`
               : "***,** bugün"
             }
           </div>
         </div>
-        
+
         {/* Performance Metrics */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Toplam Getiri</p>
+          <div className="text-center p-4 bg-subtle rounded-xl">
+            <p className="text-sm text-text-secondary mb-1">Toplam Getiri</p>
             <p className={`text-lg font-semibold ${
-              summary.totalReturn >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+              summary.totalReturn >= 0 ? 'text-success-500' : 'text-error-500'
             }`}>
               {isVisible ? `${summary.totalReturn >= 0 ? '+' : '-'}${formatTurkishPercent(Math.abs(summary.totalReturn))}` : "**,**%"}
             </p>
           </div>
-          <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Net K/Z</p>
+          <div className="text-center p-4 bg-subtle rounded-xl">
+            <p className="text-sm text-text-secondary mb-1">Net K/Z</p>
             <p className={`text-lg font-semibold ${
-              summary.totalPL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+              summary.totalPL >= 0 ? 'text-success-500' : 'text-error-500'
             }`}>
-              {isVisible 
+              {isVisible
                 ? `${summary.totalPL >= 0 ? '+' : '-'}${fmtCurrency(Math.abs(summary.totalPL))}`
                 : "***.***.***,**"
               }

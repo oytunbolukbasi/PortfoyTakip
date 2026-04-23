@@ -24,6 +24,10 @@ export default {
         primary: {
           DEFAULT: "var(--primary)",
           foreground: "var(--primary-foreground)",
+          // Design system extensions (do not override shadcn DEFAULT)
+          500: "var(--color-primary-500)",
+          400: "var(--color-primary-400)",
+          100: "var(--color-primary-100)",
         },
         secondary: {
           DEFAULT: "var(--secondary)",
@@ -61,6 +65,27 @@ export default {
           border: "var(--sidebar-border)",
           ring: "var(--sidebar-ring)",
         },
+        // ── Portfolio Design System Tokens ──
+        success: {
+          500: "var(--color-success-500)",
+          100: "var(--color-success-100)",
+        },
+        error: {
+          500: "var(--color-error-500)",
+          100: "var(--color-error-100)",
+        },
+        subtle: "var(--color-bg-subtle)",
+        text: {
+          primary: "var(--color-text-primary)",
+          secondary: "var(--color-text-secondary)",
+          tertiary: "var(--color-text-tertiary)",
+        },
+        asset: {
+          hisse: "var(--color-asset-hisse)",
+          usd:   "var(--color-asset-usd)",
+          fon:   "var(--color-asset-fon)",
+        },
+        insight: "var(--color-insight)",
       },
       keyframes: {
         "accordion-down": {

@@ -63,6 +63,42 @@ Analiz sayfası, portföyünüzü proaktif bir şekilde inceleyen bir "AI Hub" m
 3. **Sohbet Hafızası**: Yapay zeka ile yapılan tüm konuşmalar veritabanında saklanır ve her yeni oturumda Gemini API'nin anladığı formata (User/Model role mapping) çevrilerek geri yüklenir.
 4. **Lean Tasarım**: UI tarafında kullanıcıyı yormayan, klavye dostu (iOS dvh uyumlu) ve geçmiş analizlere kolay erişim sunan bir sohbet arayüzü kullanılır.
 
+## 🎨 Design System
+
+Uygulama, `design_system.md` dokümanında tam olarak tanımlanmış token tabanlı bir renk sistemine sahiptir.
+
+### Çalışma Prensibi
+
+Tüm renkler `client/src/index.css` içindeki CSS değişkenleri (custom properties) üzerinden yönetilir. Hiçbir bileşen içinde hardcoded hex renk kullanılmaz.
+
+```
+CSS Variables (index.css)
+  └── Tailwind Config (tailwind.config.ts)
+        └── Bileşenler (token class'ları: bg-card, text-success-500, ...)
+```
+
+### Token Kategorileri
+
+| Kategori | Tailwind Class Örneği | Kullanım Yeri |
+|---|---|---|
+| **Primary (Teal)** | `bg-primary-500`, `text-primary-400` | Butonlar, aktif durumlar |
+| **Success (Kâr)** | `text-success-500`, `bg-success-100` | Pozitif K/Z değerleri |
+| **Error (Zarar)** | `text-error-500`, `bg-error-100` | Negatif K/Z değerleri |
+| **Backgrounds** | `bg-card`, `bg-subtle` | Kart ve ikincil yüzeyler |
+| **Text** | `text-text-primary`, `text-text-secondary`, `text-text-tertiary` | Metin hiyerarşisi |
+| **Asset Colors** | `text-asset-hisse`, `text-asset-usd`, `text-asset-fon` | Sadece grafik/legend |
+| **Insight (AI)** | `text-insight`, `bg-insight/10` | AI Hub bileşenleri |
+
+### İki Namespace Stratejisi
+
+shadcn/Radix UI bileşenleri (`button`, `badge`, `input` vb.) kendi `--primary`, `--foreground` token'larını kullanmaya devam eder. Projeye özgü token'lar (`--color-primary-500` vb.) shadcn namespace'inin **yanına** eklenir, üstüne yazılmaz.
+
+### Dark Mode
+
+`.dark` class'ı `<html>` elementine uygulandığında CSS değişkenleri otomatik olarak dark değerlerine geçer. Bileşenlerde tek bir `dark:` Tailwind prefixi kullanılmaz; tüm dark mode yönetimi merkezi CSS bloğundan yapılır.
+
+> Tam token listesi, mimari kararlar ve bileşen migration kuralları için → [`design_system.md`](./design_system.md)
+
 ## 🛠️ Kurulum ve Deployment
 
 ### Gereksinimler

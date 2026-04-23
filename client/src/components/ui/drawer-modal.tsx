@@ -22,8 +22,8 @@ export function DrawerModal({
     <Drawer.Root open={open} onOpenChange={onOpenChange} repositionInputs={false}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/40 dark:bg-black/60 z-[60]" />
-        <Drawer.Content 
-          className="bg-white dark:bg-gray-900 flex flex-col rounded-t-[20px] fixed bottom-0 left-0 right-0 z-[60] outline-none max-h-[96vh] overflow-y-auto"
+        <Drawer.Content
+          className="bg-card flex flex-col rounded-t-[20px] fixed bottom-0 left-0 right-0 z-[60] outline-none max-h-[96vh] overflow-y-auto"
         >
           {/* Swipe Handle */}
           <div className="w-10 h-1.5 bg-muted rounded-full mx-auto mt-3 mb-4" />

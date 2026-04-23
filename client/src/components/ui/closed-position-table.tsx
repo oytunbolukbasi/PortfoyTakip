@@ -91,7 +91,7 @@ export function ClosedPositionTable({ closedPositions, onRefresh }: ClosedPositi
     <Button
       variant="ghost"
       size="sm"
-      className="h-auto p-0 font-medium text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 flex items-center gap-1"
+      className="h-auto p-0 font-medium text-xs text-text-secondary hover:text-text-primary flex items-center gap-1"
       onClick={() => handleSort(field)}
     >
       {children}
@@ -102,62 +102,62 @@ export function ClosedPositionTable({ closedPositions, onRefresh }: ClosedPositi
   );
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 mx-4 mb-3 overflow-hidden">
+    <div className="bg-card rounded-2xl shadow-sm border border-border mx-4 mb-3 overflow-hidden">
       {/* Item count indicator */}
-      <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-600">
-        <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+      <div className="px-4 py-2 bg-subtle border-b border-border">
+        <p className="text-xs text-text-secondary font-medium">
           {closedPositions.length} kapalı pozisyon listeleniyor
         </p>
       </div>
       
       <div className="overflow-x-auto">
         <table className="w-full min-w-[800px]">
-          <thead className="bg-gray-50 dark:bg-gray-700/50">
+          <thead className="bg-subtle">
             <tr>
-              <th className="sticky left-0 bg-gray-50 dark:bg-gray-700/50 px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[120px] z-10 border-r border-gray-200 dark:border-gray-600">
+              <th className="sticky left-0 bg-subtle px-3 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider min-w-[120px] z-10 border-r border-border">
                 <SortButton field="symbol">Varlık</SortButton>
               </th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[70px]">
+              <th className="px-3 py-3 text-right text-xs font-medium text-text-secondary uppercase tracking-wider min-w-[70px]">
                 <SortButton field="quantity">Adet</SortButton>
               </th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[90px]">
+              <th className="px-3 py-3 text-right text-xs font-medium text-text-secondary uppercase tracking-wider min-w-[90px]">
                 <SortButton field="buyPrice">Alış</SortButton>
               </th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[90px]">
+              <th className="px-3 py-3 text-right text-xs font-medium text-text-secondary uppercase tracking-wider min-w-[90px]">
                 <SortButton field="sellPrice">Satış</SortButton>
               </th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[80px]">
+              <th className="px-3 py-3 text-right text-xs font-medium text-text-secondary uppercase tracking-wider min-w-[80px]">
                 <SortButton field="pl">K/Z</SortButton>
               </th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[70px]">
+              <th className="px-3 py-3 text-right text-xs font-medium text-text-secondary uppercase tracking-wider min-w-[70px]">
                 <SortButton field="plPercent">K/Z %</SortButton>
               </th>
-              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[90px]">
+              <th className="px-3 py-3 text-right text-xs font-medium text-text-secondary uppercase tracking-wider min-w-[90px]">
                 <SortButton field="sellDate">Tarih</SortButton>
               </th>
-              <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[80px]">
+              <th className="px-3 py-3 text-center text-xs font-medium text-text-secondary uppercase tracking-wider min-w-[80px]">
                 İşlemler
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+          <tbody className="bg-card divide-y divide-border">
             {sortedPositions.map((position) => {
               const pl = parseFloat(position.pl);
               const plPercent = parseFloat(position.plPercent);
 
               return (
-                <tr 
+                <tr
                   key={position.id}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                  className="hover:bg-subtle transition-colors"
                 >
-                  <td className="sticky left-0 bg-white dark:bg-gray-800 px-3 py-4 border-r border-gray-200 dark:border-gray-600 z-10">
+                  <td className="sticky left-0 bg-card px-3 py-4 border-r border-border z-10">
                     <div className="flex items-center space-x-3 min-w-[120px]">
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        <div className="text-sm font-medium text-text-primary truncate">
                           {position.symbol}
                         </div>
                         {position.name && (
-                          <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          <div className="text-xs text-text-secondary truncate">
                             {position.name}
                           </div>
                         )}
@@ -165,21 +165,21 @@ export function ClosedPositionTable({ closedPositions, onRefresh }: ClosedPositi
                     </div>
                   </td>
                   <td className="px-3 py-4 text-right">
-                    <span className="text-sm text-gray-900 dark:text-white font-medium">
+                    <span className="text-sm text-text-primary font-medium">
                       {parseFloat(position.quantity).toLocaleString('tr-TR', { maximumFractionDigits: 10 })}
                     </span>
                   </td>
                   <td className="px-3 py-4 text-right">
-                    <span className="text-sm text-gray-900 dark:text-white">
-                      {position.type === 'fund' 
+                    <span className="text-sm text-text-primary">
+                      {position.type === 'fund'
                         ? formatFundPrice(parseFloat(position.buyPrice))
                         : `₺${formatTurkishPrice(parseFloat(position.buyPrice))}`
                       }
                     </span>
                   </td>
                   <td className="px-3 py-4 text-right">
-                    <span className="text-sm text-gray-900 dark:text-white">
-                      {position.type === 'fund' 
+                    <span className="text-sm text-text-primary">
+                      {position.type === 'fund'
                         ? formatFundPrice(parseFloat(position.sellPrice))
                         : `₺${formatTurkishPrice(parseFloat(position.sellPrice))}`
                       }
@@ -187,20 +187,20 @@ export function ClosedPositionTable({ closedPositions, onRefresh }: ClosedPositi
                   </td>
                   <td className="px-3 py-4 text-right">
                     <span className={`text-sm font-medium ${
-                      pl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                      pl >= 0 ? 'text-success-500' : 'text-error-500'
                     }`}>
                       {pl >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(pl))}
                     </span>
                   </td>
                   <td className="px-3 py-4 text-right">
                     <span className={`text-sm font-medium ${
-                      plPercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                      plPercent >= 0 ? 'text-success-500' : 'text-error-500'
                     }`}>
                       {plPercent >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(plPercent))}
                     </span>
                   </td>
                   <td className="px-3 py-4 text-right">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                    <span className="text-sm text-text-secondary">
                       {new Date(position.sellDate).toLocaleDateString('tr-TR')}
                     </span>
                   </td>
@@ -212,7 +212,7 @@ export function ClosedPositionTable({ closedPositions, onRefresh }: ClosedPositi
                         e.stopPropagation();
                         setDeletePosition(position);
                       }}
-                      className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                      className="h-8 w-8 p-0 text-text-tertiary hover:text-error-500"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -224,7 +224,7 @@ export function ClosedPositionTable({ closedPositions, onRefresh }: ClosedPositi
             {closedPositions.length === 0 && (
               <tr>
                 <td colSpan={8} className="text-center py-12">
-                  <p className="text-gray-500 dark:text-gray-400">Henüz kapalı pozisyon bulunmuyor</p>
+                  <p className="text-text-secondary">Henüz kapalı pozisyon bulunmuyor</p>
                 </td>
               </tr>
             )}
@@ -242,8 +242,8 @@ export function ClosedPositionTable({ closedPositions, onRefresh }: ClosedPositi
         >
           <div className="flex flex-col space-y-2 mt-6">
             <Button 
-              onClick={() => handleDelete(deletePosition)} 
-              className="w-full bg-red-600 text-white hover:bg-red-700 py-3"
+              onClick={() => handleDelete(deletePosition)}
+              className="w-full bg-error-500 text-white hover:opacity-90 py-3"
             >
               Evet, Sil
             </Button>
