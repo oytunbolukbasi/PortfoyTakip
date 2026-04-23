@@ -200,23 +200,23 @@ Asset renkleri **asla** buton, başlık, arka plan gibi genel UI elemanlarında 
 
 ### Yüksek Öncelik (En Çok Renk İçeren)
 
-| Dosya | Durum | Notlar |
-|---|---|---|
-| `pages/analytics.tsx` | ⏳ Bekliyor | K/Z renkleri, AI Hub, grafik renkleri |
-| `pages/portfolio.tsx` | ⏳ Bekliyor | Ana sayfa container renkleri |
-| `components/ui/portfolio-summary.tsx` | ⏳ Bekliyor | Kâr/zarar badge, kart arka planları |
-| `components/ui/position-card.tsx` | ⏳ Bekliyor | K/Z renkleri, asset tag renkleri |
-| `components/ui/position-table.tsx` | ⏳ Bekliyor | Tablo satır renkleri |
-| `components/ui/closed-position-table.tsx` | ⏳ Bekliyor | Gerçekleşen K/Z renkleri |
+| Dosya | Durum | Tamamlanma | Notlar |
+|---|---|---|---|
+| `pages/analytics.tsx` | ✅ Tamamlandı | 2026-04-23 | Tüm dark: prefix'leri kaldırıldı. Card/metin/badge/AI chat → token |
+| `pages/portfolio.tsx` | ✅ Tamamlandı | 2026-04-23 | Container renkleri token'a çevrildi |
+| `components/ui/portfolio-summary.tsx` | ✅ Tamamlandı | 2026-04-23 | Kâr/zarar badge, kart arka planları |
+| `components/ui/position-card.tsx` | ✅ Tamamlandı | 2026-04-23 | K/Z renkleri, asset tag renkleri |
+| `components/ui/position-table.tsx` | ⏳ Bekliyor | — | Tablo satır renkleri |
+| `components/ui/closed-position-table.tsx` | ⏳ Bekliyor | — | Gerçekleşen K/Z renkleri |
 
 ### Orta Öncelik
 
-| Dosya | Durum | Notlar |
-|---|---|---|
-| `components/ui/position-detail-modal.tsx` | ⏳ Bekliyor | Detay kartı arka planları |
-| `components/ui/add-position-modal.tsx` | ⏳ Bekliyor | Form renkleri |
-| `components/ui/bottom-navigation.tsx` | ⏳ Bekliyor | Logout butonundaki `text-red-500` |
-| `components/ui/drawer-modal.tsx` | ⏳ Bekliyor | Genel arka plan renkleri |
+| Dosya | Durum | Tamamlanma | Notlar |
+|---|---|---|---|
+| `components/ui/position-detail-modal.tsx` | ✅ Tamamlandı | 2026-04-23 | Drawer yapısına geçiş + token migrasyon |
+| `components/ui/add-position-modal.tsx` | ✅ Tamamlandı | 2026-04-23 | Submit butonu `primary-500` accent ile güncellendi |
+| `components/ui/bottom-navigation.tsx` | ⏳ Bekliyor | — | Logout butonundaki `text-red-500` |
+| `components/ui/drawer-modal.tsx` | ✅ Tamamlandı | 2026-04-23 | iOS PWA taşma fix'i + layout yapısı iyileştirildi |
 
 ### Düşük Öncelik / Shadcn Bileşenleri
 
@@ -265,15 +265,15 @@ bg-subtle      →  İkincil alanlar (chip, iç bölmeler)
 ## 6. Uygulama Sırası (Migration Sequence)
 
 ```
-Adım 1: globals.css token'ları ekle          ← Token altyapısı
-Adım 2: tailwind.config.ts mapping ekle     ← Tailwind erişimi
-Adım 3: portfolio-summary.tsx güncelle      ← Kritik yüzey
-Adım 4: position-card.tsx güncelle         ← Sık kullanılan kart
-Adım 5: analytics.tsx güncelle             ← AI Hub + grafikler
-Adım 6: position-table.tsx güncelle        ← Tablo renkleri
-Adım 7: closed-position-table.tsx güncelle ← Gerçekleşen K/Z
-Adım 8: Kalan bileşenler (modal'lar, nav)  ← Tamamlama
-Adım 9: Dark mode doğrulaması              ← Görsel test
+Adım 1: globals.css token'ları ekle          ← Token altyapısı         ✅ Tamamlandı (2026-04-23)
+Adım 2: tailwind.config.ts mapping ekle     ← Tailwind erişimi        ✅ Tamamlandı (2026-04-23)
+Adım 3: portfolio-summary.tsx güncelle      ← Kritik yüzey           ✅ Tamamlandı (2026-04-23)
+Adım 4: position-card.tsx güncelle         ← Sık kullanılan kart     ✅ Tamamlandı (2026-04-23)
+Adım 5: analytics.tsx güncelle             ← AI Hub + grafikler      ✅ Tamamlandı (2026-04-23)
+Adım 6: position-table.tsx güncelle        ← Tablo renkleri          ⏳ Bekliyor
+Adım 7: closed-position-table.tsx güncelle ← Gerçekleşen K/Z         ⏳ Bekliyor
+Adım 8: Kalan bileşenler (modal'lar, nav)  ← Tamamlama               ⏳ Bekliyor
+Adım 9: Dark mode doğrulaması              ← Görsel test             ✅ UAT-1 + UAT-2 Tamamlandı
 ```
 
 ---
@@ -335,6 +335,39 @@ SVG `stroke`/`fill` attribute'larını CSS variable'a bağlamak için `currentCo
 **Gelecek Not:**  
 Grafik altyapısı genişlediğinde, tüm SVG ve chart bileşenleri için merkezi bir `chartColors` token objesi oluşturulacak ve bu obje CSS variable'lardan beslenecek. Şu an her SVG arc'ı için light/dark değerleri de kodda `data-theme` ya da JS ile yönetilmelidir.
 
+> [!NOTE]
+> **2026-04-23 Güncelleme:** `analytics.tsx` dark mode migrasyonu sırasında arc hex değerleri
+> Tailwind default palette değerleriyle (`#3B82F6`, `#8B5CF6`, `#10B981`) değiştirildi.
+> Bu, design system §7.3'teki hardcoded hex kararıyla uyumludur.
+> Legend dot renkleri (`bg-blue-500`, `bg-purple-500`, `bg-green-500`) de dark: prefix'siz bırakıldı.
+
+
+---
+
+### 7.4 Primary CTA Buton Rengi
+
+**Karar:** Uygulamadaki ana aksiyon butonları ("Pozisyon Ekle" gibi form submit butonları) `bg-primary-500` token'ını kullanır.
+
+**Uygulandığı Yerler:**
+- `add-position-modal.tsx` → "Pozisyon Ekle" submit butonu
+
+**Token Davranışı:**
+```
+Light mode: bg-primary-500 = #3F6F73 (koyu teal) + text-white
+Dark mode:  bg-primary-500 = #5F8F92 (açık teal) + text-white   ← CSS var otomatik
+Hover:      bg-primary-400 = bir ton açığı (light/dark otomatik)
+```
+
+**Kural:**
+```tsx
+// DOĞRU — Token tabanlı, dark mode otomatik
+<Button className="bg-primary-500 hover:bg-primary-400 text-white">
+
+// YANLIŞ — Hardcoded dark: prefix ile ikili sistem
+<Button className="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+```
+
+**Geçmiş:** Bu buton eskiden `bg-gray-100 dark:bg-gray-900` — gri/nötr — ile tanımlanmıştı. 2026-04-23 itibarıyla global accent rengine taşındı.
 
 ---
 
@@ -351,4 +384,4 @@ Navigation bar moodboard'da **Aktif: Primary-500, Pasif: Text-Tertiary** olarak 
 
 ---
 
-*Son Güncelleme: 2026-04-23 | Hazırlayan: AI Assistant*
+*Son Güncelleme: 2026-04-23 — add-position-modal submit butonu primary-500 accent'a taşındı; drawer-modal iOS fix; §7.4 eklendi | Hazırlayan: AI Assistant*

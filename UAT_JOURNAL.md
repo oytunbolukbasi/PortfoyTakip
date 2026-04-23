@@ -1,7 +1,7 @@
 # UAT Journal — Portföy Takip
 
-> **Durum:** ✅ UAT-1 Tamamlandı — DEPLOY ONAYI VERİLDİ
-> **Oturum Tarihi:** 2026-04-23
+> **Durum:** ✅ UAT-2 Tamamlandı — DEPLOY ONAYI KORUNUYOR
+> **Son Güncelleme:** 2026-04-23
 > **Ortam:** `http://localhost:5001` (local dev, mobil viewport 390px)
 > **Hedef:** Design system migration sonrası, deploy öncesi hatasız UAT
 
@@ -157,6 +157,7 @@ Bu oturum aşağıdakileri kapsar:
 | B-01 | 2026-04-23 | `portfolio-summary.tsx` | Light mode'da Portföy Değeri kartı arka plan rengi design spec'te `#FFFFFF` bekleniyor; görsel test'te kart belirgin beyaz ancak sayfa arka planı çok yakın ton — minimal kontrast. Kullanımı engellemez. | Düşük | Kabul Edildi |
 | B-02 | 2026-04-23 | `closed-position-table.tsx` | Kapalı pozisyon verisi olmadığı için tablo yatay scroll ve renk kodlaması doğrulanamadı. | Bilgi | Deploy Sonrası Kontrol |
 | B-03 | 2026-04-23 | `analytics.tsx` (AI Chat) | AI chat akışı test edilmedi (scope dışı bırakıldı). | Bilgi | Deploy Sonrası Kontrol |
+| B-04 | 2026-04-23 | `analytics.tsx` | **Analytics sayfası dark mode renk tutarsızlığı**: Tüm kartlar `bg-gray-800` kullanıyordu, design system `#151A1A` yerine gri görünüyordu. | Yüksek | ✅ Düzeltildi |
 
 **Bloke eden hata yok. Deploy için onay verildi.**
 
@@ -164,6 +165,80 @@ Bu oturum aşağıdakileri kapsar:
 
 ## Oturumlar
 
-| Oturum | Tarih | Faz | Tester | Sonuç |
+| Oturum | Tarih | Konu | Tester | Sonuç |
 |---|---|---|---|---|
 | UAT-1 | 2026-04-23 | Tüm Fazlar | AI (browser agent) | ✅ PASS — Deploy Onayı |
+| UAT-2 | 2026-04-23 | Analytics dark mode fix | AI (browser agent) | ✅ PASS — Token migrasyon doğrulandı |
+
+---
+
+## Protokol ve Kural Seti
+
+Bu bölüm, `UAT_JOURNAL.md` dosyasının nasıl yönetileceğini tanımlar. **Değiştirilmez; yalnızca genişletilebilir.**
+
+### Ne Zaman UAT Yapılır?
+
+| Tetikleyici | UAT Zorunlu mu? |
+|---|---|
+| Deploy öncesi (production'a çıkış) | ✅ Evet — Tüm Fazlar |
+| Yeni feature / sayfa eklenmesi | ✅ Evet — İlgili Fazlar |
+| Design system / token değişikliği | ✅ Evet — Görsel Regresyon Fazları |
+| Bug fix (küçük) | ⚠️ Opsiyonel — Etkilenen bileşen |
+| Sadece dokümantasyon değişikliği | ❌ Hayır |
+
+---
+
+### UAT Oturumu Açma Kuralları
+
+1. **Oturum numarası** sıralı artar: `UAT-1`, `UAT-2`, `UAT-3`…
+2. **Tarih** formatı: `YYYY-AA-GG`
+3. **Tester** alanı: `AI (browser agent)` veya gerçek isim
+4. **Konu** alanı: Test edilen feature/kapsam kısa açıklaması
+5. Her oturum için **en az bir bulgu satırı** yazılır (bulgu yoksa "Bulgu yok" yazılır)
+
+---
+
+### Bulgu Kaydı Kuralları
+
+| Alan | Kural |
+|---|---|
+| `#` | `B-XX` formatında sıralı (B-01, B-02…) |
+| `Tarih` | `YYYY-AA-GG` |
+| `Bileşen` | Dosya adı veya alan adı (backtick ile) |
+| `Bulgu` | Net açıklama. Kritik bulgular **kalın** yazılır |
+| `Öncelik` | Aşağıdaki tabloya göre |
+| `Durum` | Aşağıdaki tabloya göre |
+
+#### Öncelik Seviyeleri
+
+| Seviye | Tanım |
+|---|---|
+| `Kritik` | Uygulamayı bloke eder, deploy yapılamaz |
+| `Yüksek` | Kullanıcı deneyimini ciddi etkiler, hızla düzeltilmeli |
+| `Orta` | Görünür sorun, deploy sonrası düzeltilebilir |
+| `Düşük` | Kozmetik veya edge case, kabul edilebilir |
+| `Bilgi` | Test edilemedi / scope dışı — takip için kayıt |
+
+#### Durum Değerleri
+
+| Değer | Anlamı |
+|---|---|
+| `Açık` | Henüz düzeltilmedi |
+| `✅ Düzeltildi` | Aynı oturumda çözüldü |
+| `Deploy Sonrası Kontrol` | Gerçek veri / ortam gerekiyor |
+| `Kabul Edildi` | Bilinçli olarak kabul edildi, takip gerekmiyor |
+| `İptal` | Artık geçerli değil |
+
+---
+
+### Dosya Yönetimi Kuralları
+
+1. `UAT_JOURNAL.md` her zaman **proje kökünde** bulunur: `/PortfoyTakip/UAT_JOURNAL.md`
+2. Test oturumu tamamlandığında dosya **aynı seansta** güncellenir ve kaydedilir
+3. Dosya silinmez; tarihsel kayıt olarak korunur
+4. Yeni test fazları **mevcut formatı koruyarak** eklenir
+5. Bu `Protokol ve Kural Seti` bölümü değiştirilemez; yeni kurallar **altına eklenir**
+
+---
+
+*Protokol oluşturulma tarihi: 2026-04-23*

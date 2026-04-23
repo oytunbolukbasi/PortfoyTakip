@@ -264,7 +264,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
             {/* Submit Button */}
             <Button 
               type="submit" 
-              className="w-full bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-800 rounded-xl py-3 font-semibold border border-gray-200 dark:border-gray-700"
+              className="w-full bg-primary-500 hover:bg-primary-400 text-white rounded-xl py-3 font-semibold transition-colors"
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Ekleniyor...' : 'Pozisyon Ekle'}

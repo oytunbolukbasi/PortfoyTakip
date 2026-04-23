@@ -345,12 +345,12 @@ export default function Analytics() {
 
       {/* Time Range Selector */}
       <div className="px-4 py-4">
-        <div className="bg-gray-100/50 dark:bg-gray-800/50 p-1 rounded-[14px] flex items-center mb-4 shadow-sm border border-gray-100 dark:border-gray-800">
+        <div className="bg-subtle/50 p-1 rounded-[14px] flex items-center mb-4 shadow-sm border border-border">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setTimeRange('daily')}
-            className={`flex-1 rounded-xl transition-all ${timeRange === 'daily' ? 'bg-white dark:bg-gray-700 shadow-sm text-foreground font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'}`}
+            className={`flex-1 rounded-xl transition-all ${timeRange === 'daily' ? 'bg-card shadow-sm text-foreground font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-black/5'}`}
           >
             Günlük
           </Button>
@@ -358,7 +358,7 @@ export default function Analytics() {
             variant="ghost"
             size="sm"
             onClick={() => setTimeRange('monthly')}
-            className={`flex-1 rounded-xl transition-all ${timeRange === 'monthly' ? 'bg-white dark:bg-gray-700 shadow-sm text-foreground font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'}`}
+            className={`flex-1 rounded-xl transition-all ${timeRange === 'monthly' ? 'bg-card shadow-sm text-foreground font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-black/5'}`}
           >
             Aylık
           </Button>
@@ -366,7 +366,7 @@ export default function Analytics() {
             variant="ghost"
             size="sm"
             onClick={() => setTimeRange('all')}
-            className={`flex-1 rounded-xl transition-all ${timeRange === 'all' ? 'bg-white dark:bg-gray-700 shadow-sm text-foreground font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'}`}
+            className={`flex-1 rounded-xl transition-all ${timeRange === 'all' ? 'bg-card shadow-sm text-foreground font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-black/5'}`}
           >
             Tümü
           </Button>
@@ -374,17 +374,17 @@ export default function Analytics() {
             variant="ghost"
             size="sm"
             onClick={() => setTimeRange('custom')}
-            className={`flex-1 rounded-xl transition-all ${timeRange === 'custom' ? 'bg-white dark:bg-gray-700 shadow-sm text-foreground font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5'}`}
+            className={`flex-1 rounded-xl transition-all ${timeRange === 'custom' ? 'bg-card shadow-sm text-foreground font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-black/5'}`}
           >
             Özel
           </Button>
         </div>
 
         {timeRange === 'custom' && (
-          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl space-y-4">
+          <div className="bg-subtle p-4 rounded-xl space-y-4">
             <div className="flex justify-center items-center space-x-6">
               <div className="space-y-2 flex-1 max-w-[140px]">
-                <Label htmlFor="startDate" className="text-xs font-medium text-gray-600 dark:text-gray-400 text-center block">Başlangıç Tarihi</Label>
+                <Label htmlFor="startDate" className="text-xs font-medium text-text-secondary text-center block">Başlangıç Tarihi</Label>
                 <Input
                   id="startDate"
                   type="date"
@@ -395,10 +395,10 @@ export default function Analytics() {
                 />
               </div>
               <div className="flex items-center pt-6">
-                <span className="text-gray-400 dark:text-gray-500 text-sm">-</span>
+                <span className="text-text-tertiary text-sm">-</span>
               </div>
               <div className="space-y-2 flex-1 max-w-[140px]">
-                <Label htmlFor="endDate" className="text-xs font-medium text-gray-600 dark:text-gray-400 text-center block">Bitiş Tarihi</Label>
+                <Label htmlFor="endDate" className="text-xs font-medium text-text-secondary text-center block">Bitiş Tarihi</Label>
                 <Input
                   id="endDate"
                   type="date"
@@ -412,12 +412,12 @@ export default function Analytics() {
             </div>
 
             {startDate && endDate && (
-              <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800/30">
-                <p className="text-sm text-blue-800 dark:text-blue-300 font-medium">
+              <div className="bg-primary-100 p-3 rounded-lg border border-border">
+                <p className="text-sm text-text-primary font-medium">
                   <CalendarDays className="w-4 h-4 inline mr-2" />
                   Seçili Dönem: {new Date(startDate).toLocaleDateString('tr-TR')} - {new Date(endDate).toLocaleDateString('tr-TR')}
                 </p>
-                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                <p className="text-xs text-text-secondary mt-1">
                   • {filteredActivePositions.length} pozisyon açıldı • {filteredClosedPositions.length} pozisyon kapatıldı
                 </p>
               </div>
@@ -426,8 +426,8 @@ export default function Analytics() {
         )}
 
         {timeRange === 'all' && (
-          <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-800 dark:text-gray-200 font-medium">
+          <div className="mt-3 p-3 bg-subtle rounded-lg border border-border">
+            <p className="text-sm text-text-primary font-medium">
               <CalendarDays className="w-4 h-4 inline mr-2" />
               Tüm Veriler: {positions.length} aktif pozisyon, {closedPositions.length} kapalı pozisyon
             </p>
@@ -435,8 +435,8 @@ export default function Analytics() {
         )}
 
         {timeRange === 'daily' && (
-          <div className={`mt-3 p-3 rounded-lg border ${filteredActivePositions.length === 0 && filteredClosedPositions.length === 0 ? 'bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700' : 'bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800/30'}`}>
-            <p className={`text-sm font-medium flex items-center ${filteredActivePositions.length === 0 && filteredClosedPositions.length === 0 ? 'text-gray-500 dark:text-gray-400' : 'text-green-800 dark:text-green-200'}`}>
+          <div className={`mt-3 p-3 rounded-lg border ${filteredActivePositions.length === 0 && filteredClosedPositions.length === 0 ? 'bg-subtle border-border' : 'bg-success-100 border-success-100'}`}>
+            <p className={`text-sm font-medium flex items-center ${filteredActivePositions.length === 0 && filteredClosedPositions.length === 0 ? 'text-text-secondary' : 'text-success-500'}`}>
               <CalendarDays className="w-4 h-4 inline mr-2" />
               {filteredActivePositions.length === 0 && filteredClosedPositions.length === 0 ? 'Bugün işlem yapılmadı' : `Bugün: ${filteredActivePositions.length} pozisyon açıldı, ${filteredClosedPositions.length} pozisyon kapatıldı`}
             </p>
@@ -444,8 +444,8 @@ export default function Analytics() {
         )}
 
         {timeRange === 'monthly' && (
-          <div className="mt-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-100 dark:border-purple-800/30">
-            <p className="text-sm text-purple-800 dark:text-purple-200 font-medium">
+          <div className="mt-3 p-3 bg-primary-100 rounded-lg border border-border">
+            <p className="text-sm text-text-primary font-medium">
               <CalendarDays className="w-4 h-4 inline mr-2" />
               Bu Ay: {filteredActivePositions.length} pozisyon açıldı, {filteredClosedPositions.length} pozisyon kapatıldı
             </p>
@@ -464,9 +464,9 @@ export default function Analytics() {
         ) : (
           <>
             {/* Portfolio Overview */}
-            <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 overflow-hidden">
+            <Card className="bg-card border-border overflow-hidden">
               <div className="p-4 flex items-center justify-between mb-0 pb-3">
-                <h3 className="font-semibold text-gray-900 dark:text-white flex items-center">
+                <h3 className="font-semibold text-text-primary flex items-center">
                   Portföy Durumu
                 </h3>
               </div>
@@ -476,34 +476,34 @@ export default function Analytics() {
                 <div className="flex flex-col pb-4">
                   <div className="grid grid-cols-2 gap-4 px-4">
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Dönem Değer</p>
-                      <p className="text-xl font-bold text-gray-900 dark:text-white">₺{formatTurkishPrice(filteredTotalValue)}</p>
+                      <p className="text-sm text-text-secondary">Dönem Değer</p>
+                      <p className="text-xl font-bold text-text-primary">₺{formatTurkishPrice(filteredTotalValue)}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Dönem Maliyet</p>
-                      <p className="text-xl font-bold text-gray-900 dark:text-white">₺{formatTurkishPrice(filteredTotalCost)}</p>
+                      <p className="text-sm text-text-secondary">Dönem Maliyet</p>
+                      <p className="text-xl font-bold text-text-primary">₺{formatTurkishPrice(filteredTotalCost)}</p>
                     </div>
                   </div>
-                  <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 px-4">
+                  <div className="mt-4 pt-4 border-t border-border px-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Dönem K/Z:</span>
+                      <span className="text-sm text-text-secondary">Dönem K/Z:</span>
                       <div className="text-right">
-                        <span className={`font-bold ${filteredProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        <span className={`font-bold ${filteredProfit >= 0 ? 'text-success-500' : 'text-error-500'}`}>
                           {filteredProfit >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(filteredProfit))}
                         </span>
                       </div>
                     </div>
                   </div>
-                  <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 px-4">
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Genel Portföy:</p>
+                  <div className="mt-3 pt-3 border-t border-border px-4">
+                    <p className="text-xs text-text-secondary mb-2">Genel Portföy:</p>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Toplam Değer</p>
-                        <p className="text-lg font-bold text-gray-900 dark:text-white">₺{formatTurkishPrice(totalValue)}</p>
+                        <p className="text-sm text-text-secondary">Toplam Değer</p>
+                        <p className="text-lg font-bold text-text-primary">₺{formatTurkishPrice(totalValue)}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Toplam K/Z</p>
-                        <span className={`text-lg font-bold ${totalProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        <p className="text-sm text-text-secondary">Toplam K/Z</p>
+                        <span className={`text-lg font-bold ${totalProfit >= 0 ? 'text-success-500' : 'text-error-500'}`}>
                           {totalProfit >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(totalProfit))}
                         </span>
                       </div>
@@ -514,25 +514,25 @@ export default function Analytics() {
                 <div className="flex flex-col">
                   <div className="px-4 pb-2 grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Güncel Değer</p>
-                      <p className="text-xl font-bold text-gray-900 dark:text-white">₺{formatTurkishPrice(totalValue)}</p>
+                      <p className="text-xs uppercase tracking-wider text-text-tertiary mb-1">Güncel Değer</p>
+                      <p className="text-xl font-bold text-text-primary">₺{formatTurkishPrice(totalValue)}</p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Maliyet</p>
-                      <p className="text-xl font-bold text-gray-900 dark:text-white">₺{formatTurkishPrice(totalCost)}</p>
+                      <p className="text-xs uppercase tracking-wider text-text-tertiary mb-1">Maliyet</p>
+                      <p className="text-xl font-bold text-text-primary">₺{formatTurkishPrice(totalCost)}</p>
                     </div>
                   </div>
-                  <div className="mt-3 pt-4 border-t border-gray-100 dark:border-gray-700 flex flex-col">
+                  <div className="mt-3 pt-4 border-t border-border flex flex-col">
                     <div className="px-4 pb-4 flex justify-between items-center">
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-gray-900 dark:text-gray-100">Aktif Pozisyonlar K/Z</span>
-                        <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">Unrealized</span>
+                        <span className="text-sm font-bold text-text-primary">Aktif Pozisyonlar K/Z</span>
+                        <span className="text-xs text-text-tertiary font-medium">Unrealized</span>
                       </div>
                       <div className="text-right flex flex-col items-end">
-                        <span className={`text-[17px] font-bold ${totalProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        <span className={`text-[17px] font-bold ${totalProfit >= 0 ? 'text-success-500' : 'text-error-500'}`}>
                           {totalProfit >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(totalProfit))}
                         </span>
-                        <span className={`text-[11px] font-semibold mt-0.5 px-2 py-0.5 tracking-wide rounded-md ${totalProfitPercent >= 0 ? 'bg-green-100/70 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100/70 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
+                        <span className={`text-[11px] font-semibold mt-0.5 px-2 py-0.5 tracking-wide rounded-md ${totalProfitPercent >= 0 ? 'bg-success-100 text-success-500' : 'bg-error-100 text-error-500'}`}>
                           {totalProfitPercent >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(totalProfitPercent))}
                         </span>
                       </div>
@@ -541,16 +541,16 @@ export default function Analytics() {
                     <div className="flex items-center justify-between px-4 py-4 w-full bg-muted mt-auto">
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2 mb-0.5">
-                          <span className="text-[15px] font-bold text-gray-900 dark:text-white">Net Portföy K/Z</span>
-                          <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded flex items-center bg-gray-200/80 text-gray-600 dark:bg-gray-700 dark:text-gray-300">LIFETIME</span>
+                          <span className="text-[15px] font-bold text-text-primary">Net Portföy K/Z</span>
+                          <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded flex items-center bg-subtle text-text-secondary">LIFETIME</span>
                         </div>
-                        <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">Unrealized + Realized</span>
+                        <span className="text-xs text-text-tertiary font-medium">Unrealized + Realized</span>
                       </div>
                       <div className="text-right flex flex-col items-end">
-                        <span className={`text-[17px] font-bold ${netProfitTotal >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        <span className={`text-[17px] font-bold ${netProfitTotal >= 0 ? 'text-success-500' : 'text-error-500'}`}>
                           {netProfitTotal >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(netProfitTotal))}
                         </span>
-                        <span className={`text-[11px] font-semibold mt-0.5 px-2 py-0.5 tracking-wide rounded-md ${netProfitPercent >= 0 ? 'bg-green-100/70 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100/70 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
+                        <span className={`text-[11px] font-semibold mt-0.5 px-2 py-0.5 tracking-wide rounded-md ${netProfitPercent >= 0 ? 'bg-success-100 text-success-500' : 'bg-error-100 text-error-500'}`}>
                           {netProfitPercent >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(netProfitPercent))}
                         </span>
                       </div>
@@ -562,52 +562,52 @@ export default function Analytics() {
 
 
             {/* Profit/Loss Summary */}
-            <Card className="p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+            <Card className="p-4 bg-card border-border">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-gray-900 dark:text-white flex items-center">
+                <h3 className="font-semibold text-text-primary flex items-center">
                   Kar/Zarar Özeti
                   {timeRange === 'custom' && startDate && endDate && (
-                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
+                    <span className="text-xs text-text-tertiary ml-2">
                       ({new Date(startDate).toLocaleDateString('tr-TR')} - {new Date(endDate).toLocaleDateString('tr-TR')})
                     </span>
                   )}
                   {timeRange === 'daily' && (
-                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">(Bugün)</span>
+                    <span className="text-xs text-text-tertiary ml-2">(Bugün)</span>
                   )}
                   {timeRange === 'monthly' && (
-                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">(Bu Ay)</span>
+                    <span className="text-xs text-text-tertiary ml-2">(Bu Ay)</span>
                   )}
                 </h3>
               </div>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="text-sm text-text-secondary">
                     Gerçekleşen K/Z {timeRange !== 'custom' || !startDate || !endDate ? '(Seçili Dönem)' : ''}:
                   </span>
-                  <span className={`font-semibold ${realizedProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                  <span className={`font-semibold ${realizedProfit >= 0 ? 'text-success-500' : 'text-error-500'}`}>
                     {realizedProfit >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(realizedProfit))}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Gerçekleşmemiş K/Z:</span>
-                  <span className={`font-semibold ${unrealizedProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                  <span className={`font-semibold ${unrealizedProfit >= 0 ? 'text-success-500' : 'text-error-500'}`}>
                     {unrealizedProfit >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(unrealizedProfit))}
                   </span>
                 </div>
                 {timeRange === 'custom' && startDate && endDate && (
-                  <div className="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-gray-700">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Toplam Gerçekleşen K/Z:</span>
-                    <span className={`font-semibold ${realizedProfitTotal >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                  <div className="flex justify-between items-center pt-2 border-t border-border">
+                    <span className="text-sm text-text-secondary">Toplam Gerçekleşen K/Z:</span>
+                    <span className={`font-semibold ${realizedProfitTotal >= 0 ? 'text-success-500' : 'text-error-500'}`}>
                       {realizedProfitTotal >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(realizedProfitTotal))}
                     </span>
                   </div>
                 )}
-                <div className="pt-3 border-t border-gray-100 dark:border-gray-700">
+                <div className="pt-3 border-t border-border">
                   <div className="flex justify-between items-center">
-                    <span className="font-medium text-gray-900 dark:text-white">
+                    <span className="font-medium text-text-primary">
                       {timeRange === 'custom' && startDate && endDate ? 'Dönem Kar/Zarar:' : 'Kar/Zarar:'}
                     </span>
-                    <span className={`font-bold text-lg ${netProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    <span className={`font-bold text-lg ${netProfit >= 0 ? 'text-success-500' : 'text-error-500'}`}>
                       {netProfit >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(netProfit))}
                     </span>
                   </div>
@@ -618,13 +618,13 @@ export default function Analytics() {
             {/* Performance Metrics */}
             <Card className="p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-gray-900 dark:text-white flex items-center">
+                <h3 className="font-semibold text-text-primary flex items-center">
                   Performans Metrikleri
                 </h3>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-text-secondary">
                     Aktif Pozisyon
                     {timeRange === 'custom' && startDate && endDate && ' (Genel)'}
                     {timeRange === 'daily' && ' (Genel)'}
@@ -632,49 +632,49 @@ export default function Analytics() {
                   </p>
                   <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{positions.length}</p>
                   {(timeRange === 'custom' && startDate && endDate) || timeRange === 'daily' || timeRange === 'monthly' ? (
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-xs text-text-tertiary">
                       Dönem: {filteredActivePositions.length}
                     </p>
                   ) : null}
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-text-secondary">
                     Kapatılan Pozisyon
                     {timeRange === 'custom' && startDate && endDate && ' (Dönem)'}
                     {timeRange === 'daily' && ' (Bugün)'}
                     {timeRange === 'monthly' && ' (Bu Ay)'}
                   </p>
-                  <p className="text-2xl font-bold text-gray-600 dark:text-gray-300">
+                  <p className="text-2xl font-bold text-text-secondary">
                     {filteredClosedPositions.length}
                   </p>
                   {timeRange === 'custom' && startDate && endDate && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-xs text-text-tertiary">
                       Toplam: {closedPositions.length}
                     </p>
                   )}
                 </div>
               </div>
-              <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+              <div className="mt-4 pt-4 border-t border-border">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-text-secondary">
                       Kazanan İşlem
                       {timeRange === 'custom' && startDate && endDate && ' (Dönem)'}
                       {timeRange === 'daily' && ' (Bugün)'}
                       {timeRange === 'monthly' && ' (Bu Ay)'}
                     </p>
-                    <p className="text-lg font-semibold text-green-600 dark:text-green-400">
+                    <p className="text-lg font-semibold text-success-500">
                       {filteredClosedPositions.filter(p => parseFloat(p.pl) > 0).length}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-text-secondary">
                       Kaybeden İşlem
                       {timeRange === 'custom' && startDate && endDate && ' (Dönem)'}
                       {timeRange === 'daily' && ' (Bugün)'}
                       {timeRange === 'monthly' && ' (Bu Ay)'}
                     </p>
-                    <p className="text-lg font-semibold text-red-600 dark:text-red-400">
+                    <p className="text-lg font-semibold text-error-500">
                       {filteredClosedPositions.filter(p => parseFloat(p.pl) < 0).length}
                     </p>
                   </div>
@@ -690,41 +690,41 @@ export default function Analytics() {
 
               const PLBadge = ({ value }: { value: number }) => (
                 <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mt-1 ${value >= 0
-                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                    : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                    ? 'bg-success-100 text-success-500'
+                    : 'bg-error-100 text-error-500'
                   }`}>
                   {value >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(value))}
                 </span>
               );
 
               const CountBadge = ({ count }: { count: number }) => (
-                <span className="bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-[10px] font-bold px-2 py-0.5 rounded-full ring-1 ring-gray-200 dark:ring-gray-700">
+                <span className="bg-subtle text-text-secondary text-[10px] font-bold px-2 py-0.5 rounded-full ring-1 ring-border">
                   {count}
                 </span>
               );
 
               return (
-                <Card className="p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                <Card className="p-4 bg-card border-border">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                    <h3 className="font-semibold text-text-primary">
                       Kar/Zarar Dağılımı
                     </h3>
                   </div>
 
-                  <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                  <div className="divide-y divide-border">
 
                     {/* BIST Row */}
                     <div className="flex items-stretch py-4 gap-4">
                       <div className="flex-1 min-0 space-y-0.5">
                         <div className="flex items-center gap-2 mb-1">
-                          <p className="text-sm font-semibold text-gray-900 dark:text-white">Hisse Senedi (BIST)</p>
+                          <p className="text-sm font-semibold text-text-primary">Hisse Senedi (BIST)</p>
                           <CountBadge count={stockPositions.length} />
                         </div>
-                        <p className="text-base font-bold text-gray-900 dark:text-white">₺{formatTurkishPrice(stockValue)}</p>
+                        <p className="text-base font-bold text-text-primary">₺{formatTurkishPrice(stockValue)}</p>
                       </div>
-                      <div className="w-px bg-gray-100 dark:bg-gray-700 self-stretch" />
+                      <div className="w-px bg-border self-stretch" />
                       <div className="text-right min-w-[120px] space-y-0.5 flex flex-col justify-center">
-                        <p className={`text-base font-bold ${stockPL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        <p className={`text-base font-bold ${stockPL >= 0 ? 'text-success-500' : 'text-error-500'}`}>
                           {stockPL >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(stockPL))}
                         </p>
                         <div className="flex justify-end"><PLBadge value={stockPLPercent} /></div>
@@ -736,20 +736,20 @@ export default function Analytics() {
                       <div className="flex items-stretch py-4 gap-4">
                         <div className="flex-1 min-w-0 space-y-0.5">
                           <div className="flex items-center gap-2 mb-1">
-                            <p className="text-sm font-semibold text-gray-900 dark:text-white">Yabancı Hisse (ABD)</p>
+                            <p className="text-sm font-semibold text-text-primary">Yabancı Hisse (ABD)</p>
                             <CountBadge count={usStockPositions.length} />
                           </div>
-                          <p className="text-base font-bold text-gray-900 dark:text-white">${formatTurkishPrice(usStockValueUSD)}</p>
-                          <p className="text-xs text-gray-400 dark:text-gray-500">
+                          <p className="text-base font-bold text-text-primary">${formatTurkishPrice(usStockValueUSD)}</p>
+                          <p className="text-xs text-text-tertiary">
                             ₺{formatTurkishPrice(usStockValue)} · @{formatTurkishPrice(usdRate)}
                           </p>
                         </div>
-                        <div className="w-px bg-gray-100 dark:bg-gray-700 self-stretch" />
+                        <div className="w-px bg-border self-stretch" />
                         <div className="text-right min-w-[120px] space-y-0.5 flex flex-col justify-center">
-                          <p className={`text-base font-bold ${usStockPLUSD >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                            {usStockPLUSD >= 0 ? '+' : '-'}${formatTurkishPrice(Math.abs(usStockPLUSD))}
+                          <p className={`text-base font-bold ${usStockPLUSD >= 0 ? 'text-success-500' : 'text-error-500'}`}>
+                            {usStockPLUSD >= 0 ? '+' : '-'} ${formatTurkishPrice(Math.abs(usStockPLUSD))}
                           </p>
-                          <p className={`text-xs ${usStockPL >= 0 ? 'text-green-500 dark:text-green-500' : 'text-red-400 dark:text-red-500'}`}>
+                          <p className={`text-xs ${usStockPL >= 0 ? 'text-success-500' : 'text-error-500'}`}>
                             {usStockPL >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(usStockPL))}
                           </p>
                           <div className="flex justify-end"><PLBadge value={usStockPLPercent} /></div>
@@ -761,14 +761,14 @@ export default function Analytics() {
                     <div className="flex items-stretch py-4 gap-4">
                       <div className="flex-1 min-w-0 space-y-0.5">
                         <div className="flex items-center gap-2 mb-1">
-                          <p className="text-sm font-semibold text-gray-900 dark:text-white">Fon</p>
+                          <p className="text-sm font-semibold text-text-primary">Fon</p>
                           <CountBadge count={fundPositions.length} />
                         </div>
-                        <p className="text-base font-bold text-gray-900 dark:text-white">₺{formatTurkishPrice(fundValue)}</p>
+                        <p className="text-base font-bold text-text-primary">₺{formatTurkishPrice(fundValue)}</p>
                       </div>
-                      <div className="w-px bg-gray-100 dark:bg-gray-700 self-stretch" />
+                      <div className="w-px bg-border self-stretch" />
                       <div className="text-right min-w-[120px] space-y-0.5 flex flex-col justify-center">
-                        <p className={`text-base font-bold ${fundPL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        <p className={`text-base font-bold ${fundPL >= 0 ? 'text-success-500' : 'text-error-500'}`}>
                           {fundPL >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(fundPL))}
                         </p>
                         <div className="flex justify-end"><PLBadge value={fundPLPercent} /></div>
@@ -781,9 +781,9 @@ export default function Analytics() {
             })()}
 
             {/* Asset Allocation Chart */}
-            <Card className="p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+            <Card className="p-4 bg-card border-border">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-gray-900 dark:text-white flex items-center">
+                <h3 className="font-semibold text-text-primary flex items-center">
                   Varlık Dağılımı
                 </h3>
               </div>
@@ -798,7 +798,7 @@ export default function Analytics() {
                         fill="none"
                         strokeWidth="16"
                         strokeLinecap="round"
-                        style={{ stroke: '#D3DADA' }}
+                        style={{ stroke: '#E5E7EB' }}
                       />
 
                       {/* Stock allocation arc */}
@@ -810,7 +810,7 @@ export default function Analytics() {
                           strokeLinecap="round"
                           strokeDasharray={`${(stockPercentage / 100) * 251.3} 251.3`}
                           strokeDashoffset="0"
-                          style={{ stroke: '#4C7DFF' }}
+                          style={{ stroke: '#3B82F6' }}
                         />
                       )}
 
@@ -823,7 +823,7 @@ export default function Analytics() {
                           strokeLinecap="round"
                           strokeDasharray={`${(usStockPercentage / 100) * 251.3} 251.3`}
                           strokeDashoffset={`${-(stockPercentage / 100) * 251.3}`}
-                          style={{ stroke: '#9B6BFF' }}
+                          style={{ stroke: '#8B5CF6' }}
                         />
                       )}
 
@@ -836,53 +836,53 @@ export default function Analytics() {
                           strokeLinecap="round"
                           strokeDasharray={`${(fundPercentage / 100) * 251.3} 251.3`}
                           strokeDashoffset={`${-((stockPercentage + usStockPercentage) / 100) * 251.3}`}
-                          style={{ stroke: '#2FA36B' }}
+                          style={{ stroke: '#10B981' }}
                         />
                       )}
                     </svg>
 
                     {/* Center text - positioned better for half donut */}
                     <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 text-center mb-2">
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Toplam Değer</p>
-                      <p className="text-xl font-bold text-gray-900 dark:text-white">₺{formatTurkishPrice(totalValue)}</p>
+                      <p className="text-sm text-text-secondary mb-1">Toplam Değer</p>
+                      <p className="text-xl font-bold text-text-primary">₺{formatTurkishPrice(totalValue)}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Legend */}
-                <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                <div className="divide-y divide-border">
                   <div className="flex items-center justify-between py-3">
                     <div className="flex items-center">
-                      <div className="w-3 h-3 bg-blue-500 dark:bg-blue-400 rounded-full mr-2"></div>
-                      <span className="text-sm text-gray-700 dark:text-gray-300">Hisse Senedi (BIST)</span>
+                      <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                      <span className="text-sm text-text-secondary">Hisse Senedi (BIST)</span>
                     </div>
                     <div className="flex flex-col items-end">
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">{formatTurkishPercent(stockPercentage)}</span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">₺{formatTurkishPrice(stockValue)}</span>
+                      <span className="text-sm font-semibold text-text-primary">{formatTurkishPercent(stockPercentage)}</span>
+                      <span className="text-xs text-text-tertiary">₺{formatTurkishPrice(stockValue)}</span>
                     </div>
                   </div>
 
                   {usStockPositions.length > 0 && (
                     <div className="flex items-center justify-between py-3">
                       <div className="flex items-center">
-                        <div className="w-3 h-3 bg-purple-500 dark:bg-purple-400 rounded-full mr-2"></div>
-                        <span className="text-sm text-gray-700 dark:text-gray-300">Yabancı Hisse (ABD)</span>
+                        <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
+                        <span className="text-sm text-text-secondary">Yabancı Hisse (ABD)</span>
                       </div>
                       <div className="flex flex-col items-end">
-                        <span className="text-sm font-semibold text-gray-900 dark:text-white">{formatTurkishPercent(usStockPercentage)}</span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">₺{formatTurkishPrice(usStockValue)}</span>
+                        <span className="text-sm font-semibold text-text-primary">{formatTurkishPercent(usStockPercentage)}</span>
+                        <span className="text-xs text-text-tertiary">₺{formatTurkishPrice(usStockValue)}</span>
                       </div>
                     </div>
                   )}
 
                   <div className="flex items-center justify-between py-3">
                     <div className="flex items-center">
-                      <div className="w-3 h-3 bg-green-500 dark:bg-green-400 rounded-full mr-2"></div>
-                      <span className="text-sm text-gray-700 dark:text-gray-300">Fon</span>
+                      <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                      <span className="text-sm text-text-secondary">Fon</span>
                     </div>
                     <div className="flex flex-col items-end">
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">{formatTurkishPercent(fundPercentage)}</span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">₺{formatTurkishPrice(fundValue)}</span>
+                      <span className="text-sm font-semibold text-text-primary">{formatTurkishPercent(fundPercentage)}</span>
+                      <span className="text-xs text-text-tertiary">₺{formatTurkishPrice(fundValue)}</span>
                     </div>
                   </div>
                 </div>
@@ -894,10 +894,10 @@ export default function Analytics() {
               {/* SHARED Glow Background for the entire Hub */}
               <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-2xl blur-2xl opacity-50 group-hover:opacity-100 transition duration-1000 animate-pulse" />
               
-              <Card className="relative z-10 overflow-hidden border-gray-100 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-xl">
+              <Card className="relative z-10 overflow-hidden border-border bg-card/80 backdrop-blur-sm shadow-xl">
                 {/* Top Section: AI Trigger */}
                 <div 
-                  className="p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                  className="p-4 cursor-pointer hover:bg-subtle transition-colors"
                   onClick={handleAiAnalyze}
                 >
                   <div className="flex items-center justify-between relative z-10">
@@ -906,24 +906,24 @@ export default function Analytics() {
                         <LuSparkles className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-gray-900 dark:text-white">Yapay Zeka Görüşü</h3>
+                        <h3 className="font-bold text-text-primary">Yapay Zeka Görüşü</h3>
                       </div>
                     </div>
-                    <div className="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
-                      <ChevronRight className="w-5 h-5 text-gray-400" />
+                    <div className="w-8 h-8 rounded-full bg-subtle flex items-center justify-center">
+                      <ChevronRight className="w-5 h-5 text-text-tertiary" />
                     </div>
                   </div>
                 </div>
 
                 {/* Integrated Divider */}
-                <div className="border-t border-gray-100 dark:border-gray-800" />
+                <div className="border-t border-border" />
 
                 {/* Bottom Section: Past Analyses */}
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                      <History className="w-4 h-4 text-gray-400" />
-                      <h4 className="font-bold text-gray-700 dark:text-gray-300 text-sm">Geçmiş Analizler</h4>
+                      <History className="w-4 h-4 text-text-tertiary" />
+                      <h4 className="font-bold text-text-secondary text-sm">Geçmiş Analizler</h4>
                     </div>
                     {aiHistory.length > 0 && (
                       <AlertDialog>
@@ -931,7 +931,7 @@ export default function Analytics() {
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            className="text-gray-400 hover:text-red-500 transition-colors h-7 w-7 p-0"
+                            className="text-text-tertiary hover:text-error-500 transition-colors h-7 w-7 p-0"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>
@@ -947,7 +947,7 @@ export default function Analytics() {
                             <AlertDialogCancel>İptal</AlertDialogCancel>
                             <AlertDialogAction 
                               onClick={() => deleteHistoryMutation.mutate()}
-                              className="bg-red-500 hover:bg-red-600 focus:ring-red-500"
+                              className="bg-error-500 hover:bg-error-500/90"
                             >
                               Sil
                             </AlertDialogAction>
@@ -962,13 +962,13 @@ export default function Analytics() {
                       .filter(h => h.role === 'model')
                       .slice(0, showAllHistory ? undefined : 3)
                       .map((history) => (
-                        <div key={history.id} className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700/50 hover:border-indigo-100 dark:hover:border-indigo-900/40 transition-colors">
+                        <div key={history.id} className="p-3 bg-subtle rounded-xl border border-border hover:border-primary-100 transition-colors">
                           <div className="flex items-start justify-between">
                             <div className="flex-1 min-w-0">
-                              <p className="text-[10px] text-muted-foreground mb-1">
+                              <p className="text-[10px] text-text-tertiary mb-1">
                                 {new Date(history.timestamp!).toLocaleString('tr-TR')}
                               </p>
-                              <p className="text-xs text-gray-700 dark:text-gray-300 line-clamp-2 leading-relaxed">
+                              <p className="text-xs text-text-secondary line-clamp-2 leading-relaxed">
                                 {history.content}
                               </p>
                             </div>
@@ -976,7 +976,7 @@ export default function Analytics() {
                               setAiMessage(""); 
                               setIsAiDrawerOpen(true);
                             }}>
-                              <ChevronRight className="w-3.5 h-3.5" />
+                              <ChevronRight className="w-3.5 h-3.5 text-text-tertiary" />
                             </Button>
                           </div>
                         </div>
@@ -986,7 +986,7 @@ export default function Analytics() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="w-full text-[11px] text-indigo-600 dark:text-indigo-400 font-medium py-1.5 hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
+                        className="w-full text-[11px] text-primary-600 font-medium py-1.5 hover:bg-primary-50"
                         onClick={() => setShowAllHistory(!showAllHistory)}
                       >
                         {showAllHistory ? (
@@ -998,8 +998,8 @@ export default function Analytics() {
                     )}
                     
                     {aiHistory.length === 0 && !historyLoading && (
-                      <div className="text-center py-6 bg-gray-50/50 dark:bg-gray-800/20 rounded-xl border border-dashed border-gray-200 dark:border-gray-800">
-                        <p className="text-[11px] text-gray-400">Henüz bir analiz yapılmadı.</p>
+                      <div className="text-center py-6 bg-subtle rounded-xl border border-dashed border-border">
+                        <p className="text-[11px] text-text-tertiary">Henüz bir analiz yapılmadı.</p>
                       </div>
                     )}
                   </div>
@@ -1018,11 +1018,11 @@ export default function Analytics() {
             className="fixed bottom-0 left-0 right-0 z-[70] flex flex-col outline-none transition-[height] duration-200"
             style={{ height: isAiDrawerOpen ? `${viewportHeight * 0.85}px` : 'auto', maxHeight: '85dvh' }}
           >
-            <div className="flex-1 bg-white dark:bg-gray-900 rounded-t-[20px] flex flex-col overflow-hidden p-4">
-              <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300 dark:bg-gray-700 mb-6" />
+            <div className="flex-1 bg-card rounded-t-[20px] flex flex-col overflow-hidden p-4">
+              <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-border mb-6" />
               
               <div className="flex items-center justify-between mb-4">
-                <Drawer.Title className="text-lg font-bold flex items-center gap-2">
+                <Drawer.Title className="text-lg font-bold flex items-center gap-2 text-text-primary">
                   <LuSparkles className="text-indigo-600" />
                   Yapay Zeka Analisti
                 </Drawer.Title>
@@ -1033,8 +1033,8 @@ export default function Analytics() {
                   <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
                     <Loader2 className="w-10 h-10 text-indigo-500 animate-spin" />
                     <div>
-                      <p className="font-semibold text-gray-900 dark:text-white">Portföyünüz Analiz Ediliyor...</p>
-                      <p className="text-sm text-gray-500 italic">Varlıklarınız ve performansınız Gemini 2.5 Flash ile inceleniyor.</p>
+                      <p className="font-semibold text-text-primary">Portföyünüz Analiz Ediliyor...</p>
+                      <p className="text-sm text-text-tertiary italic">Varlıklarınız ve performansınız Gemini 2.5 Flash ile inceleniyor.</p>
                     </div>
                   </div>
                 ) : (
@@ -1046,8 +1046,8 @@ export default function Analytics() {
                       >
                         <div className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-sm ${
                           msg.role === 'user' 
-                            ? 'bg-indigo-600 text-white rounded-tr-none' 
-                            : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-tl-none border border-gray-200 dark:border-gray-700'
+                             ? 'bg-indigo-600 text-white rounded-tr-none'
+                            : 'bg-subtle text-text-primary rounded-tl-none border border-border'
                         }`}>
                           <div className="text-sm whitespace-pre-wrap leading-relaxed">
                             {msg.content}
@@ -1060,7 +1060,7 @@ export default function Analytics() {
                     ))}
                     {analyzeMutation.isPending && aiHistory.length > 0 && (
                       <div className="flex justify-start">
-                        <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-tl-none px-4 py-3 border border-gray-200 dark:border-gray-700">
+                        <div className="bg-subtle rounded-2xl rounded-tl-none px-4 py-3 border border-border">
                           <Loader2 className="w-5 h-5 text-indigo-500 animate-spin" />
                         </div>
                       </div>
@@ -1071,14 +1071,14 @@ export default function Analytics() {
               </div>
 
               {/* Chat Input Area */}
-              <div className="pt-4 pb-[env(safe-area-inset-bottom,16px)] border-t border-gray-100 dark:border-gray-800">
+              <div className="pt-4 pb-[env(safe-area-inset-bottom,16px)] border-t border-border">
                 <form onSubmit={handleSendMessage} className="flex gap-2 relative">
                   <Input 
                     placeholder="Analiz hakkında soru sor..."
                     value={aiMessage}
                     onChange={(e) => setAiMessage(e.target.value)}
                     disabled={analyzeMutation.isPending}
-                    className="flex-1 pr-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 focus:ring-indigo-500"
+                    className="flex-1 pr-12 h-12 rounded-xl bg-subtle border-border focus:ring-indigo-500"
                   />
                   <Button 
                     type="submit" 

@@ -23,12 +23,12 @@ export function DrawerModal({
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/40 dark:bg-black/60 z-[60]" />
         <Drawer.Content
-          className="bg-card flex flex-col rounded-t-[20px] fixed bottom-0 left-0 right-0 z-[60] outline-none max-h-[96vh] overflow-y-auto"
+          className="bg-card flex flex-col rounded-t-[20px] fixed bottom-0 left-0 right-0 z-[60] outline-none max-h-[96dvh] overflow-hidden"
         >
           {/* Swipe Handle */}
-          <div className="w-10 h-1.5 bg-muted rounded-full mx-auto mt-3 mb-4" />
+          <div className="w-10 h-1.5 bg-muted rounded-full mx-auto mt-3 mb-4 flex-shrink-0" />
           
-          <div className="px-4 pb-3 border-b border-gray-100 dark:border-gray-800 relative">
+          <div className="px-4 pb-3 border-b border-gray-100 dark:border-gray-800 relative flex-shrink-0">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white pr-8">{title}</h2>
             {description && (
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">{description}</p>
@@ -43,7 +43,7 @@ export function DrawerModal({
             </Button>
           </div>
 
-          <div className="p-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] outline-none">
+          <div className="overflow-y-auto flex-1 p-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] outline-none">
             {children}
           </div>
         </Drawer.Content>
