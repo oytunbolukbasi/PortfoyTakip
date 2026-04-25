@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Position } from "@shared/schema";
 import { DrawerModal } from "./drawer-modal";
 import { RefreshCw } from "lucide-react";
+import { Button } from "./button";
 import { useToast } from "@/hooks/use-toast";
 import { formatTurkishPrice, formatTurkishPercent, formatFundPrice, formatPositionPrice, formatPositionValue } from "@/lib/format";
 
@@ -63,7 +64,8 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
       });
 
       if (!response.ok) {
-        throw new Error('Fiyat güncelleme başarısız');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Fiyat güncelleme başarısız');
       }
 
       toast({
@@ -72,11 +74,11 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
       });
 
       onUpdate();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Price refresh error:', error);
       toast({
         title: "Hata",
-        description: "Fiyat güncellenirken bir hata oluştu",
+        description: error.message || "Fiyat güncellenirken bir hata oluştu",
         variant: "destructive",
       });
     } finally {
@@ -178,31 +180,35 @@ export function PositionDetailModal({ position, open, onOpenChange, onUpdate }: 
             </div>
             <div className="flex items-center justify-between px-5 py-4">
               <span className="text-sm text-text-secondary">Güncel Fiyat</span>
-              <div className="flex flex-col items-end gap-1">
-                <span className="text-sm font-semibold text-text-primary">
-                  {currentPriceFormatted}
-                </span>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-[10px] text-text-tertiary">
-                    {position.lastUpdated ? new Date(position.lastUpdated).toLocaleString('tr-TR', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    }) : updateTime}
-                  </span>
-                  <button
-                    onClick={handleRefreshPrice}
-                    disabled={isRefreshingPrice}
-                    className="flex items-center gap-1 text-[10px] text-primary-500 font-medium hover:underline disabled:opacity-50"
-                  >
-                    <RefreshCw className={`h-3 w-3 ${isRefreshingPrice ? 'animate-spin' : ''}`} />
-                    Fiyatı Güncelle
-                  </button>
-                </div>
-              </div>
+              <span className="text-sm font-semibold text-text-primary">
+                {currentPriceFormatted}
+              </span>
             </div>
+          </div>
+        </div>
+
+        {/* Price Update Action */}
+        <div className="space-y-3">
+          <Button
+            onClick={handleRefreshPrice}
+            disabled={isRefreshingPrice}
+            variant="ghost"
+            className="w-full py-6 bg-subtle hover:bg-border text-text-primary rounded-2xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+          >
+            <RefreshCw className={`h-5 w-5 ${isRefreshingPrice ? 'animate-spin' : ''}`} strokeWidth={2.5} />
+            {isRefreshingPrice ? 'Güncelleniyor...' : 'Fiyatı Güncelle'}
+          </Button>
+          
+          <div className="text-center">
+            <span className="text-[11px] text-text-tertiary">
+              Son Güncelleme: {position.lastUpdated ? new Date(position.lastUpdated).toLocaleString('tr-TR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              }) : updateTime}
+            </span>
           </div>
         </div>
       </div>

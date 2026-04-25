@@ -135,18 +135,18 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
             <div className="space-y-4 overflow-y-auto max-h-[65dvh] px-1 pb-10">
             {/* Asset Type Selection */}
             <div>
-              <FormLabel className="text-sm font-medium text-gray-900 dark:text-white mb-3 block">
+              <FormLabel className="text-sm font-medium text-text-primary mb-3 block">
                 Varlık Türü
               </FormLabel>
-              <div className="bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
+              <div className="bg-subtle p-1 rounded-xl">
                 <div className="grid grid-cols-3 gap-1">
                   <Button
                     type="button"
                     variant="ghost"
                     className={`py-2.5 px-4 rounded-lg font-semibold text-sm transition-all duration-200 ${
                       assetType === 'stock' 
-                        ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-md border border-blue-200 dark:border-blue-700/50' 
-                        : 'text-gray-500 dark:text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750'
+                        ? 'bg-card text-primary-500 shadow-md border border-primary-500/20' 
+                        : 'text-text-secondary hover:text-text-primary hover:bg-card/50'
                     }`}
                     onClick={() => {
                       setAssetType('stock');
@@ -160,8 +160,8 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                     variant="ghost"
                     className={`py-2.5 px-4 rounded-lg font-semibold text-sm transition-all duration-200 ${
                       assetType === 'fund' 
-                        ? 'bg-white dark:bg-gray-700 text-green-600 dark:text-green-400 shadow-md border border-green-200 dark:border-green-700/50' 
-                        : 'text-gray-500 dark:text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750'
+                        ? 'bg-card text-success-500 shadow-md border border-success-500/20' 
+                        : 'text-text-secondary hover:text-text-primary hover:bg-card/50'
                     }`}
                     onClick={() => {
                       setAssetType('fund');
@@ -175,8 +175,8 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                     variant="ghost"
                     className={`py-2.5 px-4 rounded-lg font-semibold text-sm transition-all duration-200 ${
                       assetType === 'us_stock' 
-                        ? 'bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-400 shadow-md border border-purple-200 dark:border-purple-700/50' 
-                        : 'text-gray-500 dark:text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750'
+                        ? 'bg-card text-insight shadow-md border border-insight/20' 
+                        : 'text-text-secondary hover:text-text-primary hover:bg-card/50'
                     }`}
                     onClick={() => {
                       setAssetType('us_stock');
@@ -195,7 +195,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
               name="symbol"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-900 dark:text-white">Varlık Kodu</FormLabel>
+                  <FormLabel className="text-text-primary">Varlık Kodu</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -215,7 +215,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-900 dark:text-white">Varlık Adı (Opsiyonel)</FormLabel>
+                  <FormLabel className="text-text-primary">Varlık Adı (Opsiyonel)</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -234,7 +234,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
               name="quantity"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-900 dark:text-white">{assetType === 'fund' ? 'Pay Adedi' : 'Adet'}</FormLabel>
+                  <FormLabel className="text-text-primary">{assetType === 'fund' ? 'Pay Adedi' : 'Adet'}</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -263,7 +263,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
               name="buyPrice"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-900 dark:text-white">Alış Fiyatı ({assetType === 'us_stock' ? '$' : '₺'})</FormLabel>
+                  <FormLabel className="text-text-primary">Alış Fiyatı ({assetType === 'us_stock' ? '$' : '₺'})</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -293,7 +293,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
               name="buyDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-900 dark:text-white">Alış Tarihi</FormLabel>
+                  <FormLabel className="text-text-primary">Alış Tarihi</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -312,10 +312,10 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
 
             {/* Submit Button */}
             <div 
-              className="px-4 pt-4 -mx-4 mt-2 bg-white dark:bg-card border-t border-gray-100 dark:border-gray-800 sticky bottom-[-max(1.5rem,env(safe-area-inset-bottom))] z-10"
+              className="px-4 pt-4 -mx-4 mt-2 bg-card border-t border-border sticky bottom-[-max(1.5rem,env(safe-area-inset-bottom))] z-10"
               style={{
                 marginBottom: 'calc(-1 * max(1.5rem, env(safe-area-inset-bottom)))',
-                paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)'
+                paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)'
               }}
             >
               <Button 

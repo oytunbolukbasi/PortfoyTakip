@@ -43,7 +43,7 @@ export function DrawerModal({
             </Button>
           </div>
 
-          <div className="overflow-y-auto flex-1 p-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] outline-none">
+          <div className="overflow-y-auto flex-1 p-4 pb-[max(1.5rem,calc(env(safe-area-inset-bottom)+1.5rem))] outline-none">
             {children}
           </div>
         </Drawer.Content>

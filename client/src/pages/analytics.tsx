@@ -335,10 +335,13 @@ export default function Analytics() {
           <Button
             variant="ghost"
             size="sm"
-            className="p-3 text-primary hover:bg-primary/10 rounded-full"
+            className="p-3 text-text-secondary hover:text-primary-500 active:scale-95 rounded-full transition-all duration-200"
             onClick={toggleTheme}
           >
-            {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+            {theme === 'light' 
+              ? <Moon className="w-6 h-6" strokeWidth={2.5} /> 
+              : <Sun className="w-6 h-6" strokeWidth={2.5} />
+            }
           </Button>
         </div>
       </header>
@@ -589,7 +592,7 @@ export default function Analytics() {
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Gerçekleşmemiş K/Z:</span>
+                  <span className="text-sm text-text-secondary">Gerçekleşmemiş K/Z:</span>
                   <span className={`font-semibold ${unrealizedProfit >= 0 ? 'text-success-500' : 'text-error-500'}`}>
                     {unrealizedProfit >= 0 ? '+' : '-'}₺{formatTurkishPrice(Math.abs(unrealizedProfit))}
                   </span>
@@ -616,7 +619,7 @@ export default function Analytics() {
             </Card>
 
             {/* Performance Metrics */}
-            <Card className="p-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+            <Card className="p-4 bg-card border-border">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-text-primary flex items-center">
                   Performans Metrikleri
@@ -630,7 +633,7 @@ export default function Analytics() {
                     {timeRange === 'daily' && ' (Genel)'}
                     {timeRange === 'monthly' && ' (Genel)'}
                   </p>
-                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{positions.length}</p>
+                  <p className="text-2xl font-bold text-primary-500">{positions.length}</p>
                   {(timeRange === 'custom' && startDate && endDate) || timeRange === 'daily' || timeRange === 'monthly' ? (
                     <p className="text-xs text-text-tertiary">
                       Dönem: {filteredActivePositions.length}

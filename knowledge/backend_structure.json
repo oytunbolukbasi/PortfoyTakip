@@ -1,0 +1,47 @@
+{
+  "architecture": {
+    "entry_point": "server/index.ts (Express server, price monitor initializer)",
+    "routing": "server/routes.ts (API endpoints, user auth, position management, AI bridge)",
+    "database": {
+      "orm": "Drizzle ORM",
+      "connection": "server/db.ts (PostgreSQL connection via Neon Serverless)",
+      "storage_layer": "server/storage.ts (DatabaseStorage class for CRUD operations)",
+      "schema": "@shared/schema.ts (users, positions, closedPositions, priceHistory, aiChatHistory)"
+    },
+    "services": {
+      "price_service": "server/services/price-service.ts (Core logic for Google Sheets, TEFAS API, Fintables Scraper)",
+      "price_monitor": "server/services/price-monitor.ts (15m intervals for stocks, CRON jobs for funds)",
+      "cache_layer": "server/services/fund-price-cache.ts (In-memory cache for TEFAS fund prices)",
+      "ai_analysis": "server/prompt.ts (System instructions for Gemini 1.5 Flash portfolio insights)"
+    }
+  },
+  "methodology_logic": {
+    "bist_stock_logic": {
+      "primary": "Google Sheets JSON API (via Apps Script)",
+      "fallback": "Current price from DB (positions.currentPrice) or null",
+      "update_frequency": "15 minutes",
+      "registration": "Auto-sends IST:SYMBOL to Sheets Webhook on creation"
+    },
+    "us_stock_logic": {
+      "primary": "Google Sheets JSON API (via Apps Script)",
+      "currency_conversion": "Frankfurter API (USD -> TRY) with 34.25 fallback",
+      "fallback": "Current price from DB (positions.currentPrice) or null",
+      "update_frequency": "15 minutes",
+      "registration": "Auto-sends NASDAQ:SYMBOL to Sheets Webhook on creation"
+    },
+    "tefas_fund_logic": {
+      "primary": "TEFAS BindHistoryInfo API (via ScraperAPI Proxy)",
+      "fallback_1": "Fintables Scraper (via ScraperAPI + Cheerio)",
+      "fallback_2": "Current price from DB (positions.currentPrice)",
+      "quota_protection": "Manual refreshes disabled; only updates via CRON at 09:00 and 10:00 TRT",
+      "caching": "Uses fund-price-cache.ts to minimize external hits"
+    }
+  },
+  "optimization_notes": {
+    "zero_mock_policy": "Fiyat bulunamazsa null dönülür, asla sahte/random fiyat üretilmez.",
+    "ios_pwa_ux": "Vaul DrawerModal kullanımı, visualViewport dinleyicileri ve safe-area-inset yönetimi.",
+    "ai_context": "Her mesajda tüm portföy snapshot'ı (JSON) sisteme enjekte edilir.",
+    "error_handling": "Fiyat hatasında AlertCircle ikonu gösterilir ve maliyet (buyPrice) üzerinden hesaplama devam eder."
+  },
+  "last_updated": "2026-04-25"
+}

@@ -112,29 +112,38 @@ export default function Portfolio() {
             <Button 
               variant="ghost" 
               size="sm" 
-              className="p-3 text-primary hover:bg-primary/10 rounded-full"
+              className="p-3 text-text-secondary hover:text-primary-500 active:scale-95 rounded-full transition-all duration-200"
               onClick={toggleTheme}
             >
-              {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+              {theme === 'light' 
+                ? <Moon className="w-6 h-6" strokeWidth={2.5} /> 
+                : <Sun className="w-6 h-6" strokeWidth={2.5} />
+              }
             </Button>
             <Button 
               variant="ghost" 
               size="sm" 
-              className="p-3 text-primary hover:bg-primary/10 rounded-full"
+              className="p-3 text-text-secondary hover:text-primary-500 active:scale-95 rounded-full transition-all duration-200"
               onClick={handleRefresh}
             >
-              <RefreshCw className="w-6 h-6" />
+              <RefreshCw className="w-6 h-6" strokeWidth={2.5} />
             </Button>
             <Button 
               variant="ghost" 
               size="sm" 
-              className="p-3 rounded-full text-primary bg-primary/10"
+              className={`p-3 rounded-full transition-all duration-200 active:scale-95 ${
+                viewMode !== 'card' 
+                  ? 'text-primary-500 bg-primary-100' 
+                  : 'text-text-secondary hover:bg-subtle'
+              }`}
               onClick={() => setViewMode(viewMode === 'card' ? 'table' : 'card')}
               title={viewMode === 'card' ? 'Liste Görünümü' : 'Kart Görünümü'}
             >
-              {viewMode === 'card' ? <LayoutGrid className="w-6 h-6" /> : <Table2 className="w-6 h-6" />}
+              {viewMode === 'card' 
+                ? <LayoutGrid className="w-6 h-6" strokeWidth={2.5} /> 
+                : <Table2 className="w-6 h-6" strokeWidth={2.5} />
+              }
             </Button>
-
           </div>
         </div>
       </header>

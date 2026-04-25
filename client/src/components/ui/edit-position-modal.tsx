@@ -127,15 +127,19 @@ export function EditPositionModal({
           />
         </div>
 
-        <div className="flex flex-col gap-2 pt-2">
-          <Button type="submit" disabled={loading} className="w-full py-3">
+        <div className="flex flex-col gap-2 pt-2 pb-6">
+          <Button 
+            type="submit" 
+            disabled={loading} 
+            className="w-full py-3 bg-primary-500 hover:bg-primary-400 text-white rounded-xl font-semibold transition-colors shadow-sm"
+          >
             {loading ? "Kaydediliyor…" : "Kaydet"}
           </Button>
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             onClick={() => onOpenChange(false)}
-            className="w-full py-3"
+            className="w-full py-3 bg-subtle hover:bg-border text-text-primary rounded-xl font-medium transition-colors"
           >
             İptal
           </Button>

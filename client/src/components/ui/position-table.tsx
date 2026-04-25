@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronUp, ChevronDown, Check, Pencil, Trash2, MoreHorizontal, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { FullScreenModal } from './full-screen-modal';
+import { DrawerModal } from './drawer-modal';
 import { EditPositionModal } from './edit-position-modal';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -205,7 +205,7 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
     <Button
       variant="ghost"
       size="sm"
-      className="h-auto p-0 font-medium text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 flex items-center gap-1"
+      className="h-auto p-0 font-medium text-xs text-text-tertiary hover:text-text-secondary flex items-center gap-1"
       onClick={() => handleSort(field)}
     >
       {children}
@@ -238,10 +238,10 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 mx-4 mb-3 overflow-hidden">
+    <div className="bg-card rounded-2xl shadow-sm border border-border mx-4 mb-3 overflow-hidden">
       {/* Item count indicator */}
-      <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-600">
-        <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+      <div className="px-4 py-2 bg-subtle border-b border-border">
+        <p className="text-xs text-text-tertiary font-medium">
           {positions.length} aktif pozisyon listeleniyor
         </p>
       </div>
@@ -258,45 +258,45 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
             <col className="w-[80px]" />  {/* K/Z % */}
             <col className="w-[80px]" />  {/* İşlemler */}
           </colgroup>
-          <thead className="bg-gray-50 dark:bg-gray-700/50">
+          <thead className="bg-subtle">
             <tr>
-              <th className="sticky left-0 bg-gray-50 dark:bg-gray-700/50 px-3 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider z-10 border-r border-gray-200 dark:border-gray-600">
+              <th className="sticky left-0 bg-subtle px-3 py-4 text-left text-xs font-medium text-text-tertiary uppercase tracking-wider z-10 border-r border-border">
                 <SortButton field="symbol">Varlık</SortButton>
               </th>
-              <th className="px-3 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-3 py-4 text-right text-xs font-medium text-text-tertiary uppercase tracking-wider">
                 <div className="flex justify-end"><SortButton field="quantity">Adet</SortButton></div>
               </th>
-              <th className="px-3 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-3 py-4 text-right text-xs font-medium text-text-tertiary uppercase tracking-wider">
                 <div className="flex justify-end"><SortButton field="buyPrice">Alış</SortButton></div>
               </th>
-              <th className="px-3 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-3 py-4 text-right text-xs font-medium text-text-tertiary uppercase tracking-wider">
                 <div className="flex justify-end"><SortButton field="currentPrice">Güncel</SortButton></div>
               </th>
-              <th className="px-3 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-3 py-4 text-right text-xs font-medium text-text-tertiary uppercase tracking-wider">
                 <div className="flex justify-end"><SortButton field="value">Değer</SortButton></div>
               </th>
-              <th className="px-3 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-3 py-4 text-right text-xs font-medium text-text-tertiary uppercase tracking-wider">
                 <div className="flex justify-end"><SortButton field="pl">K/Z</SortButton></div>
               </th>
-              <th className="px-3 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-3 py-4 text-right text-xs font-medium text-text-tertiary uppercase tracking-wider">
                 <div className="flex justify-end"><SortButton field="plPercent">K/Z %</SortButton></div>
               </th>
-              <th className="px-3 py-4 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-3 py-4 text-center text-xs font-medium text-text-tertiary uppercase tracking-wider">
                 İşlemler
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+          <tbody className="bg-card divide-y divide-border">
             {sortedPositions.map((position) => {
               const { pl, plPercent, value, currentPrice, plTRY } = calculatePL(position);
               
               return (
-                <tr
-                  key={position.id}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
-                  onClick={() => onRowClick(position)}
-                >
-                  <td className="sticky left-0 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 px-3 py-5 z-10 border-r border-gray-200 dark:border-gray-600">
+                  <tr
+                    key={position.id}
+                    className="hover:bg-subtle cursor-pointer transition-colors"
+                    onClick={() => onRowClick(position)}
+                  >
+                    <td className="sticky left-0 bg-card hover:bg-subtle px-3 py-5 z-10 border-r border-border">
                     <div className="flex items-center gap-1.5">
                       {position.currentPrice === null && (
                         <div title="Güncel fiyat alınamadı, maliyet baz alınıyor" className="text-warning-500">
@@ -304,27 +304,27 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
                         </div>
                       )}
                       <div>
-                        <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">{position.symbol}</div>
+                        <div className="text-sm font-semibold text-text-primary truncate">{position.symbol}</div>
                         {position.type === 'us_stock' && (
-                          <div className="text-xs text-purple-500 dark:text-purple-400 font-medium tracking-wide">ABD</div>
+                          <div className="text-xs text-primary-500 font-medium tracking-wide">ABD</div>
                         )}
                       </div>
                     </div>
                   </td>
-                  <td className="px-3 py-5 text-right text-sm text-gray-900 dark:text-white whitespace-nowrap">
+                  <td className="px-3 py-5 text-right text-sm text-text-primary whitespace-nowrap">
                     {parseFloat(position.quantity).toLocaleString('tr-TR', { maximumFractionDigits: 10 })}
                   </td>
-                  <td className="px-3 py-5 text-right text-sm text-gray-900 dark:text-white whitespace-nowrap">
+                  <td className="px-3 py-5 text-right text-sm text-text-primary whitespace-nowrap">
                     {formatPositionPrice(parseFloat(position.buyPrice), position.type)}
                   </td>
-                  <td className="px-3 py-5 text-right text-sm text-gray-900 dark:text-white whitespace-nowrap">
+                  <td className="px-3 py-5 text-right text-sm text-text-primary whitespace-nowrap">
                     {formatPositionPrice(currentPrice, position.type)}
                   </td>
-                  <td className="px-3 py-5 text-right text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                  <td className="px-3 py-5 text-right text-sm font-medium text-text-primary whitespace-nowrap">
                     {formatPositionValue(value, position.type)}
                   </td>
                   <td className={`px-3 py-5 text-right text-sm font-medium whitespace-nowrap ${
-                    plTRY >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                    plTRY >= 0 ? 'text-success-500' : 'text-error-500'
                   }`}>
                     {position.type === 'us_stock' ? (
                       <div className="flex flex-col items-end">
@@ -336,7 +336,7 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
                     )}
                   </td>
                   <td className={`px-3 py-5 text-right text-sm font-medium whitespace-nowrap ${
-                    plPercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                    plPercent >= 0 ? 'text-success-500' : 'text-error-500'
                   }`}>
                     {plPercent >= 0 ? '+' : ''}{formatTurkishPercent(plPercent)}
                   </td>
@@ -347,7 +347,7 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
                           variant="ghost"
                           size="sm"
                           onClick={(e) => e.stopPropagation()}
-                          className="h-8 w-8 p-0 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          className="h-8 w-8 p-0 rounded-full text-text-tertiary hover:text-text-secondary hover:bg-subtle"
                         >
                           <MoreHorizontal className="h-6 w-6" />
                         </Button>
@@ -394,51 +394,62 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
       </div>
 
       {/* Close Position Modal */}
-      <FullScreenModal 
+      <DrawerModal 
         open={showCloseModal.show} 
-        onOpenChange={(open) => setShowCloseModal({ show: open, position: null })}
-        title={`Pozisyonu Kapat - ${showCloseModal.position?.symbol || ''}`}
-        description="Seçili pozisyonu satış fiyatı girerek kapatın"
+        onOpenChange={(open: boolean) => setShowCloseModal({ show: open, position: null })}
+        title="Pozisyonu Kapat"
+        description={`${showCloseModal.position?.symbol || ''} - Pozisyonu kapatmak için satış fiyatı girin.`}
       >
-        <div className="space-y-4">
-                <div>
-                  <Label htmlFor="sellPrice">Satış Fiyatı ({showCloseModal.position?.type === 'us_stock' ? '$' : '₺'})</Label>
-                  <Input
-                    id="sellPrice"
-                    type="text"
-                    value={sellPrice}
-                    onChange={(e) => {
-                      // Only allow digits and comma
-                      const value = e.target.value.replace(/[^\d,]/g, '');
-                      setSellPrice(value);
-                    }}
-                    placeholder="0,00"
-                    className="font-mono"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="sellDate">Satış Tarihi</Label>
-                  <Input
-                    id="sellDate"
-                    type="date"
-                    value={sellDate}
-                    onChange={(e) => setSellDate(e.target.value)}
-                  />
-                </div>
-          <div className="flex flex-col space-y-2 pt-4">
-            <Button onClick={handleConfirmClose} className="w-full py-3">
-              Pozisyonu Kapat
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowCloseModal({ show: false, position: null })}
-              className="w-full py-3"
-            >
-              İptal
-            </Button>
+        <div className="flex flex-col relative">
+          <div className="space-y-4 overflow-y-auto max-h-[65dvh] px-1 pb-10">
+            <div>
+              <Label htmlFor="sellPrice" className="text-sm font-medium text-text-primary">Satış Fiyatı ({showCloseModal.position?.type === 'us_stock' ? '$' : '₺'})</Label>
+              <Input
+                id="sellPrice"
+                type="text"
+                value={sellPrice}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^\d,]/g, '');
+                  setSellPrice(value);
+                }}
+                placeholder="0,00"
+                className="font-mono mt-1 bg-transparent text-text-primary border-border"
+              />
+            </div>
+            <div>
+              <Label htmlFor="sellDate" className="text-sm font-medium text-text-primary">Satış Tarihi</Label>
+              <Input
+                id="sellDate"
+                type="date"
+                value={sellDate}
+                onChange={(e) => setSellDate(e.target.value)}
+                className="mt-1 bg-transparent text-text-primary border-border block w-full min-w-0 appearance-none"
+              />
+            </div>
+          </div>
+
+          <div 
+            className="px-4 pt-4 -mx-4 mt-2 bg-card border-t border-border sticky bottom-[-max(1.5rem,env(safe-area-inset-bottom))] z-10"
+            style={{
+              marginBottom: 'calc(-1 * max(1.5rem, env(safe-area-inset-bottom)))',
+              paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)'
+            }}
+          >
+            <div className="flex flex-col space-y-2">
+              <Button onClick={handleConfirmClose} className="w-full py-3 bg-primary-500 hover:bg-primary-400 text-white transition-colors">
+                Pozisyonu Kapat
+              </Button>
+              <Button 
+                variant="ghost" 
+                onClick={() => setShowCloseModal({ show: false, position: null })} 
+                className="w-full py-3 bg-subtle hover:bg-border text-text-primary transition-colors"
+              >
+                İptal
+              </Button>
+            </div>
           </div>
         </div>
-      </FullScreenModal>
+      </DrawerModal>
 
       {/* Edit Position Modal */}
       <EditPositionModal

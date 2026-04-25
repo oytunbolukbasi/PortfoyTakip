@@ -66,26 +66,26 @@ export class PriceService {
 
   async getPrice(symbol: string, type: 'stock' | 'fund' | 'us_stock'): Promise<number | null> {
     console.log(`Getting price for ${symbol} (type: ${type})`);
-    
+
     if (type === 'fund') {
       const cached = getCachedFundPrice(symbol);
       if (cached !== null) {
         console.log(`[Cache] Returning cached fund price for ${symbol}: ${cached}`);
         return cached;
       }
-      
+
       try {
         const [position] = await db.select().from(positions).where(eq(positions.symbol, symbol)).limit(1);
         if (position && position.currentPrice) {
-           const dbPrice = parseFloat(position.currentPrice);
-           if (dbPrice > 0) {
-              console.log(`[DB Fallback] Using DB price for existing fund ${symbol}: ${dbPrice}`);
-              setCachedFundPrice(symbol, dbPrice);
-              return dbPrice;
-           }
+          const dbPrice = parseFloat(position.currentPrice);
+          if (dbPrice > 0) {
+            console.log(`[DB Fallback] Using DB price for existing fund ${symbol}: ${dbPrice}`);
+            setCachedFundPrice(symbol, dbPrice);
+            return dbPrice;
+          }
         }
       } catch (err) {
-         console.warn(`[DB Error] Failed to check fallback price for ${symbol}:`, err);
+        console.warn(`[DB Error] Failed to check fallback price for ${symbol}:`, err);
       }
 
       console.log(`[TEFAS Quota Protection] No live fetch for ${symbol}. Price will update in the next scheduled cycle.`);
@@ -99,16 +99,16 @@ export class PriceService {
 
   async registerSymbolToGoogleSheets(symbol: string, type: 'stock' | 'fund' | 'us_stock'): Promise<void> {
     if (type === 'fund') return; // Sadece hisseleri gönderiyoruz
-    
+
     try {
       let prefix = 'IST';
       if (type === 'us_stock') {
         prefix = 'NASDAQ'; // Varsayılan olarak NASDAQ gönderiyoruz
       }
-      
+
       const payload = { symbol: `${prefix}:${symbol}` };
       console.log(`Sending new symbol to Google Sheets: ${payload.symbol}`);
-      
+
       await axios.post(this.GOOGLE_SHEETS_FETCH_URL, payload);
       console.log(`Successfully registered ${payload.symbol} to Google Sheets.`);
     } catch (error) {
@@ -122,7 +122,7 @@ export class PriceService {
       console.log(`Fetching from Google Sheets for symbols: ${symbols.join(', ')}`);
       const response = await axios.get(this.GOOGLE_SHEETS_FETCH_URL);
       const data: Record<string, number> = response.data;
-      
+
       return data;
     } catch (error) {
       console.error('Google Sheets fetch failed:', error);
@@ -134,18 +134,18 @@ export class PriceService {
     try {
       const sheetsData = await this.fetchFromGoogleSheets([symbol]);
       const livePrice = sheetsData[symbol];
-      
+
       if (livePrice && livePrice > 0) {
         console.log(`Found live price for ${symbol} from Google Sheets: ${livePrice} TL`);
         return livePrice;
       }
-      
+
       // DB Fallback
       const [pos] = await db.select().from(positions).where(eq(positions.symbol, symbol)).limit(1);
       if (pos && pos.currentPrice) {
         return parseFloat(pos.currentPrice);
       }
-      
+
       console.warn(`No price found for ${symbol} in Sheets and DB.`);
       return null;
     } catch (error) {
@@ -158,18 +158,18 @@ export class PriceService {
     try {
       const sheetsData = await this.fetchFromGoogleSheets([symbol]);
       const livePrice = sheetsData[symbol];
-      
+
       if (livePrice && livePrice > 0) {
         console.log(`Found live price for ${symbol} from Google Sheets: $${livePrice}`);
         return livePrice;
       }
-      
+
       // DB Fallback
       const [pos] = await db.select().from(positions).where(eq(positions.symbol, symbol)).limit(1);
       if (pos && pos.currentPrice) {
         return parseFloat(pos.currentPrice);
       }
-      
+
       console.warn(`No price found for ${symbol} in Sheets and DB.`);
       return null;
     } catch (error) {
@@ -182,7 +182,7 @@ export class PriceService {
     try {
       const from = pair.substring(0, 3);
       const to = pair.substring(3);
-      
+
       console.log(`Fetching latest exchange rate for ${pair} from Frankfurter...`);
       const response = await axios.get(`https://api.frankfurter.app/latest?from=${from}&to=${to}`, {
         timeout: 5000
@@ -205,9 +205,9 @@ export class PriceService {
       const formattedDate = date.toISOString().split('T')[0];
       const from = pair.substring(0, 3);
       const to = pair.substring(3);
-      
+
       console.log(`Fetching historical rate for ${pair} on ${formattedDate}`);
-      
+
       const response = await axios.get(`https://api.frankfurter.app/${formattedDate}?from=${from}&to=${to}`, {
         timeout: 10000
       });
@@ -217,7 +217,7 @@ export class PriceService {
         console.log(`Found historical rate for ${pair} on ${formattedDate}: ${rate}`);
         return rate;
       }
-      
+
       throw new Error(`Frankfurter API did not return rate for ${pair} on ${formattedDate}`);
     } catch (error) {
       console.warn(`Historical rate fetch failed for ${pair} on ${date}:`, (error as Error).message);
@@ -230,7 +230,7 @@ export class PriceService {
 
   async getBISTMarketData(): Promise<MarketSymbol[]> {
     const results: MarketSymbol[] = [];
-    
+
     // Process symbols in batches to avoid overwhelming the API
     const BATCH_SIZE = 10;
     for (let i = 0; i < BIST_SYMBOLS.length; i += BATCH_SIZE) {
@@ -238,7 +238,7 @@ export class PriceService {
       const batchPromises = batch.map(async (symbolInfo) => {
         try {
           const price = await this.getBISTPrice(symbolInfo.symbol);
-          
+
           if (price !== null) {
             const change = (Math.random() - 0.5) * 10; // Random change for demo
             const changePercent = (change / price) * 100;
@@ -272,16 +272,16 @@ export class PriceService {
           };
         }
       });
-      
+
       const batchResults = await Promise.all(batchPromises);
       results.push(...batchResults);
-      
+
       // Add small delay between batches
       if (i + BATCH_SIZE < BIST_SYMBOLS.length) {
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
-    
+
     return results;
   }
 
@@ -304,12 +304,12 @@ export class PriceService {
       const y = date.getFullYear();
       const m = String(date.getMonth() + 1).padStart(2, '0');
       const d = String(date.getDate()).padStart(2, '0');
-      return `${d}.${m}.${y}`; 
+      return `${d}.${m}.${y}`;
     };
 
     try {
       console.log(`[TEFAS] Fetching live through proxy for ${symbol}...`);
-      
+
       const formData = new URLSearchParams();
       formData.append('fontip', 'YAT');
       formData.append('sfontur', '');
@@ -356,20 +356,23 @@ export class PriceService {
           return parseFloat(pos.currentPrice);
         }
       } catch (dbErr) { /* ignore */ }
-      
+
       return null;
     }
   }
 
   private async makeProxiedRequest(targetUrl: string, method: 'GET' | 'POST', data: any = null) {
     const apiKey = process.env.SCRAPER_API_KEY;
+
+    // If API Key is missing, try direct request immediately
     if (!apiKey) {
-      console.error('[ScraperAPI] MISSING API KEY in environment variables!');
+      console.warn('[ScraperAPI] MISSING API KEY. Attempting DIRECT request (unproxied)...');
+      return this.makeDirectRequest(targetUrl, method, data);
     }
-    
+
     const renderParam = method === 'GET' ? '&render=true' : '';
     const proxyUrl = `http://api.scraperapi.com?api_key=${apiKey}&url=${encodeURIComponent(targetUrl)}${renderParam}`;
-    
+
     const config: any = {
       method,
       url: proxyUrl,
@@ -377,13 +380,41 @@ export class PriceService {
         'Accept': 'application/json, text/plain, */*',
         'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
       },
-      timeout: 60000 
+      timeout: 30000 // Reduced from 60s for faster failover
     };
 
     if (method === 'POST') {
       config.data = data;
       config.headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=UTF-8';
       config.headers['X-Requested-With'] = 'XMLHttpRequest';
+    }
+
+    try {
+      return await axios(config);
+    } catch (error) {
+      console.warn(`[ScraperAPI] Proxied request failed, attempting DIRECT fallback for: ${targetUrl}`);
+      return this.makeDirectRequest(targetUrl, method, data);
+    }
+  }
+
+  private async makeDirectRequest(targetUrl: string, method: 'GET' | 'POST', data: any = null) {
+    const config: any = {
+      method,
+      url: targetUrl,
+      headers: {
+        'Accept': 'application/json, text/plain, */*',
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
+        'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
+      },
+      timeout: 15000
+    };
+
+    if (method === 'POST') {
+      config.data = data;
+      config.headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=UTF-8';
+      config.headers['X-Requested-With'] = 'XMLHttpRequest';
+      config.headers['Origin'] = 'https://www.tefas.gov.tr';
+      config.headers['Referer'] = 'https://www.tefas.gov.tr/FonAnaliz.aspx';
     }
 
     return axios(config);
@@ -393,11 +424,11 @@ export class PriceService {
     try {
       const url = `https://fintables.com/fonlar/${symbol}`;
       console.log(`[Fintables Scraper] Fetching price for ${symbol}...`);
-      
+
       const response = await this.makeProxiedRequest(url, 'GET');
       const html = response.data;
       const $ = cheerio.load(html);
-      
+
       let price: number | null = null;
 
       try {
@@ -433,11 +464,11 @@ export class PriceService {
           console.log(`[Fintables Scraper] Found price via Regex for ${symbol}: ${price}`);
         }
       }
-      
+
       if (!price || price <= 0) {
         throw new Error(`Could not find valid price on Fintables for ${symbol}`);
       }
-      
+
       console.log(`[Fintables Scraper] Successfully retrieved price for ${symbol}: ${price} TL`);
       setCachedFundPrice(symbol, price);
       return price;
@@ -459,14 +490,14 @@ export class PriceService {
   getFundName(symbol: string, type: 'stock' | 'fund' | 'us_stock'): string {
     if (type === 'fund') {
       const knownFundNames: Record<string, string> = {
-        'IRY': 'INVEO PORTFÖY PARA PİYASASI (TL) FONU', 
-        'GBG': 'INVEO PORTFÖY G-20 ÜLKELERİ YABANCI HİSSE SENEDİ FONU', 
-        'YKT': 'YAPI KREDİ PORTFÖY ALTIN FONU', 
+        'IRY': 'INVEO PORTFÖY PARA PİYASASI (TL) FONU',
+        'GBG': 'INVEO PORTFÖY G-20 ÜLKELERİ YABANCI HİSSE SENEDİ FONU',
+        'YKT': 'YAPI KREDİ PORTFÖY ALTIN FONU',
         'YAC': 'Ak Portföy Değer Odakli 100 Şirketleri Hisse Senedi Fonu',
         'ALC': 'Ak Portföy Kar Payi Ödeyen Şirketler Hisse Senedi Fonu',
         'TYS': 'Teb Portföy Teknoloji Sektörü Hisse Senedi Fonu',
         'AKB': 'Ak Portföy Kısa Vadeli Borçlanma Araçları Fonu',
-        'GJH': 'GARANTİ PORTFÖY PARA PİYASASI SERBEST (TL) FON', 
+        'GJH': 'GARANTİ PORTFÖY PARA PİYASASI SERBEST (TL) FON',
         'GRO': 'Garanti Portföy Otuzuncu Serbest (Döviz) Fon',
         'DCB': 'Deniz Portföy Para Piyasası Serbest (TL) Fon',
         'ZP8': 'Ziraat Portföy Kehribar Para Piyasası Katılım Serbest Fon',
@@ -477,10 +508,10 @@ export class PriceService {
         'GAH': 'Garanti Portföy Altın Fonu',
         'HPP': 'Hsbc Portföy Para Piyasası Fonu'
       };
-      
+
       return knownFundNames[symbol] || symbol;
     }
-    
+
     return symbol;
   }
 }

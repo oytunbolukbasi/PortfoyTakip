@@ -141,7 +141,7 @@ export default function PortfolioSummary({ positions, closedPositions = [] }: Po
 
         {/* Performance Metrics */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="text-center p-4 bg-subtle rounded-xl">
+          <div className="text-center p-4 bg-subtle rounded-xl border border-border">
             <p className="text-sm text-text-secondary mb-1">Toplam Getiri</p>
             <p className={`text-lg font-semibold ${
               summary.totalReturn >= 0 ? 'text-success-500' : 'text-error-500'
@@ -149,7 +149,7 @@ export default function PortfolioSummary({ positions, closedPositions = [] }: Po
               {isVisible ? `${summary.totalReturn >= 0 ? '+' : '-'}${formatTurkishPercent(Math.abs(summary.totalReturn))}` : "**,**%"}
             </p>
           </div>
-          <div className="text-center p-4 bg-subtle rounded-xl">
+          <div className="text-center p-4 bg-subtle rounded-xl border border-border">
             <p className="text-sm text-text-secondary mb-1">Net K/Z</p>
             <p className={`text-lg font-semibold ${
               summary.totalPL >= 0 ? 'text-success-500' : 'text-error-500'
