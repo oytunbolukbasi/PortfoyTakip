@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Position, ClosedPosition } from "@shared/schema";
 import { formatTurkishCurrency, formatTurkishPercent, formatTurkishPrice, formatFundPrice, formatPositionValue } from "@/lib/format";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, ArrowRightLeft, TrendingUp, TrendingDown } from "lucide-react";
+import { Eye, EyeOff, ArrowRightLeft, TrendingUp, TrendingDown, AlertCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 interface PortfolioSummaryProps {
@@ -28,12 +28,21 @@ export default function PortfolioSummary({ positions, closedPositions = [] }: Po
     let totalCost = 0;
     let realizedPL = 0;
     let realizedCost = 0;
+    let missingPriceCount = 0;
 
     // Active positions
     positions.forEach((position) => {
-      const quantity = position.quantity;
+      const quantity = parseFloat(position.quantity);
       const buyPrice = parseFloat(position.buyPrice);
-      const currentPrice = position.currentPrice ? parseFloat(position.currentPrice) : buyPrice;
+      
+      let currentPrice: number;
+      if (position.currentPrice === null || position.currentPrice === undefined) {
+        currentPrice = buyPrice;
+        missingPriceCount++;
+      } else {
+        currentPrice = parseFloat(position.currentPrice);
+      }
+      
       const buyRate = parseFloat(position.buyRate || '1.0');
       
       if (position.type === 'us_stock') {
@@ -57,7 +66,7 @@ export default function PortfolioSummary({ positions, closedPositions = [] }: Po
         // Realized P/L in TRY = USD Gain * Current Rate (as per user request for current view)
         const sellPrice = parseFloat(pos.sellPrice);
         const buyPrice = parseFloat(pos.buyPrice);
-        const quantity = pos.quantity;
+        const quantity = parseFloat(pos.quantity);
         
         const usdGain = (sellPrice - buyPrice) * quantity;
         const realizedPL_TRY = usdGain * usdRate;
@@ -66,7 +75,7 @@ export default function PortfolioSummary({ positions, closedPositions = [] }: Po
         realizedCost += buyPrice * quantity * usdRate;
       } else {
         realizedPL += parseFloat(pos.pl);
-        realizedCost += parseFloat(pos.buyPrice) * pos.quantity;
+        realizedCost += parseFloat(pos.buyPrice) * parseFloat(pos.quantity);
       }
     });
 
@@ -87,6 +96,7 @@ export default function PortfolioSummary({ positions, closedPositions = [] }: Po
       totalPL: netPL,
       totalReturn: totalReturnPercent,
       dailyPL: dailyChange,
+      missingPriceCount,
     };
   };
 
@@ -170,6 +180,16 @@ export default function PortfolioSummary({ positions, closedPositions = [] }: Po
             </p>
           </div>
         </div>
+        
+        {/* Missing Price Warning */}
+        {rawSummary.missingPriceCount > 0 && (
+          <div className="mt-4 p-3 bg-warning-50 border border-warning-100 rounded-xl flex items-center gap-2 text-warning-600 text-sm">
+            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+            <p>
+              {rawSummary.missingPriceCount} varlığın güncel fiyatı alınamadı. Hesaplamalar maliyet üzerinden yapılıyor.
+            </p>
+          </div>
+        )}
       </div>
     </section>
   );

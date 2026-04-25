@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CalendarDays, TrendingUp, TrendingDown, DollarSign, Percent, BarChart3, Moon, Sun, Send, Loader2, History, ChevronRight, Metadata, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import { CalendarDays, TrendingUp, TrendingDown, DollarSign, Percent, BarChart3, Moon, Sun, Send, Loader2, History, ChevronRight, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { useTheme } from "@/components/ui/theme-provider";
 import { formatTurkishPrice, formatTurkishPercent } from "@/lib/format";
 import { LuSparkles } from "react-icons/lu";
@@ -87,7 +87,7 @@ export default function Analytics() {
   const handleAiAnalyze = () => {
     setIsAiDrawerOpen(true);
     if (aiHistory.length === 0) {
-      analyzeMutation.mutate();
+      analyzeMutation.mutate("");
     }
   };
 
@@ -221,7 +221,7 @@ export default function Analytics() {
 
   // Calculate portfolio metrics for filtered period
   const filteredTotalValue = filteredActivePositions.reduce((sum, pos) => {
-    return sum + (getTRY(pos.currentPrice || '0', pos.type, usdRate) * parseFloat(pos.quantity));
+    return sum + (getTRY(pos.currentPrice ?? pos.buyPrice, pos.type, usdRate) * parseFloat(pos.quantity));
   }, 0);
 
   const filteredTotalCost = filteredActivePositions.reduce((sum, pos) => {
@@ -234,7 +234,7 @@ export default function Analytics() {
 
   // Overall portfolio metrics (all positions)
   const totalValue = positions.reduce((sum, pos) => {
-    return sum + (getTRY(pos.currentPrice || '0', pos.type, usdRate) * parseFloat(pos.quantity));
+    return sum + (getTRY(pos.currentPrice ?? pos.buyPrice, pos.type, usdRate) * parseFloat(pos.quantity));
   }, 0);
 
   const totalCost = positions.reduce((sum, pos) => {
@@ -280,7 +280,7 @@ export default function Analytics() {
   const usStockPositions = positions.filter(pos => pos.type === 'us_stock');
 
   const stockValue = stockPositions.reduce((sum, pos) => {
-    return sum + (getTRY(pos.currentPrice || '0', pos.type, usdRate) * parseFloat(pos.quantity));
+    return sum + (getTRY(pos.currentPrice ?? pos.buyPrice, pos.type, usdRate) * parseFloat(pos.quantity));
   }, 0);
 
   const stockCost = stockPositions.reduce((sum, pos) => {
@@ -290,7 +290,7 @@ export default function Analytics() {
   const stockPL = stockValue - stockCost;
 
   const fundValue = fundPositions.reduce((sum, pos) => {
-    return sum + (getTRY(pos.currentPrice || '0', pos.type, usdRate) * parseFloat(pos.quantity));
+    return sum + (getTRY(pos.currentPrice ?? pos.buyPrice, pos.type, usdRate) * parseFloat(pos.quantity));
   }, 0);
 
   const fundCost = fundPositions.reduce((sum, pos) => {
@@ -301,7 +301,7 @@ export default function Analytics() {
 
   // US Stocks (stored in USD internally, multiply by rate for TRY totals)
   const usStockValue = usStockPositions.reduce((sum, pos) => {
-    return sum + (getTRY(pos.currentPrice || '0', pos.type, usdRate) * parseFloat(pos.quantity));
+    return sum + (getTRY(pos.currentPrice ?? pos.buyPrice, pos.type, usdRate) * parseFloat(pos.quantity));
   }, 0);
   const usStockCost = usStockPositions.reduce((sum, pos) => {
     return sum + (getTRY(pos.buyPrice, pos.type, usdRate) * parseFloat(pos.quantity));
@@ -309,10 +309,10 @@ export default function Analytics() {
   const usStockPL = usStockValue - usStockCost;
   // USD display values (native without rate)
   const usStockValueUSD = usStockPositions.reduce((sum, pos) => {
-    return sum + (parseFloat(pos.currentPrice || '0') * parseFloat(pos.quantity));
+    return sum + (parseFloat(pos.currentPrice ?? pos.buyPrice) * parseFloat(pos.quantity));
   }, 0);
   const usStockPLUSD = usStockPositions.reduce((sum, pos) => {
-    const cp = parseFloat(pos.currentPrice || pos.buyPrice);
+    const cp = parseFloat(pos.currentPrice ?? pos.buyPrice);
     const bp = parseFloat(pos.buyPrice);
     return sum + ((cp - bp) * parseFloat(pos.quantity));
   }, 0);

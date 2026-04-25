@@ -226,6 +226,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Arka planda Google Sheets webhook'unu tetikle
+      priceService.registerSymbolToGoogleSheets(validatedData.symbol, validatedData.type).catch(err => {
+        // Hatalar registerSymbolToGoogleSheets içinde zaten konsola yazdırılıyor, 
+        // ancak ek bir güvenlik katmanı olarak yakalıyoruz.
+      });
+
       res.json(position);
     } catch (error) {
       if (error instanceof Error) {
@@ -316,7 +322,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!position) {
         return res.status(404).json({ error: "Position not found" });
       }
-      let price: number;
+      let price: number | null;
       if (position.type === 'fund') {
         // Manual refresh for a specific fund -> Bypass quota protection and fetch live
         price = await priceService.forceTEFASUpdate(position.symbol);
@@ -324,11 +330,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         price = await priceService.getPrice(position.symbol, position.type as 'stock' | 'us_stock');
       }
 
-      await storage.updatePosition(positionId, {
-        currentPrice: price.toFixed(6),
-        lastUpdated: new Date(),
-      });
-      res.json({ success: true, price });
+      if (price !== null) {
+        await storage.updatePosition(positionId, {
+          currentPrice: price.toFixed(6),
+          lastUpdated: new Date(),
+        });
+        res.json({ success: true, price });
+      } else {
+        res.status(404).json({ error: "Fiyat güncellenemedi" });
+      }
     } catch (error) {
       res.status(500).json({ error: "Failed to refresh price" });
     }
@@ -411,19 +421,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatePromises = positions.map(async (position) => {
         try {
           const price = await priceService.getPrice(position.symbol, position.type as 'stock' | 'fund');
-          await storage.updatePosition(position.id, {
-            currentPrice: price.toString(),
-            lastUpdated: new Date(),
-          });
+          if (price !== null) {
+            await storage.updatePosition(position.id, {
+              currentPrice: price.toString(),
+              lastUpdated: new Date(),
+            });
 
-          // Save to price history
-          await storage.savePriceHistory({
-            symbol: position.symbol,
-            type: position.type,
-            price: price.toString(),
-            change: '0', // Would calculate from previous price
-            changePercent: '0',
-          });
+            // Save to price history
+            await storage.savePriceHistory({
+              symbol: position.symbol,
+              type: position.type,
+              price: price.toString(),
+              change: '0', // Would calculate from previous price
+              changePercent: '0',
+            });
+          } else {
+            console.warn(`[Refresh] Failed to get price for ${position.symbol}, skipping update.`);
+          }
         } catch (error) {
           console.warn(`Failed to update price for ${position.symbol}:`, error);
         }
@@ -443,7 +457,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { symbol, type } = req.params;
       const price = await priceService.getPrice(symbol, type as 'stock' | 'fund' | 'us_stock');
-      res.json({ symbol, type, price });
+      if (price !== null) {
+        res.json({ symbol, type, price });
+      } else {
+        res.status(404).json({ error: "Fiyat bulunamadı" });
+      }
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch price" });
     }
@@ -472,24 +490,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           const price = await priceService.getPrice(position.symbol, position.type as 'stock' | 'fund');
 
-          // Update position with new price
-          const updateData: any = {
-            currentPrice: price.toString(),
-            lastUpdated: new Date(),
-          };
+          if (price !== null) {
+            // Update position with new price
+            const updateData: any = {
+              currentPrice: price.toString(),
+              lastUpdated: new Date(),
+            };
 
-          // Also update fund names if they're missing or generic
-          if (position.type === 'fund' && (!position.name || position.name === position.symbol)) {
-            const fundName = priceService.getFundName(position.symbol, position.type as 'stock' | 'fund');
-            if (fundName !== position.symbol) {
-              updateData.name = fundName;
+            // Also update fund names if they're missing or generic
+            if (position.type === 'fund' && (!position.name || position.name === position.symbol)) {
+              const fundName = priceService.getFundName(position.symbol, position.type as 'stock' | 'fund');
+              if (fundName !== position.symbol) {
+                updateData.name = fundName;
+              }
             }
+
+            await storage.updatePosition(position.id, updateData);
+
+            console.log(`Updated ${position.symbol}: ${price} TL`);
+            results.push({ symbol: position.symbol, success: true, price });
+          } else {
+            console.warn(`Failed to update price for ${position.symbol}: null price`);
+            results.push({ symbol: position.symbol, success: false, error: "Price not found" });
           }
-
-          await storage.updatePosition(position.id, updateData);
-
-          console.log(`Updated ${position.symbol}: ${price} TL`);
-          results.push({ symbol: position.symbol, success: true, price });
         } catch (error) {
           console.warn(`Failed to update price for ${position.symbol}:`, error);
           results.push({ symbol: position.symbol, success: false, error: String(error) });

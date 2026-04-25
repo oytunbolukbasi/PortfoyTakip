@@ -1,0 +1,52 @@
+{
+  "architecture": {
+    "entry_point": "server/index.ts (Express server, price monitor initializer)",
+    "routing": "server/routes.ts (API endpoints, user auth, position management)",
+    "database": {
+      "orm": "Drizzle ORM",
+      "connection": "server/db.ts (PostgreSQL connection using Drizzle)",
+      "storage_layer": "server/storage.ts (DatabaseStorage class implementing IStorage)",
+      "schema": "@shared/schema.ts (users, positions, closedPositions, priceHistory, aiChatHistory)"
+    },
+    "services": {
+      "price_service": "server/services/price-service.ts (Core fetching logic for BIST, US, TEFAS)",
+      "price_monitor": "server/services/price-monitor.ts (Background CRON jobs and interval-based updates)",
+      "cache_layer": "server/services/fund-price-cache.ts (In-memory cache for TEFAS fund prices)",
+      "ai_analysis": "server/prompt.ts (System prompts and logic for Gemini-based portfolio analysis)"
+    }
+  },
+  "methodology_logic": {
+    "bist_logic": {
+      "primary": "Google Sheets JSON API",
+      "fallback": "Last known price from Database or null",
+      "update_frequency": "15 minutes",
+      "webhook_registration": "Sends POST {\"symbol\": \"IST:SYMBOL\"} on position creation"
+    },
+    "us_stock_logic": {
+      "primary": "Google Sheets JSON API",
+      "currency_conversion": "Frankfurter API (USD -> TRY)",
+      "fallback": "Last known price from Database or null",
+      "update_frequency": "15 minutes",
+      "webhook_registration": "Sends POST {\"symbol\": \"NASDAQ:SYMBOL\"} on position creation"
+    },
+    "tefas_fund_logic": {
+      "primary": "Official TEFAS JSON API (BindHistoryInfo)",
+      "proxy": "ScraperAPI (to bypass Cloudflare challenges)",
+      "fallback_1": "Fintables Scraper",
+      "fallback_2": "Last known price from Database",
+      "fallback_3": "Returns null if no fallback available",
+      "update_frequency": "Scheduled at 09:00 and 10:00 Turkey Time",
+      "quota_protection": "Disabled manual live fetches and on-demand updates for funds"
+    }
+  },
+  "optimization_notes": {
+    "current_issues": [
+      "ScraperAPI credits are a bottleneck for fund updates.",
+      "TEFAS API remains fragile behind Cloudflare."
+    ],
+    "potential_improvements": [
+      "Implement a more robust caching strategy for exchange rates.",
+      "Consider migrating TEFAS endpoints to the same Google Sheets architecture if ScraperAPI limits become a severe problem."
+    ]
+  }
+}

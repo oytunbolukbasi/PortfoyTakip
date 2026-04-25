@@ -1,7 +1,7 @@
 import { Position } from "@shared/schema";
 import { formatTurkishCurrency, formatTurkishPrice, formatTurkishPercent, formatFundPrice, formatPositionPrice, formatPositionValue } from "@/lib/format";
 import { Button } from "@/components/ui/button";
-import { ChevronUp, ChevronDown, Check, Pencil, Trash2, MoreHorizontal } from "lucide-react";
+import { ChevronUp, ChevronDown, Check, Pencil, Trash2, MoreHorizontal, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { FullScreenModal } from './full-screen-modal';
@@ -297,10 +297,19 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
                   onClick={() => onRowClick(position)}
                 >
                   <td className="sticky left-0 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 px-3 py-5 z-10 border-r border-gray-200 dark:border-gray-600">
-                    <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">{position.symbol}</div>
-                    {position.type === 'us_stock' && (
-                      <div className="text-xs text-purple-500 dark:text-purple-400 font-medium tracking-wide">ABD</div>
-                    )}
+                    <div className="flex items-center gap-1.5">
+                      {position.currentPrice === null && (
+                        <div title="Güncel fiyat alınamadı, maliyet baz alınıyor" className="text-warning-500">
+                          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                        </div>
+                      )}
+                      <div>
+                        <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">{position.symbol}</div>
+                        {position.type === 'us_stock' && (
+                          <div className="text-xs text-purple-500 dark:text-purple-400 font-medium tracking-wide">ABD</div>
+                        )}
+                      </div>
+                    </div>
                   </td>
                   <td className="px-3 py-5 text-right text-sm text-gray-900 dark:text-white whitespace-nowrap">
                     {parseFloat(position.quantity).toLocaleString('tr-TR', { maximumFractionDigits: 10 })}

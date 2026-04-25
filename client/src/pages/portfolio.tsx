@@ -302,7 +302,7 @@ export default function Portfolio() {
                           <div className="grid grid-cols-3 gap-3 mb-4">
                             <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
                               <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{position.type === 'fund' ? 'Pay' : 'Adet'}</p>
-                              <p className="font-semibold text-gray-900 dark:text-white">{position.quantity.toLocaleString('tr-TR')}</p>
+                              <p className="font-semibold text-gray-900 dark:text-white">{parseFloat(position.quantity).toLocaleString('tr-TR')}</p>
                             </div>
                             <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
                               <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Alış</p>

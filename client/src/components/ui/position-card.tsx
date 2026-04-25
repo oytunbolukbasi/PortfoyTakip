@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Position } from "@shared/schema";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, ArrowRightFromLine, Trash2, Pencil } from "lucide-react";
+import { MoreHorizontal, ArrowRightFromLine, Trash2, Pencil, AlertCircle } from "lucide-react";
 import { formatTurkishCurrency, formatTurkishPrice, formatTurkishPercent, formatFundPrice, parseTurkishPrice, formatPositionPrice, formatPositionValue } from "@/lib/format";
 import {
   DropdownMenu,
@@ -144,12 +144,19 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
               </div>
             </div>
             <div className="text-right">
-              <p className="text-xl font-bold text-text-primary">
-                {position.type === 'us_stock'
-                  ? `$${formatTurkishPrice(currentPrice)}`
-                  : `₺${position.type === 'fund' ? formatFundPrice(currentPrice) : formatTurkishPrice(currentPrice)}`
-                }
-              </p>
+              {position.currentPrice === null ? (
+                <div className="flex items-center justify-end text-warning-500 text-sm font-medium mt-1">
+                  <AlertCircle className="w-4 h-4 mr-1" />
+                  Veri Bekleniyor
+                </div>
+              ) : (
+                <p className="text-xl font-bold text-text-primary">
+                  {position.type === 'us_stock'
+                    ? `$${formatTurkishPrice(currentPrice)}`
+                    : `₺${position.type === 'fund' ? formatFundPrice(currentPrice) : formatTurkishPrice(currentPrice)}`
+                  }
+                </p>
+              )}
             </div>
           </div>
           
@@ -170,27 +177,35 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
 
           <div className="space-y-3">
             {/* K/Z Bar */}
-            <div className={`rounded-xl py-1.5 px-2.5 ${
-              pl >= 0
-                ? 'bg-success-100 border border-success-100'
-                : 'bg-error-100 border border-error-100'
-            }`}>
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-medium text-text-secondary">K/Z</span>
-                <div className="flex items-center space-x-1.5">
-                  <div className={`text-sm font-bold ${
-                    pl >= 0 ? 'text-success-500' : 'text-error-500'
-                  }`}>
-                    {pl >= 0 ? '+' : '-'}{formatPositionValue(Math.abs(pl), position.type)}
-                  </div>
-                  <div className={`text-xs font-medium ${
-                    pl >= 0 ? 'text-success-500' : 'text-error-500'
-                  }`}>
-                    ({pl >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(plPercent))})
+            {position.currentPrice === null ? (
+              <div className="rounded-xl py-1.5 px-2.5 bg-warning-50 border border-warning-100">
+                <div className="flex items-center justify-center space-x-2 text-warning-600">
+                  <span className="text-xs font-medium">Fiyat güncellenemedi, maliyet yansıtılıyor</span>
+                </div>
+              </div>
+            ) : (
+              <div className={`rounded-xl py-1.5 px-2.5 ${
+                pl >= 0
+                  ? 'bg-success-100 border border-success-100'
+                  : 'bg-error-100 border border-error-100'
+              }`}>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-text-secondary">K/Z</span>
+                  <div className="flex items-center space-x-1.5">
+                    <div className={`text-sm font-bold ${
+                      pl >= 0 ? 'text-success-500' : 'text-error-500'
+                    }`}>
+                      {pl >= 0 ? '+' : '-'}{formatPositionValue(Math.abs(pl), position.type)}
+                    </div>
+                    <div className={`text-xs font-medium ${
+                      pl >= 0 ? 'text-success-500' : 'text-error-500'
+                    }`}>
+                      ({pl >= 0 ? '+' : '-'}{formatTurkishPercent(Math.abs(plPercent))})
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
             
             {/* Active days info and 3-dot menu */}
             <div className="flex items-center justify-between pt-1" data-dropdown>

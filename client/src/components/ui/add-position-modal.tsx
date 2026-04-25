@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQuery } from "@tanstack/react-query";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { insertPositionSchema, type InsertPosition } from "@shared/schema";
 import { DrawerModal } from './drawer-modal';
 import {
@@ -43,32 +43,77 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
     },
   });
 
-  const onSubmit = async (data: InsertPosition) => {
-    setIsSubmitting(true);
-    try {
-      await apiRequest('POST', '/api/positions', {
-        ...data,
-        type: assetType,
-        symbol: data.symbol.toUpperCase(),
-      });
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async (data: InsertPosition & { type: string; symbol: string }) => {
+      const res = await apiRequest('POST', '/api/positions', data);
+      return res.json();
+    },
+    onMutate: async (newPosition) => {
+      await queryClient.cancelQueries({ queryKey: ['/api/positions'] });
+
+      const previousPositions = queryClient.getQueryData(['/api/positions']);
+
+      const optimisticId = Date.now();
       
-      onSuccess();
-      onOpenChange(false);
-      form.reset();
-      
-      toast({
-        title: "Pozisyon eklendi",
-        description: `${data.symbol.toUpperCase()} pozisyonu başarıyla eklendi.`,
+      const normalizedQuantity = String(newPosition.quantity).replace(/\./g, '').replace(',', '.');
+      const normalizedBuyPrice = String(newPosition.buyPrice).replace(/\./g, '').replace(',', '.');
+
+      const optimisticObj = {
+        id: optimisticId,
+        symbol: newPosition.symbol,
+        name: newPosition.name || '',
+        type: newPosition.type,
+        quantity: normalizedQuantity,
+        buyPrice: normalizedBuyPrice,
+        buyRate: newPosition.buyRate || '1.0',
+        buyDate: newPosition.buyDate,
+        currentPrice: null,
+        lastUpdated: new Date().toISOString(),
+        userId: 'demo-user'
+      };
+
+      queryClient.setQueryData(['/api/positions'], (old: any) => {
+        if (!old) return [optimisticObj];
+        return [...old, optimisticObj];
       });
-    } catch (error) {
+
+      return { previousPositions };
+    },
+    onError: (err, newPosition, context) => {
+      if (context?.previousPositions) {
+        queryClient.setQueryData(['/api/positions'], context.previousPositions);
+      }
       toast({
         title: "Hata",
         description: "Pozisyon eklenirken bir hata oluştu.",
         variant: "destructive",
       });
-    } finally {
-      setIsSubmitting(false);
-    }
+    },
+    onSuccess: (data, variables) => {
+      toast({
+        title: "Pozisyon eklendi",
+        description: `${variables.symbol} pozisyonu başarıyla eklendi.`,
+      });
+      onSuccess();
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/positions'] });
+    },
+  });
+
+  const onSubmit = (data: InsertPosition) => {
+    mutation.mutate({
+      ...data,
+      type: assetType,
+      symbol: data.symbol.toUpperCase(),
+    });
+    
+    // Formu hemen kapat ve sıfırla (Optimistic UX)
+    onOpenChange(false);
+    form.reset();
+    setAssetType('stock');
   };
 
   const handleClose = () => {
@@ -86,7 +131,8 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
     >
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col relative">
+            <div className="space-y-4 overflow-y-auto max-h-[65dvh] px-1 pb-10">
             {/* Asset Type Selection */}
             <div>
               <FormLabel className="text-sm font-medium text-gray-900 dark:text-white mb-3 block">
@@ -252,6 +298,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
                     <Input
                       {...field}
                       type="date"
+                      className="block w-full min-w-0 appearance-none bg-transparent"
                     />
                   </FormControl>
                   <FormMessage />
@@ -261,14 +308,24 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
 
 
 
+            </div>
+
             {/* Submit Button */}
-            <Button 
-              type="submit" 
-              className="w-full bg-primary-500 hover:bg-primary-400 text-white rounded-xl py-3 font-semibold transition-colors"
-              disabled={isSubmitting}
+            <div 
+              className="px-4 pt-4 -mx-4 mt-2 bg-white dark:bg-card border-t border-gray-100 dark:border-gray-800 sticky bottom-[-max(1.5rem,env(safe-area-inset-bottom))] z-10"
+              style={{
+                marginBottom: 'calc(-1 * max(1.5rem, env(safe-area-inset-bottom)))',
+                paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)'
+              }}
             >
-              {isSubmitting ? 'Ekleniyor...' : 'Pozisyon Ekle'}
-            </Button>
+              <Button 
+                type="submit" 
+                className="w-full bg-primary-500 hover:bg-primary-400 text-white rounded-xl py-3 font-semibold transition-colors shadow-sm"
+                disabled={mutation.isPending}
+              >
+                {mutation.isPending ? 'Ekleniyor...' : 'Pozisyon Ekle'}
+              </Button>
+            </div>
           </form>
         </Form>
     </DrawerModal>

@@ -77,20 +77,26 @@ export class PriceMonitor {
             position.symbol,
             position.type as 'stock' | 'us_stock'
           );
-          await db.update(positions).set({
-            currentPrice: currentPrice.toFixed(6),
-            lastUpdated: new Date()
-          }).where(eq(positions.id, position.id));
+          
+          if (currentPrice !== null) {
+            await db.update(positions).set({
+              currentPrice: currentPrice.toFixed(6),
+              lastUpdated: new Date()
+            }).where(eq(positions.id, position.id));
 
-          await db.insert(priceHistory).values({
-            symbol: position.symbol,
-            type: position.type,
-            price: currentPrice.toFixed(6),
-            timestamp: new Date()
-          });
+            await db.insert(priceHistory).values({
+              symbol: position.symbol,
+              type: position.type,
+              price: currentPrice.toFixed(6),
+              timestamp: new Date()
+            });
 
-          console.log(`[Stock] Updated ${position.symbol}: ${currentPrice}`);
-          return { symbol: position.symbol, price: currentPrice, success: true };
+            console.log(`[Stock] Updated ${position.symbol}: ${currentPrice}`);
+            return { symbol: position.symbol, price: currentPrice, success: true };
+          } else {
+            console.warn(`[Stock] No valid price found for ${position.symbol}, skipping DB update.`);
+            return { symbol: position.symbol, price: null, success: false };
+          }
         } catch (error) {
           console.warn(`[Stock] Failed to update ${position.symbol}:`, error);
           return { symbol: position.symbol, price: null, success: false };
@@ -122,37 +128,31 @@ export class PriceMonitor {
             ? await this.priceService.forceTEFASUpdate(position.symbol)
             : await this.priceService.getPrice(position.symbol, 'fund');
 
-          // Store in shared cache module
-          setCachedFundPrice(position.symbol, currentPrice);
+          if (currentPrice !== null) {
+            // Store in shared cache module
+            setCachedFundPrice(position.symbol, currentPrice);
 
-          await db.update(positions).set({
-            currentPrice: currentPrice.toFixed(6),
-            lastUpdated: new Date()
-          }).where(eq(positions.id, position.id));
+            await db.update(positions).set({
+              currentPrice: currentPrice.toFixed(6),
+              lastUpdated: new Date()
+            }).where(eq(positions.id, position.id));
 
-          await db.insert(priceHistory).values({
-            symbol: position.symbol,
-            type: position.type,
-            price: currentPrice.toFixed(6),
-            timestamp: new Date()
-          });
+            await db.insert(priceHistory).values({
+              symbol: position.symbol,
+              type: position.type,
+              price: currentPrice.toFixed(6),
+              timestamp: new Date()
+            });
 
-          console.log(`[TEFAS] Updated ${position.symbol}: ${currentPrice}`);
+            console.log(`[TEFAS] Updated ${position.symbol}: ${currentPrice}`);
+          } else {
+            console.warn(`[TEFAS] No valid price found for ${position.symbol}, skipping DB update.`);
+          }
 
           // Small delay between fund requests to be gentle on TEFAS
           await new Promise(resolve => setTimeout(resolve, 1500));
         } catch (error) {
-          console.warn(`[TEFAS] Failed to fetch live price for ${position.symbol}:`, (error as Error).message);
-
-          // Fallback: use last known price already stored in DB (updated by user or previous successful fetch)
-          const lastKnownPrice = parseFloat(position.currentPrice ?? '0');
-          if (lastKnownPrice > 0) {
-            console.log(`[TEFAS] Using last DB price for ${position.symbol}: ${lastKnownPrice}`);
-            // Seed cache so the app continues to show the last known value
-            setCachedFundPrice(position.symbol, lastKnownPrice);
-          } else {
-            console.warn(`[TEFAS] No fallback price available for ${position.symbol}`);
-          }
+          console.warn(`[TEFAS] Error processing price for ${position.symbol}:`, (error as Error).message);
         }
       }
 
@@ -175,12 +175,12 @@ export class PriceMonitor {
         throw new Error(`Position not found: ${positionId}`);
       }
 
-      let currentPrice: number;
+      let currentPrice: number | null;
       if (position.type === 'fund') {
          // !!! QUOTA PROTECTION !!! — Manual refreshes for funds are disabled.
          // They will only update during the 09:00 and 10:00 TRT cron jobs.
          console.log(`[TEFAS Quota Protection] Manual update skipped for ${position.symbol}.`);
-         currentPrice = parseFloat(position.currentPrice ?? '0');
+         currentPrice = position.currentPrice ? parseFloat(position.currentPrice) : null;
       } else {
          currentPrice = await this.priceService.getPrice(
            position.symbol,
@@ -188,23 +188,27 @@ export class PriceMonitor {
          );
       }
 
-      if (position.type === 'fund') {
-        setCachedFundPrice(position.symbol, currentPrice);
+      if (currentPrice !== null) {
+        if (position.type === 'fund') {
+          setCachedFundPrice(position.symbol, currentPrice);
+        }
+
+        await db.update(positions).set({
+          currentPrice: currentPrice.toFixed(6),
+          lastUpdated: new Date()
+        }).where(eq(positions.id, position.id));
+
+        await db.insert(priceHistory).values({
+          symbol: position.symbol,
+          type: position.type,
+          price: currentPrice.toFixed(6),
+          timestamp: new Date()
+        });
+
+        console.log(`Manual update ${position.symbol}: ${currentPrice}`);
+      } else {
+        console.warn(`Manual update failed: no price found for ${position.symbol}.`);
       }
-
-      await db.update(positions).set({
-        currentPrice: currentPrice.toFixed(6),
-        lastUpdated: new Date()
-      }).where(eq(positions.id, position.id));
-
-      await db.insert(priceHistory).values({
-        symbol: position.symbol,
-        type: position.type,
-        price: currentPrice.toFixed(6),
-        timestamp: new Date()
-      });
-
-      console.log(`Manual update ${position.symbol}: ${currentPrice}`);
       return currentPrice;
     } catch (error) {
       console.error(`Failed to update single position ${positionId}:`, error);

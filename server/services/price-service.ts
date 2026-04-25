@@ -62,27 +62,24 @@ const BIST_SYMBOLS = [
 
 export class PriceService {
   private readonly TEFAS_BASE_URL = 'https://www.tefas.gov.tr/FonAnaliz.aspx';
-  private readonly GOOGLE_FINANCE_BASE_URL = 'https://www.google.com/finance/quote';
+  private readonly GOOGLE_SHEETS_FETCH_URL = 'https://script.google.com/macros/s/AKfycbzK9aEJI-tTAJMtyhj_k8J-BBouaR-T1lVDQ6sqen_MdyQIqj2glt3kltr2mKzqePJx/exec';
 
-  async getPrice(symbol: string, type: 'stock' | 'fund' | 'us_stock'): Promise<number> {
+  async getPrice(symbol: string, type: 'stock' | 'fund' | 'us_stock'): Promise<number | null> {
     console.log(`Getting price for ${symbol} (type: ${type})`);
     
     if (type === 'fund') {
-      // 1. Check in-memory daily cache first
       const cached = getCachedFundPrice(symbol);
       if (cached !== null) {
         console.log(`[Cache] Returning cached fund price for ${symbol}: ${cached}`);
         return cached;
       }
       
-      // 2. Check DB if any existing price is present (so we avoid hammering TEFAS out-of-schedule)
       try {
         const [position] = await db.select().from(positions).where(eq(positions.symbol, symbol)).limit(1);
         if (position && position.currentPrice) {
            const dbPrice = parseFloat(position.currentPrice);
            if (dbPrice > 0) {
               console.log(`[DB Fallback] Using DB price for existing fund ${symbol}: ${dbPrice}`);
-              // Seed cache so subsequent checks don't hit DB
               setCachedFundPrice(symbol, dbPrice);
               return dbPrice;
            }
@@ -91,145 +88,93 @@ export class PriceService {
          console.warn(`[DB Error] Failed to check fallback price for ${symbol}:`, err);
       }
 
-      // 3. Fallthrough happens ONLY if the fund has no previous DB price (e.g. completely new fund being added)
-      // !!! QUOTA PROTECTION !!! — ScraperAPI credits are limited.
-      // We no longer fetch live for new funds on-demand. They will stay at 0 until the next 09:00/10:00 cron run.
       console.log(`[TEFAS Quota Protection] No live fetch for ${symbol}. Price will update in the next scheduled cycle.`);
-      return 0;
+      return null;
     } else if (type === 'us_stock') {
       return this.getUSStockPrice(symbol);
     } else {
-      // Use BIST price system for stocks
       return this.getBISTPrice(symbol);
     }
   }
 
-  private async getBISTPrice(symbol: string): Promise<number> {
+  async registerSymbolToGoogleSheets(symbol: string, type: 'stock' | 'fund' | 'us_stock'): Promise<void> {
+    if (type === 'fund') return; // Sadece hisseleri gönderiyoruz
+    
     try {
-      // Use the exact Google Finance URL format: SYMBOL:IST
-      console.log(`Fetching price for ${symbol} from Google Finance`);
-      const price = await this.tryGoogleFinancePrice(symbol);
-      if (price && price > 0 && price < 10000) {
-        console.log(`Found price for ${symbol}: ${price} TL`);
-        return price;
+      let prefix = 'IST';
+      if (type === 'us_stock') {
+        prefix = 'NASDAQ'; // Varsayılan olarak NASDAQ gönderiyoruz
       }
+      
+      const payload = { symbol: `${prefix}:${symbol}` };
+      console.log(`Sending new symbol to Google Sheets: ${payload.symbol}`);
+      
+      await axios.post(this.GOOGLE_SHEETS_FETCH_URL, payload);
+      console.log(`Successfully registered ${payload.symbol} to Google Sheets.`);
+    } catch (error) {
+      console.error(`Failed to register symbol ${symbol} to Google Sheets:`, (error as Error).message);
+    }
+  }
 
-      // Try alternative sources if Google Finance fails
-      const altPrice = await this.tryAlternativeSources(symbol);
-      if (altPrice) {
-        return altPrice;
+  // --- GOOGLE SHEETS ENTEGRASYONU ---
+  private async fetchFromGoogleSheets(symbols: string[]): Promise<Record<string, number>> {
+    try {
+      console.log(`Fetching from Google Sheets for symbols: ${symbols.join(', ')}`);
+      const response = await axios.get(this.GOOGLE_SHEETS_FETCH_URL);
+      const data: Record<string, number> = response.data;
+      
+      return data;
+    } catch (error) {
+      console.error('Google Sheets fetch failed:', error);
+      return {}; // Hata durumunda boş obje
+    }
+  }
+
+  private async getBISTPrice(symbol: string): Promise<number | null> {
+    try {
+      const sheetsData = await this.fetchFromGoogleSheets([symbol]);
+      const livePrice = sheetsData[symbol];
+      
+      if (livePrice && livePrice > 0) {
+        console.log(`Found live price for ${symbol} from Google Sheets: ${livePrice} TL`);
+        return livePrice;
       }
-
-      // Use current market prices for known stocks
-      const knownPrices = await this.getCurrentMarketPrices();
-      if (knownPrices[symbol]) {
-        console.log(`Using current market price for ${symbol}: ${knownPrices[symbol]} TL`);
-        return knownPrices[symbol];
+      
+      // DB Fallback
+      const [pos] = await db.select().from(positions).where(eq(positions.symbol, symbol)).limit(1);
+      if (pos && pos.currentPrice) {
+        return parseFloat(pos.currentPrice);
       }
-
-      throw new Error(`No reliable price source found for ${symbol}`);
+      
+      console.warn(`No price found for ${symbol} in Sheets and DB.`);
+      return null;
     } catch (error) {
       console.warn(`Failed to fetch BIST price for ${symbol}:`, error);
-      return this.getMockPrice(symbol, 'stock');
-    }
-  }
-
-  private async tryGoogleFinancePrice(ticker: string, exchange: string = 'IST'): Promise<number | null> {
-    try {
-      const googleUrl = exchange 
-        ? `https://www.google.com/finance/quote/${ticker}:${exchange}`
-        : `https://www.google.com/finance/quote/${ticker}`;
-      console.log(`Fetching from: ${googleUrl}`);
-      
-      const response = await axios.get(googleUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-          'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
-          'Accept-Encoding': 'gzip, deflate',
-          'DNT': '1',
-          'Connection': 'keep-alive',
-          'Upgrade-Insecure-Requests': '1'
-        },
-        timeout: 10000
-      });
-
-      const $ = cheerio.load(response.data);
-      
-      // Enhanced Google Finance selectors based on the screenshot
-      const priceSelectors = [
-        '.YMlKec.fxKbKc',           // Main price display (like ₺22.94 in screenshot)
-        '[data-last-price]',
-        '.YMlKec.fxKbKc',
-        '.YMlKec',
-        '[jsname="ip75ob"] .YMlKec',
-        '[data-symbol] .YMlKec',
-        '.AHmHk .YMlKec',
-        'div[class*="price"] span',
-        '[class*="CurrentPrice"]',
-        '.Ax4B8',
-        '[aria-label*="price"]',
-        '[data-test*="price"]'
-      ];
-
-      for (const selector of priceSelectors) {
-        const priceElement = $(selector);
-        if (priceElement.length > 0) {
-          const priceText = priceElement.attr('data-last-price') || 
-                           priceElement.attr('data-price') ||
-                           priceElement.text().trim();
-          
-          if (priceText) {
-            console.log(`Raw price text found: "${priceText}"`);
-            
-            // Clean price text more carefully for Turkish format
-            let cleanPrice = priceText
-              .replace(/[₺$]/g, '')           // Remove currency symbol
-              .replace(/[^\d,.-]/g, '')    // Keep only digits, comma, dot, minus
-              .trim();
-            
-            // Handle Turkish decimal format (22,94 -> 22.94)
-            if (cleanPrice.includes(',') && !cleanPrice.includes('.')) {
-              cleanPrice = cleanPrice.replace(',', '.');
-            }
-            
-            const price = parseFloat(cleanPrice);
-            console.log(`Parsed price: ${price}`);
-            
-            if (!isNaN(price) && price > 0 && price < 10000) {
-              console.log(`Valid price found for ${ticker}: ${price} TL`);
-              return price;
-            }
-          }
-        }
-      }
-      
-      return null;
-    } catch (error) {
       return null;
     }
   }
 
-  private async getUSStockPrice(symbol: string): Promise<number> {
+  private async getUSStockPrice(symbol: string): Promise<number | null> {
     try {
-      let usdPrice = 0;
-      // First try NASDAQ
-      const nasdaqPrice = await this.tryGoogleFinancePrice(symbol, 'NASDAQ');
-      if (nasdaqPrice && nasdaqPrice > 0) usdPrice = nasdaqPrice;
-      else {
-        // Then try NYSE
-        const nysePrice = await this.tryGoogleFinancePrice(symbol, 'NYSE');
-        if (nysePrice && nysePrice > 0) usdPrice = nysePrice;
+      const sheetsData = await this.fetchFromGoogleSheets([symbol]);
+      const livePrice = sheetsData[symbol];
+      
+      if (livePrice && livePrice > 0) {
+        console.log(`Found live price for ${symbol} from Google Sheets: $${livePrice}`);
+        return livePrice;
       }
       
-      if (usdPrice > 0) {
-        return Math.round(usdPrice * 1000000) / 1000000;
+      // DB Fallback
+      const [pos] = await db.select().from(positions).where(eq(positions.symbol, symbol)).limit(1);
+      if (pos && pos.currentPrice) {
+        return parseFloat(pos.currentPrice);
       }
       
-      throw new Error(`Google Finance did not return price for US stock ${symbol}`);
+      console.warn(`No price found for ${symbol} in Sheets and DB.`);
+      return null;
     } catch (error) {
       console.warn(`Failed to fetch US stock price for ${symbol}:`, error);
-      return this.getMockPrice(symbol, 'us_stock');
+      return null;
     }
   }
 
@@ -252,19 +197,7 @@ export class PriceService {
       console.warn(`Frankfurter API failed for latest ${pair}:`, (e as Error).message);
     }
 
-    try {
-      const ticker = pair === 'USDTRY' ? 'USD-TRY' : pair;
-      // Fallback to Google Finance for currency pairs
-      const rate = await this.tryGoogleFinancePrice(ticker, 'CURRENCY');
-      if (rate && rate > 0) {
-        console.log(`Fetched fallback exchange rate for ${pair} from Google: ${rate}`);
-        return rate;
-      }
-    } catch (e) {
-      console.warn(`Google fallback failed for ${pair}:`, e);
-    }
-    // Final realistic fallback
-    return 34.25;
+    return 34.25; // Sabit fallback
   }
 
   async getHistoricalExchangeRate(date: Date, pair: string = 'USDTRY'): Promise<number> {
@@ -288,78 +221,11 @@ export class PriceService {
       throw new Error(`Frankfurter API did not return rate for ${pair} on ${formattedDate}`);
     } catch (error) {
       console.warn(`Historical rate fetch failed for ${pair} on ${date}:`, (error as Error).message);
-      // Fallback: If it's a very recent date, use current rate
       if (new Date().getTime() - date.getTime() < 24 * 60 * 60 * 1000) {
         return this.getExchangeRate(pair);
       }
-      // Otherwise return a generic historical fallback (around 30-34 TL)
       return 34.0;
     }
-  }
-
-  private async tryAlternativeSources(symbol: string): Promise<number | null> {
-    try {
-      // Try Investing.com
-      const investingUrl = `https://www.investing.com/search/?q=${symbol}`;
-      const response = await axios.get(investingUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        },
-        timeout: 5000
-      });
-
-      const $ = cheerio.load(response.data);
-      
-      const priceSelectors = [
-        '[data-test="instrument-price-last"]',
-        '.text-2xl[data-test*="price"]',
-        '.instrument-price_last__KQzyA',
-        '.last-price-value',
-        '[class*="price-value"]'
-      ];
-
-      for (const selector of priceSelectors) {
-        const priceElement = $(selector);
-        if (priceElement.length > 0) {
-          const priceText = priceElement.text().trim();
-          const cleanPrice = priceText.replace(/[^\d,.-]/g, '').replace(',', '.');
-          const price = parseFloat(cleanPrice);
-          if (!isNaN(price) && price > 0) {
-            return price;
-          }
-        }
-      }
-
-      return null;
-    } catch (error) {
-      return null;
-    }
-  }
-
-  private async getCurrentMarketPrices(): Promise<Record<string, number>> {
-    // Updated with current market prices (July 26, 2025)
-    return {
-      'ULKER': 106.80,
-      'ENKAI': 69.15,
-      'AKFIS': 22.94,
-      'ASELS': 85.30,
-      'BIMAS': 489.50,
-      'CCOLA': 98.60,
-      'EKGYO': 8.95,
-      'FROTO': 485.00,
-      'GARAN': 98.85,
-      'HALKB': 10.49,
-      'ISCTR': 12.78,
-      'KCHOL': 163.40,
-      'MIGRS': 312.00,
-      'SAHOL': 58.65,
-      'SISE': 52.40,
-      'TCELL': 64.00,
-      'TUPRS': 185.80,
-      'VAKBN': 8.54,
-      'YKBNK': 24.80,
-      'AKBNK': 59.30
-    };
   }
 
   async getBISTMarketData(): Promise<MarketSymbol[]> {
@@ -372,31 +238,36 @@ export class PriceService {
       const batchPromises = batch.map(async (symbolInfo) => {
         try {
           const price = await this.getBISTPrice(symbolInfo.symbol);
-          const change = (Math.random() - 0.5) * 10; // Random change for demo
-          const changePercent = (change / price) * 100;
           
-          return {
-            symbol: symbolInfo.symbol,
-            name: symbolInfo.name,
-            price: price.toString(),
-            change: change.toFixed(2),
-            changePercent: changePercent.toFixed(2),
-            isFollowed: false
-          };
+          if (price !== null) {
+            const change = (Math.random() - 0.5) * 10; // Random change for demo
+            const changePercent = (change / price) * 100;
+            return {
+              symbol: symbolInfo.symbol,
+              name: symbolInfo.name,
+              price: price.toString(),
+              change: change.toFixed(2),
+              changePercent: changePercent.toFixed(2),
+              isFollowed: false
+            };
+          } else {
+            return {
+              symbol: symbolInfo.symbol,
+              name: symbolInfo.name,
+              price: "0",
+              change: "0",
+              changePercent: "0",
+              isFollowed: false
+            };
+          }
         } catch (error) {
           console.warn(`Failed to fetch price for ${symbolInfo.symbol}:`, error);
-          // Return with current market price as fallback
-          const currentPrices = await this.getCurrentMarketPrices();
-          const fallbackPrice = currentPrices[symbolInfo.symbol] || 100;
-          const change = (Math.random() - 0.5) * 10;
-          const changePercent = (change / fallbackPrice) * 100;
-          
           return {
             symbol: symbolInfo.symbol,
             name: symbolInfo.name,
-            price: fallbackPrice.toString(),
-            change: change.toFixed(2),
-            changePercent: changePercent.toFixed(2),
+            price: "0",
+            change: "0",
+            changePercent: "0",
             isFollowed: false
           };
         }
@@ -414,14 +285,15 @@ export class PriceService {
     return results;
   }
 
-  // Manually bypass DB caching mechanism to force a live hit to TEFAS API (e.g. for Cron jobs or Manual UI refreshes)
-  async forceTEFASUpdate(symbol: string): Promise<number> {
+  async forceTEFASUpdate(symbol: string): Promise<number | null> {
     const price = await this.getTEFASPrice(symbol);
-    setCachedFundPrice(symbol, price);
+    if (price !== null) {
+      setCachedFundPrice(symbol, price);
+    }
     return price;
   }
 
-  private async getTEFASPrice(symbol: string): Promise<number> {
+  private async getTEFASPrice(symbol: string): Promise<number | null> {
     console.log(`Fetching TEFAS price for ${symbol}`);
 
     const today = new Date();
@@ -432,11 +304,10 @@ export class PriceService {
       const y = date.getFullYear();
       const m = String(date.getMonth() + 1).padStart(2, '0');
       const d = String(date.getDate()).padStart(2, '0');
-      return `${d}.${m}.${y}`; // TEFAS expects DD.MM.YYYY
+      return `${d}.${m}.${y}`; 
     };
 
     try {
-      // Phase A: Official TEFAS JSON API (routed through Cloudflare Worker)
       console.log(`[TEFAS] Fetching live through proxy for ${symbol}...`);
       
       const formData = new URLSearchParams();
@@ -474,39 +345,28 @@ export class PriceService {
       console.warn(`[TEFAS Proxy API] Failed for ${symbol}:`, (err as Error).message);
     }
 
-    // Phase B: HTML Fallback — Also through Proxy
     try {
       console.log(`[TEFAS Proxy] API returned no data for ${symbol}, trying HTML Scraper fallback...`);
       return await this.scrapeTEFASPrice(symbol);
     } catch (e) {
-      // Phase C: Alternative Source — Also through Proxy if needed, but Halk Yatirim Fallback
+      console.warn(`[TEFAS] All external sources failed for ${symbol}. Using last known DB price as safety...`);
       try {
-        console.log(`[TEFAS] Official HTML failed for ${symbol}, triggering Phase C (Halk Yatirim Fallback)...`);
-        return await this.halkYatirimScrapePrice(symbol);
-      } catch (halkError) {
-        console.warn(`[TEFAS] All external sources failed for ${symbol}. Using last known DB price as safety...`);
-        
-        try {
-          const [pos] = await db.select().from(positions).where(eq(positions.symbol, symbol)).limit(1);
-          if (pos && pos.currentPrice) {
-            return parseFloat(pos.currentPrice);
-          }
-        } catch (dbErr) { /* ignore */ }
-        
-        return this.getMockPrice(symbol, 'fund');
-      }
+        const [pos] = await db.select().from(positions).where(eq(positions.symbol, symbol)).limit(1);
+        if (pos && pos.currentPrice) {
+          return parseFloat(pos.currentPrice);
+        }
+      } catch (dbErr) { /* ignore */ }
+      
+      return null;
     }
   }
 
   private async makeProxiedRequest(targetUrl: string, method: 'GET' | 'POST', data: any = null) {
-    // Switch to ScraperAPI for JS Challenge bypass (render=true)
     const apiKey = process.env.SCRAPER_API_KEY;
     if (!apiKey) {
       console.error('[ScraperAPI] MISSING API KEY in environment variables!');
     }
     
-    // ScraperAPI URL format - render=true only for GET (HTML scraping)
-    // ScraperAPI does not support render=true for POST requests (results in 400 Bad Request)
     const renderParam = method === 'GET' ? '&render=true' : '';
     const proxyUrl = `http://api.scraperapi.com?api_key=${apiKey}&url=${encodeURIComponent(targetUrl)}${renderParam}`;
     
@@ -517,7 +377,7 @@ export class PriceService {
         'Accept': 'application/json, text/plain, */*',
         'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
       },
-      timeout: 60000 // Increased to 60s for Cloudflare challenge resolution
+      timeout: 60000 
     };
 
     if (method === 'POST') {
@@ -529,19 +389,17 @@ export class PriceService {
     return axios(config);
   }
 
-  private async scrapeTEFASPrice(symbol: string): Promise<number> {
+  private async scrapeTEFASPrice(symbol: string): Promise<number | null> {
     try {
       const url = `https://fintables.com/fonlar/${symbol}`;
       console.log(`[Fintables Scraper] Fetching price for ${symbol}...`);
       
-      // Route the GET through the ScraperAPI proxy with render=true
       const response = await this.makeProxiedRequest(url, 'GET');
       const html = response.data;
       const $ = cheerio.load(html);
       
       let price: number | null = null;
 
-      // Tier 1: Try __NEXT_DATA__ script (Legacy/Cached Next.js pattern)
       try {
         const nextData = $('#__NEXT_DATA__').html();
         if (nextData) {
@@ -556,11 +414,9 @@ export class PriceService {
         console.warn(`[Fintables Scraper] JSON parse failed, moving to selector fallback...`);
       }
 
-      // Tier 2: CSS Selector (Rendered HTML pattern)
       if (!price) {
         const selectorPriceText = $('span.inline-flex.items-center.tabular-nums').first().text().trim();
         if (selectorPriceText) {
-          // Fintables uses comma (,) for decimals in browser rendering: e.g. "3,484151"
           const cleanPrice = selectorPriceText.replace(/\./g, '').replace(',', '.');
           const parsedPrice = parseFloat(cleanPrice);
           if (!isNaN(parsedPrice) && parsedPrice > 0) {
@@ -570,7 +426,6 @@ export class PriceService {
         }
       }
 
-      // Tier 3: Regex Fallback (Streaming/Raw JS pattern)
       if (!price) {
         const priceMatch = html.match(/"price":\s*(\d+\.\d+)/);
         if (priceMatch && priceMatch[1]) {
@@ -587,73 +442,31 @@ export class PriceService {
       setCachedFundPrice(symbol, price);
       return price;
     } catch (error) {
-      throw new Error(`Fintables Scraping failed for ${symbol}: ${(error as Error).message}`);
+      console.warn(`Fintables Scraping failed for ${symbol}: ${(error as Error).message}`);
+      return null;
     }
-  }
-
-  private getMockPrice(symbol: string, type: 'stock' | 'fund' | 'us_stock'): number {
-    // Generate realistic mock prices for Turkish markets
-    const hash = symbol.split('').reduce((a, b) => {
-      a = ((a << 5) - a) + b.charCodeAt(0);
-      return a & a;
-    }, 0);
-    
-    // Known TEFAS fund reference prices for demo (as of late 2024/early 2025)
-    const knownFundPrices: Record<string, number> = {
-      'IRY': 4.02,
-      'YAC': 2.85,
-      'ALC': 3.41,
-      'TYS': 1.23,
-      'AKB': 15.67,
-      'GRO': 8.94,
-      'DCB': 1.15,
-      'ZP8': 1.08,
-      'DAS': 12.34,
-      'EUZ': 7.89,
-      'AFT': 0.145,
-      'IPJ': 1.89,
-      'GAH': 3.25,
-      'HPP': 2.15
-    };
-    
-    // Use known price if available, otherwise generate realistic price
-    if (type === 'fund' && knownFundPrices[symbol]) {
-      // Add small random variation to simulate market movement
-      const basePrice = knownFundPrices[symbol];
-      const variation = (Math.random() - 0.5) * 0.1; // ±5% variation
-      return Math.round((basePrice + basePrice * variation) * 100) / 100;
-    }
-    
-    // Fallback to algorithm-generated prices
-    const basePrice = type === 'us_stock' ? 150 : (type === 'stock' ? 25 : 2.5); // US Stock baseline natively in USD
-    const variation = (Math.abs(hash) % 100) / 100;
-    const multiplier = type === 'us_stock' ? 20 : (type === 'stock' ? 8 : 2);
-    const price = basePrice + (variation * multiplier);
-    
-    return Math.round(price * 100) / 100;
   }
 
   async validateSymbol(symbol: string, type: 'stock' | 'fund' | 'us_stock'): Promise<boolean> {
     try {
-      await this.getPrice(symbol, type);
-      return true;
+      const price = await this.getPrice(symbol, type);
+      return price !== null;
     } catch {
       return false;
     }
   }
 
-  // Get fund name from symbol for TEFAS funds
   getFundName(symbol: string, type: 'stock' | 'fund' | 'us_stock'): string {
     if (type === 'fund') {
       const knownFundNames: Record<string, string> = {
-        'IRY': 'INVEO PORTFÖY PARA PİYASASI (TL) FONU', // Updated from TEFAS API response
-        'GBG': 'INVEO PORTFÖY G-20 ÜLKELERİ YABANCI HİSSE SENEDİ FONU', // Updated from TEFAS API response
-        'YKT': 'YAPI KREDİ PORTFÖY ALTIN FONU', // Updated from TEFAS API response
+        'IRY': 'INVEO PORTFÖY PARA PİYASASI (TL) FONU', 
+        'GBG': 'INVEO PORTFÖY G-20 ÜLKELERİ YABANCI HİSSE SENEDİ FONU', 
+        'YKT': 'YAPI KREDİ PORTFÖY ALTIN FONU', 
         'YAC': 'Ak Portföy Değer Odakli 100 Şirketleri Hisse Senedi Fonu',
         'ALC': 'Ak Portföy Kar Payi Ödeyen Şirketler Hisse Senedi Fonu',
         'TYS': 'Teb Portföy Teknoloji Sektörü Hisse Senedi Fonu',
         'AKB': 'Ak Portföy Kısa Vadeli Borçlanma Araçları Fonu',
-        'GJH': 'GARANTİ PORTFÖY PARA PİYASASI SERBEST (TL) FON', // Updated from TEFAS API response
+        'GJH': 'GARANTİ PORTFÖY PARA PİYASASI SERBEST (TL) FON', 
         'GRO': 'Garanti Portföy Otuzuncu Serbest (Döviz) Fon',
         'DCB': 'Deniz Portföy Para Piyasası Serbest (TL) Fon',
         'ZP8': 'Ziraat Portföy Kehribar Para Piyasası Katılım Serbest Fon',
