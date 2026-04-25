@@ -34,19 +34,19 @@ export class PriceMonitor {
     // this.updateFundPrices();
 
     // Scheduled: 09:00 Turkey time (06:00 UTC)
-    const job9 = cron.schedule('0 6 * * *', () => {
-      console.log('[CRON] 09:00 TR - Fetching TEFAS fund prices...');
+    const job9 = cron.schedule('0 6 * * 1-5', () => { // 1-5 = Pazartesi-Cuma
+      console.log('[CRON] 09:00 TR (Paz-Cum) - Fetching TEFAS fund prices...');
       this.updateFundPrices(true);
     }, { timezone: 'UTC' });
 
     // Scheduled: 10:00 Turkey time (07:00 UTC) — retry/backup run
-    const job10 = cron.schedule('0 7 * * *', () => {
-      console.log('[CRON] 10:00 TR - TEFAS fund price backup fetch...');
+    const job10 = cron.schedule('0 7 * * 1-5', () => { // 1-5 = Pazartesi-Cuma
+      console.log('[CRON] 10:00 TR (Paz-Cum) - TEFAS fund price backup fetch...');
       this.updateFundPrices(true);
     }, { timezone: 'UTC' });
 
     this.fundCronJobs = [job9, job10];
-    console.log('Fund price scheduler active: 09:00 and 10:00 Turkey time daily.');
+    console.log('Fund price scheduler active: 09:00 and 10:00 Turkey time (Workdays only).');
   }
 
   stopMonitoring() {

@@ -117,17 +117,36 @@ export class PriceService {
 
   private async makeProxiedRequest(targetUrl: string, method: 'GET' | 'POST', forceRender: boolean = false) {
     const apiKey = process.env.SCRAPER_API_KEY;
-    if (!apiKey) return axios({ method, url: targetUrl, timeout: 15000 });
+    
+    // Safety Check: Only funds should ever reach here if unproxied fails
+    if (!targetUrl.includes('fintables.com')) {
+      console.error(`[QUOTA VIOLATION] Attempted to use ScraperAPI for non-fund URL: ${targetUrl}`);
+      throw new Error('ScraperAPI is restricted to fund prices only.');
+    }
+
+    if (!apiKey) {
+      console.warn('[ScraperAPI] MISSING API KEY. Attempting DIRECT request...');
+      return axios({ method, url: targetUrl, timeout: 15000 });
+    }
     
     const renderParam = forceRender ? '&render=true' : '';
     const proxyUrl = `http://api.scraperapi.com?api_key=${apiKey}&url=${encodeURIComponent(targetUrl)}${renderParam}`;
 
-    return axios({
-      method,
-      url: proxyUrl,
-      headers: { 'Accept-Language': 'tr-TR,tr;q=0.9' },
-      timeout: 30000
-    });
+    try {
+      return await axios({
+        method,
+        url: proxyUrl,
+        headers: { 'Accept-Language': 'tr-TR,tr;q=0.9' },
+        timeout: 45000
+      });
+    } catch (error: any) {
+      const status = error.response?.status;
+      if (status === 403 || status === 429) {
+        console.error(`[ScraperAPI Error] Kota doldu veya erişim engellendi (Status: ${status}).`);
+        throw new Error('SCRAPER_QUOTA_EXCEEDED');
+      }
+      throw error;
+    }
   }
 
   // --- OTHERS ---

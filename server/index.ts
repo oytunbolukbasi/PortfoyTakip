@@ -84,6 +84,14 @@ app.use((req, res, next) => {
   }, () => {
     log(`serving on port ${port}`);
     
+    // ScraperAPI Key Check
+    const apiKey = process.env.SCRAPER_API_KEY;
+    if (apiKey) {
+      log(`ScraperAPI: Key loaded (ending in ...${apiKey.slice(-4)})`);
+    } else {
+      log(`ScraperAPI: WARNING - API Key not found!`);
+    }
+    
     // Start price monitoring service after server is ready
     priceMonitor.startMonitoring();
     log(`price monitoring started - updates every 5 minutes`);
