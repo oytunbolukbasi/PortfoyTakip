@@ -47,6 +47,7 @@ Kullanıcının gördüğü rakamlar şu mantığa göre hesaplanır:
     *   `Fiyat < Maliyet` ise KIRMIZI (Error)
 *   **Kur Etkisi:** ABD hisselerinde kâr/zarar hem USD bazında hem de kur farkı eklenmiş TRY bazında hesaplanarak kullanıcıya sunulur.
 *   **Zaman Damgası:** Her varlığın ne zaman güncellendiği `lastUpdated` alanı ile takip edilir ve front-end tarafında "Son Güncelleme" bilgisi olarak sunulabilir.
+*   **Günlük Değişim (Daily P/L):** Bu alan kaldırılmıştır. Güvenilir bir "dünkü kapanış fiyatı" kaynağı olmadan günlük değişim hesaplanamadığı için, kullanıcıyı yanıltmamak adına portföy özet kartından tamamen çıkarılmıştır.
 
 ---
 

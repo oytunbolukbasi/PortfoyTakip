@@ -84,18 +84,12 @@ export default function PortfolioSummary({ positions, closedPositions = [] }: Po
     // This gives a more accurate percentage of overall return
     const lifetimeCost = totalCost + realizedCost;
     const totalReturnPercent = lifetimeCost > 0 ? (netPL / lifetimeCost) * 100 : 0;
-    
-    // For "daily change", we keep it simple for now as 0 or 
-    // we could try to get it if we had a more robust historical data system.
-    // Removing the 10% mock to avoid total confusion.
-    const dailyChange = 0; 
 
     return {
       totalValue,
       totalCost,
       totalPL: netPL,
       totalReturn: totalReturnPercent,
-      dailyPL: dailyChange,
       missingPriceCount,
     };
   };
@@ -108,7 +102,6 @@ export default function PortfolioSummary({ positions, closedPositions = [] }: Po
     totalCost: isUSD ? rawSummary.totalCost / usdRate : rawSummary.totalCost,
     totalPL: isUSD ? rawSummary.totalPL / usdRate : rawSummary.totalPL,
     totalReturn: rawSummary.totalReturn, // Return is a percentage, stays same
-    dailyPL: isUSD ? rawSummary.dailyPL / usdRate : rawSummary.dailyPL,
   };
 
   const fmtCurrency = (val: number) => {
@@ -143,18 +136,6 @@ export default function PortfolioSummary({ positions, closedPositions = [] }: Po
             >
               <ArrowRightLeft className="w-4 h-4" />
             </button>
-          </div>
-          <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-            summary.dailyPL >= 0
-              ? 'bg-success-100 text-success-500'
-              : 'bg-error-100 text-error-500'
-          }`}>
-            {isVisible
-              ? summary.dailyPL === 0
-                ? 'Bugün değişim yok'
-                : `${summary.dailyPL >= 0 ? '+' : '-'}${fmtCurrency(Math.abs(summary.dailyPL))} bugün`
-              : "***,** bugün"
-            }
           </div>
         </div>
 
