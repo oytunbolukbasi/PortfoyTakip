@@ -28,13 +28,13 @@ Güvenlik ve verimlilik odaklı bir API katmanıdır.
 - **Authentication**: `express-session` tabanlı session yönetimi.
 - **ORM**: Drizzle ORM (Type-safe SQL query builder)
 - **Zamanlanmış Görevler**: `node-cron` (Fiyat güncellemeleri için)
-- **HTTP Client**: Axios (Google Sheets ve TEFAS API bağlantıları için)
+- **HTTP Client**: Axios (Google Sheets ve Fintables Scraper bağlantıları için)
 
 ## 📊 Veri Kaynakları ve Fiyatlandırma Motoru
 Uygulamanın kalbi olan veri katmanı, "Sıfır Sahte Veri" politikasıyla çalışır.
 
 - **BIST & ABD Fiyatları**: Google Sheets JSON API (Özel Apps Script Web App)
-- **Fon Fiyatları (TEFAS)**: Resmi TEFAS API + ScraperAPI (Proxy/Bypass)
+- **Fon Fiyatları**: Fintables Scraper + ScraperAPI (Proxy/Bypass)
 - **Döviz Kurları**: Frankfurter API (USD/TRY çevrimi için)
 - **Webhook**: Yeni sembollerin Google Sheets'e otomatik kaydı için asenkron POST yapısı.
 

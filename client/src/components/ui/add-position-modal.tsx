@@ -87,7 +87,7 @@ export default function AddPositionModal({ open, onOpenChange, onSuccess }: AddP
       }
       toast({
         title: "Hata",
-        description: "Pozisyon eklenirken bir hata oluştu.",
+        description: err instanceof Error ? err.message : "Pozisyon eklenirken bir hata oluştu.",
         variant: "destructive",
       });
     },

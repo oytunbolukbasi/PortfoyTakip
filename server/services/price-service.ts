@@ -85,30 +85,32 @@ export class PriceService {
   private async scrapeFintablesPrice(symbol: string): Promise<number | null> {
     try {
       const url = `https://fintables.com/fonlar/${symbol}`;
-      const response = await this.makeProxiedRequest(url, 'GET', true);
+      // Render=false (hızlı ve stabil) kullanıyoruz
+      const response = await this.makeProxiedRequest(url, 'GET', false);
       const html = response.data;
-      const $ = cheerio.load(html);
       
-      let price: number | null = null;
-
-      try {
-        const nextData = $('#__NEXT_DATA__').html();
-        if (nextData) {
-          const jsonData = JSON.parse(nextData);
-          const foundPrice = jsonData?.props?.pageProps?.fund?.price;
-          if (foundPrice) price = parseFloat(foundPrice);
-        }
-      } catch (e) { /* fallback */ }
-
-      if (!price) {
-        const selectorPriceText = $('span.inline-flex.items-center.tabular-nums').first().text().trim();
-        if (selectorPriceText) {
-          price = parseFloat(selectorPriceText.replace(/\./g, '').replace(',', '.'));
+      // Strategy 1: Robust regex for Fintables JSON stream (accounts for quotes/escapes)
+      // Pattern matches "price":4.911 or "price\":4.911 or "price" : 4.911
+      const robustRegex = /"price\\?":\s*([\d.]+)/;
+      const match = html.match(robustRegex);
+      
+      if (match && match[1]) {
+        const price = parseFloat(match[1]);
+        if (!isNaN(price) && price > 0 && price < 10000) {
+          console.log(`[Fintables] SUCCESS: Extracted price for ${symbol}: ${price}`);
+          return price;
         }
       }
 
-      if (!price || isNaN(price)) throw new Error('Price not found');
-      return price;
+      // Strategy 2: Cheerio fallback (if HTML structure is simple)
+      const $ = cheerio.load(html);
+      const selectorPriceText = $('span.inline-flex.items-center.tabular-nums').first().text().trim();
+      if (selectorPriceText) {
+        const parsed = parseFloat(selectorPriceText.replace(/\./g, '').replace(',', '.'));
+        if (!isNaN(parsed) && parsed > 0) return parsed;
+      }
+
+      throw new Error('Price pattern not found in HTML');
     } catch (error) {
       console.warn(`[Fintables Scraper Error] ${symbol}: ${(error as Error).message}`);
       return null;
@@ -129,6 +131,8 @@ export class PriceService {
       return axios({ method, url: targetUrl, timeout: 15000 });
     }
     
+    // ScraperAPI Free Plan kullandığımız için premium=true PARAMETRESİ KALDIRILDI!
+    // Aksi halde ScraperAPI "Your current plan does not allow you to use our premium proxies" hatası dönüyor.
     const renderParam = forceRender ? '&render=true' : '';
     const proxyUrl = `http://api.scraperapi.com?api_key=${apiKey}&url=${encodeURIComponent(targetUrl)}${renderParam}`;
 
@@ -137,15 +141,16 @@ export class PriceService {
         method,
         url: proxyUrl,
         headers: { 'Accept-Language': 'tr-TR,tr;q=0.9' },
-        timeout: 45000
+        timeout: 60000
       });
     } catch (error: any) {
       const status = error.response?.status;
       if (status === 403 || status === 429) {
         console.error(`[ScraperAPI Error] Kota doldu veya erişim engellendi (Status: ${status}).`);
-        throw new Error('SCRAPER_QUOTA_EXCEEDED');
+      } else {
+        console.error(`[ScraperAPI Error] İstek başarısız oldu veya timeout (60s) gerçekleşti: ${error.message}`);
       }
-      throw error;
+      throw new Error('SCRAPER_FAILED_OR_QUOTA_EXCEEDED');
     }
   }
 
@@ -195,13 +200,39 @@ export class PriceService {
     return results;
   }
 
-  getFundName(symbol: string): string {
+  async getHistoricalExchangeRate(date: Date): Promise<number> {
+    try {
+      const dateStr = date.toISOString().split('T')[0];
+      const response = await axios.get(`https://api.frankfurter.app/${dateStr}?from=USD&to=TRY`, { timeout: 5000 });
+      return response.data?.rates?.TRY || 34.50;
+    } catch {
+      return this.getExchangeRate();
+    }
+  }
+
+  async registerSymbolToGoogleSheets(symbol: string, type: string): Promise<void> {
+    const webhookUrl = 'https://script.google.com/macros/s/AKfycbzK9aEJI-tTAJMtyhj_k8J-BBouaR-T1lVDQ6sqen_MdyQIqj2glt3kltr2mKzqePJx/exec';
+    try {
+      // Background request to Google Sheets App Script (Webhook)
+      // This ensures new symbols are added to the tracking sheet automatically
+      axios.post(webhookUrl, {
+        symbol: symbol,
+        type: type,
+        action: 'register'
+      }, { timeout: 5000 }).catch(e => console.warn(`Google Sheets Webhook registration failed for ${symbol}:`, e.message));
+    } catch (err) {
+      console.warn(`Failed to trigger Google Sheets registration for ${symbol}`);
+    }
+  }
+
+  getFundName(symbol: string, _type?: string): string {
     const knownFundNames: Record<string, string> = {
       'IRY': 'INVEO PORTFÖY PARA PİYASASI FONU',
       'YKT': 'YAPI KREDİ PORTFÖY ALTIN FONU',
       'AFT': 'Ak Portföy Yeni Teknolojiler Yabancı Hisse Senedi Fonu',
       'IPJ': 'İş Portföy Büyüme Potansiyeli Yabancı Hisse Senedi Fonu',
-      'GAH': 'Garanti Portföy Altın Fonu'
+      'GAH': 'Garanti Portföy Altın Fonu',
+      'AES': 'Ak Portföy Petrol Yabancı Hisse Senedi Fonu'
     };
     return knownFundNames[symbol] || symbol;
   }

@@ -17,7 +17,7 @@ Mobile-First ve Native Hissiyat: Uygulama, iOS/Android native uygulamaları gibi
 
 Minimalizm (Revolut/Midas Tarzı): Kullanıcının bilişsel yükünü azaltmak için ekranlar temiz tutulmalıdır. Gereksiz tekrar eden metinlerden (örneğin her satırda "KAR / ZARAR" yazması) ve kalabalıktan kaçınılmalıdır.
 
-Akıcılık (Optimistic Updates): Form gönderimlerinde (örneğin pozisyon ekleme) backend yanıtı beklenmeden, React Query kullanılarak arayüzde "İyimser Güncelleme" (Optimistic Update) yapılmalıdır.
+Akıcılık (Optimistic Updates): Form gönderimlerinde (örneğin pozisyon ekleme) backend yanıtı beklenmeden, React Query kullanılarak arayüzde "İyimser Güncelleme" (Optimistic Update) yapılmalıdır. Backend'den hata gelse bile UI önce kullanıcıya başarı hissi vermeli, hata durumunda "Rollback" (Geri alma) yapmalıdır. Toast mesajları backend'den gelen detaylı hata mesajını içermelidir.
 
 Düzen ve Bilgi Hiyerarşisi: Yoğun listelerde satır aralarına ince ayırıcı çizgiler (divide-y) eklenerek okunabilirlik artırılmalıdır. Özellikler birbirinden kopuk değil, "Bütünleşik Kart" (Unified Hub) mantığıyla gruplandırılmalıdır.
 
@@ -30,7 +30,7 @@ Güvenli Hata Yönetimi (Null-Handling): Fiyat güncellenemediğinde uygulama ve
 
 BIST ve ABD Hisseleri: Veriler, Google Sheets API'si üzerinden (=GOOGLEFINANCE formülleri kullanılarak) oluşturulan özel bir JSON uç noktasından çekilir. Yeni eklenen semboller backend üzerinden Webhook (doPost) ile otomatik olarak bu tabloya işlenir. Yabancı hisselerin çevrimi için Frankfurter API kullanılır.
 
-TEFAS Fonları: Veriler doğrudan Fintables üzerinden ScraperAPI kullanılarak (Cloudflare aşma ve render=true parametreleriyle) çekilir.
+Yatırım Fonları: Veriler doğrudan Fintables üzerinden ScraperAPI kullanılarak çekilir. Kota tasarrufu ve hız için `render=false` parametresi ile ham HTML üzerinden regex tabanlı kazıma yapılır.
 
 4. Yapay Zeka (Gemini) Entegrasyonu
 Model ve Görev: Uygulama, kullanıcının portföy analizi için Gemini 2.5 Flash modelini kullanır.
@@ -42,6 +42,6 @@ Chat UX: Uzayan sohbet geçmişleri için Load More fonksiyonu kullanılmalı ve
 5. Güvenlik ve Agent Geliştirme Kuralları
 Çevresel Değişkenler (Environment Variables): API Anahtarları (SCRAPER_API_KEY, GEMINI_API_KEY, DATABASE_URL) asla frontend koduna gömülmez veya commit edilmez. Sadece .env dosyası ve Railway Variables üzerinden yönetilir.
 
-Yetkilendirme: Veri çekme veya manipüle etme işlemleri yapan admin endpoint'leri (örneğin /api/admin/force-refresh-tefas) muhakkak kimlik doğrulama (requireAuth) ile korunmalıdır.
+Yetkilendirme: Veri çekme veya manipüle etme işlemleri yapan admin endpoint'leri muhakkak kimlik doğrulama (requireAuth) ile korunmalıdır.
 
 Ajan Komut Sınırları: UI/UX geliştirmeleri yapılırken mevcut matematiksel algoritmalar ve business logic KESİNLİKLE değiştirilmeyecektir.

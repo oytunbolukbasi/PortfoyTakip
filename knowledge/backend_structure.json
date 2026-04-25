@@ -9,9 +9,9 @@
       "schema": "@shared/schema.ts (users, positions, closedPositions, priceHistory, aiChatHistory)"
     },
     "services": {
-      "price_service": "server/services/price-service.ts (Core logic for Google Sheets, TEFAS API, Fintables Scraper)",
+      "price_service": "server/services/price-service.ts (Core logic for Google Sheets and Fintables Scraper)",
       "price_monitor": "server/services/price-monitor.ts (15m intervals for stocks, CRON jobs for funds)",
-      "cache_layer": "server/services/fund-price-cache.ts (In-memory cache for TEFAS fund prices)",
+      "cache_layer": "server/services/fund-price-cache.ts (In-memory cache for fund prices)",
       "ai_analysis": "server/prompt.ts (System instructions for Gemini 1.5 Flash portfolio insights)"
     }
   },
@@ -29,12 +29,21 @@
       "update_frequency": "15 minutes",
       "registration": "Auto-sends NASDAQ:SYMBOL to Sheets Webhook on creation"
     },
-    "tefas_fund_logic": {
-      "primary": "TEFAS BindHistoryInfo API (via ScraperAPI Proxy)",
-      "fallback_1": "Fintables Scraper (via ScraperAPI + Cheerio)",
-      "fallback_2": "Current price from DB (positions.currentPrice)",
-      "quota_protection": "Manual refreshes disabled; only updates via CRON at 09:00 and 10:00 TRT",
-      "caching": "Uses fund-price-cache.ts to minimize external hits"
+    "fund_logic": {
+      "primary": "Fintables Scraper (via ScraperAPI)",
+      "scraper_details": {
+        "url_pattern": "https://fintables.com/fonlar/{symbol}",
+        "proxy_config": "ScraperAPI (render=false, premium=false)",
+        "timeout": "60000ms",
+        "parsing_hierarchy": {
+          "step_1": "Robust Regex match on '\"price\":' pattern within HTML stream data",
+          "step_2_fallback": "CSS Selector 'span.inline-flex.items-center.tabular-nums'"
+        },
+        "optimization": "Uses render=false for 20x faster response time (~2s) and lower quota usage."
+      },
+      "fallback_1": "Last known price from Database",
+      "fallback_2": "Returns null if no fallback available",
+      "update_frequency": "Scheduled at 09:00 and 10:00 Turkey Time"
     }
   },
   "optimization_notes": {

@@ -28,11 +28,10 @@ Uygulama, varlık türüne göre farklı veri kaynakları kullanır. Tüm kaynak
 - **Hata Durumu**: Kur servisi çalışmazsa varsayılan sabit kur (35.00) kullanılır.
 - **Webhook**: Yeni ABD hisse pozisyonu eklendiğinde, `{"symbol": "NASDAQ:AAPL"}` veya `{"symbol": "NYSE:SES"}` formatında POST gönderilir.
 
-### 3. Yatırım Fonları (TEFAS)
+### 3. Yatırım Fonları
 Fon verileri en karmaşık ve korumalı yapıdır:
-- **Resmi TEFAS API**: `tefas.gov.tr/api/DB/BindHistoryInfo` adresi kullanılır.
-- **ScraperAPI Proxy**: TEFAS'ın Cloudflare korumasını aşmak için tüm istekler ScraperAPI üzerinden proxy ile yönlendirilir.
-- **Fintables / Halk Yatırım Fallback**: Resmi API hata verirse Fintables sayfasından HTML scraping yapılır.
+- **Fintables Scraper**: `fintables.com` üzerinden HTML parsing (Cheerio) ile güncel fon fiyatları alınır.
+- **ScraperAPI Proxy**: Fintables'ın Cloudflare ve bot korumalarını aşmak için tüm istekler `render=true` ve `premium=true` parametreleriyle ScraperAPI üzerinden proxy ile yönlendirilir.
 - **Kota Koruması (Quota Protection)**: ScraperAPI kredilerini korumak için fonlar sadece günde iki kez (TSİ 09:00 ve 10:00) güncellenir.
 - **Manuel Yenileme Engeli**: Kullanıcıların manuel "Refresh" butonuna basması fonlar için canlı tetikleme yapmaz; veritabanındaki son başarılı fiyat gösterilir.
 
@@ -65,7 +64,7 @@ Uygulama içindeki tüm matematiksel gösterimler aşağıdaki kurallara göre h
 ## 🔒 Sıfır Sahte Veri Politikası (Zero Mock Data)
 
 Sistem hiçbir koşulda sahte fiyat üretmez:
-1. **Canlı kaynak (Google Sheets / TEFAS)** yanıt vermezse → veritabanındaki son başarılı fiyat kullanılır.
+1. **Canlı kaynak (Google Sheets / Fintables)** yanıt vermezse → veritabanındaki son başarılı fiyat kullanılır.
 2. **Veritabanında da fiyat yoksa** → `null` döner.
 3. **Frontend'de `null` fiyat** → Kullanıcıya "Fiyat Güncellenemedi" uyarısı gösterilir, portföy hesaplamalarında `buyPrice` (maliyet) geçici değer olarak kullanılır.
 
@@ -126,7 +125,7 @@ shadcn/Radix UI bileşenleri (`button`, `badge`, `input` vb.) kendi `--primary`,
 ### Gereksinimler
 - Node.js >= 20.0
 - Google Sheets JSON API uç noktası (Apps Script Web App)
-- ScraperAPI Hesabı (API Key — sadece TEFAS fonları için)
+- ScraperAPI Hesabı (API Key — sadece yatırım fonları için)
 - Neon DB veya herhangi bir PostgreSQL bağlantısı
 
 ### Kurulum Adımları
@@ -136,7 +135,7 @@ shadcn/Radix UI bileşenleri (`button`, `badge`, `input` vb.) kendi `--primary`,
 
 ### Kritik Environment Variables
 - `DATABASE_URL`: PostgreSQL bağlantı dizesi.
-- `SCRAPER_API_KEY`: ScraperAPI erişim anahtarı (TEFAS fonları için).
+- `SCRAPER_API_KEY`: ScraperAPI erişim anahtarı (yatırım fonları için).
 - `APP_USERNAME` / `APP_PASSWORD`: Giriş bilgileri.
 
 ## 📂 API Endpoints
@@ -149,7 +148,6 @@ shadcn/Radix UI bileşenleri (`button`, `badge`, `input` vb.) kendi `--primary`,
 | `/api/prices/refresh` | `POST` | Tüm portföy fiyatlarını toplu günceller |
 | `/api/positions/:id/refresh-price` | `POST` | Tekil pozisyon fiyatını zorla günceller |
 | `/api/admin/force-refresh-tefas` | `GET` | Manuel tüm fonları güncelleme |
-| `/api/admin/tefas-health` | `GET` | Bağlantı ve proxy durum testi |
 | `/api/ai/history` | `GET` | Yapay zeka geçmiş analizleri listeleme |
 | `/api/ai/analyze` | `POST` | Yeni yapay zeka analizi başlatma |
 | `/api/ai/history` | `DELETE` | Tüm analiz geçmişini kalıcı olarak silme |

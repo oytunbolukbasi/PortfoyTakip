@@ -1,6 +1,6 @@
 # Varlık Takip ve Fiyatlandırma Metodolojisi
 
-Bu doküman, Portföy Takip uygulamasının BIST hisseleri, ABD hisseleri ve TEFAS fonları için veriyi nasıl çektiğini, hata durumlarında nasıl davrandığını ve ön yüzde veriyi nasıl sunduğunu açıklar.
+Bu doküman, Portföy Takip uygulamasının BIST hisseleri, ABD hisseleri ve yatırım fonları için veriyi nasıl çektiğini, hata durumlarında nasıl davrandığını ve ön yüzde veriyi nasıl sunduğunu açıklar.
 
 ## 1. Varlık Türlerine Göre Veri Çekme Metodolojisi
 
@@ -17,20 +17,19 @@ BIST hisseleri için artık scraping veya mock veri yöntemleri kullanılmamakta
 3.  **Hata Durumu:** Eğer kur servisi çalışmazsa, hesaplamalarda varsayılan sabit bir kur (örn: 35.00) kullanılır.
 4.  **Yeni Sembol Ekleme (Webhook):** Sisteme yeni bir ABD hisse pozisyonu eklendiğinde, Google Sheets API'sine arka planda bir `POST` isteği (örn: `{"symbol": "NASDAQ:AAPL"}`) gönderilerek fiyat takibi başlatılır.
 
-### C. Yatırım Fonları (TEFAS)
+### C. Yatırım Fonları
 Fon verileri en karmaşık ve korumalı yapıdır:
-1.  **Resmi TEFAS API:** `tefas.gov.tr/api/DB/BindHistoryInfo` adresi kullanılır.
-2.  **ScraperAPI Proxy:** TEFAS'ın Cloudflare korumasını aşmak için tüm istekler ScraperAPI üzerinden proxy ile yönlendirilir.
-3.  **Fintables / Halk Yatırım Fallback:** Resmi API hata verirse Fintables sayfasından HTML scraping yapılır.
-4.  **Kota Koruması (Quota Protection):** ScraperAPI kredilerini korumak için fonlar sadece günde iki kez (TSİ 09:00 ve 10:00) güncellenir.
-5.  **Manuel Yenileme Engeli:** Kullanıcıların manuel "Refresh" butonuna basması fonlar için canlı tetikleme yapmaz; veritabanındaki son başarılı fiyat gösterilir.
+1.  **Fintables Scraper (Robust Regex)**: Fon fiyatları birincil kaynak olarak `fintables.com` üzerinden ham HTML stream verisi içinden robust regex (`/"price\\?":\s*([\d.]+)/`) ile çekilir.
+2.  **ScraperAPI Proxy (Hız Optimizasyonu)**: Fintables'ın Cloudflare korumalarını aşmak için ScraperAPI kullanılır. Kota tasarrufu ve hız için `render=false` parametresi tercih edilir. Bu sayede fiyat çekme işlemi ~2 saniyeye düşürülmüştür.
+3.  **Kota Koruması (Quota Protection)**: Fonlar otomatik olarak günde iki kez (TSİ 09:00 ve 10:00) güncellenir.
+4.  **Manuel Yenileme**: Hızlı ve düşük maliyetli yeni metodumuz sayesinde, kullanıcıların manuel "Fiyatı Güncelle" talepleri artık (render=false ile) anlık olarak karşılanabilmektedir.
 
 ---
 
 ## 2. Güncel Fiyat Bulunamadığında Uygulanan Senaryolar
 
 Sistem artık "sahte veri" (mock price) üretmemektedir. Hata toleransı şu şekildedir:
-1.  **DB Fallback:** Eğer canlı kaynak (Google Sheets veya TEFAS) yanıt vermezse, sistem önce veritabanında (`positions` tablosu) kayıtlı **son başarılı fiyatı** (`currentPrice`) kontrol eder.
+1.  **DB Fallback:** Eğer canlı kaynak (Google Sheets veya Fintables) yanıt vermezse, sistem önce veritabanında (`positions` tablosu) kayıtlı **son başarılı fiyatı** (`currentPrice`) kontrol eder.
 2.  **Null Dönüşü:** Veritabanında da bir kayıt yoksa (örneğin ilk kez ekleniyorsa ve API o an çökükse), sistem `null` değeri döner.
 3.  **Frontend Uyarıları:** `null` fiyat dönmesi durumunda, kullanıcı arayüzündeki bileşenler (kartlar ve tablolar) fiyatı göstermek yerine maliyet değeri üzerinden hesaplama yapar ve kullanıcıya "Veri Bekleniyor" veya "Fiyat Güncellenemedi" şeklinde uyarılarda bulunur.
 

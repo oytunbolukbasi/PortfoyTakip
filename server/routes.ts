@@ -197,12 +197,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Fetch current price for the new position
+      // Fetch current price for the new position - Fail-safe wrapper
       let currentPrice = null;
       try {
         currentPrice = await priceService.getPrice(validatedData.symbol, validatedData.type);
       } catch (error) {
-        console.warn(`Failed to fetch price for ${validatedData.symbol}:`, error);
+        // We log the error but don't re-throw, so the position is still created
+        console.warn(`[API] Price fetch failed for ${validatedData.symbol} during creation, continuing without price:`, (error as Error).message);
       }
 
       // Get proper fund name for TEFAS funds
@@ -227,9 +228,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Arka planda Google Sheets webhook'unu tetikle
-      priceService.registerSymbolToGoogleSheets(validatedData.symbol, validatedData.type).catch(err => {
-        // Hatalar registerSymbolToGoogleSheets içinde zaten konsola yazdırılıyor, 
-        // ancak ek bir güvenlik katmanı olarak yakalıyoruz.
+      priceService.registerSymbolToGoogleSheets(validatedData.symbol, validatedData.type).catch((err: Error) => {
+        // Hatalar registerSymbolToGoogleSheets içinde zaten konsola yazdırılıyor
       });
 
       res.json(position);
