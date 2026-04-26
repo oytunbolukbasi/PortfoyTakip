@@ -3,12 +3,7 @@ import { Position } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, ArrowRightFromLine, Trash2, Pencil, AlertCircle } from "lucide-react";
 import { formatTurkishCurrency, formatTurkishPrice, formatTurkishPercent, formatFundPrice, parseTurkishPrice, formatPositionPrice, formatPositionValue } from "@/lib/format";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { PositionActionSheet } from './position-action-sheet';
 
 import { DrawerModal } from './drawer-modal';
 import { EditPositionModal } from './edit-position-modal';
@@ -21,14 +16,16 @@ interface PositionCardProps {
   position: Position;
   onRefresh: () => void;
   onClick?: () => void;
+  onCloseDetail?: () => void;
 }
 
-export default function PositionCard({ position, onRefresh, onClick }: PositionCardProps) {
+export default function PositionCard({ position, onRefresh, onClick, onCloseDetail }: PositionCardProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showCloseDialog, setShowCloseDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [sellPrice, setSellPrice] = useState('');
   const [sellDate, setSellDate] = useState(new Date().toISOString().split('T')[0]);
+  const [isActionSheetOpen, setIsActionSheetOpen] = useState(false);
   const { toast } = useToast();
 
   const calculatePL = () => {
@@ -123,6 +120,26 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
     setSellDate(new Date().toISOString().split('T')[0]);
   };
 
+  const handleEditClick = () => {
+    setIsActionSheetOpen(false);
+    // Detail drawer'ı kapat
+    onCloseDetail?.();
+    setTimeout(() => {
+      setShowEditDialog(true);
+    }, 150);
+  };
+
+  const handleCloseClick = () => {
+    setIsActionSheetOpen(false);
+    // Detail drawer'ı kapat
+    onCloseDetail?.();
+    setSellPrice(position.currentPrice ? parseFloat(position.currentPrice).toFixed(2).replace('.', ',') : '0,00');
+    setSellDate(new Date().toISOString().split('T')[0]);
+    setTimeout(() => {
+      setShowCloseDialog(true);
+    }, 150);
+  };
+
   return (
     <>
       <div
@@ -213,52 +230,28 @@ export default function PositionCard({ position, onRefresh, onClick }: PositionC
               <div className="text-xs text-text-secondary font-medium">
                 {activeDays} gündür açık
               </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => e.stopPropagation()}
-                    className="h-8 w-8 p-0 rounded-full text-text-tertiary hover:text-text-secondary hover:bg-subtle"
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowEditDialog(true);
-                    }}
-                    className="flex items-center gap-2 cursor-pointer"
-                  >
-                    <Pencil className="h-4 w-4 text-text-tertiary" />
-                    <span>Pozisyonu Düzenle</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowCloseDialog(true);
-                      setSellPrice(position.currentPrice ? parseFloat(position.currentPrice).toFixed(2).replace('.', ',') : '0,00');
-                      setSellDate(new Date().toISOString().split('T')[0]);
-                    }}
-                    className="flex items-center gap-2 cursor-pointer"
-                  >
-                    <ArrowRightFromLine className="h-4 w-4 text-text-tertiary" />
-                    <span>Pozisyonu Kapat</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowDeleteDialog(true);
-                    }}
-                    className="flex items-center gap-2 cursor-pointer text-error-500 focus:text-error-500"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    <span>Pozisyonu Sil</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <button
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsActionSheetOpen(true);
+                }}
+                className="p-2 hover:bg-subtle rounded-lg transition-colors"
+              >
+                <MoreHorizontal className="h-5 w-5 text-text-secondary" />
+              </button>
+
+              <PositionActionSheet
+                isOpen={isActionSheetOpen}
+                onClose={() => setIsActionSheetOpen(false)}
+                onEdit={handleEditClick}
+                onClosePosition={handleCloseClick}
+                onDelete={() => {
+                  setIsActionSheetOpen(false);
+                  setTimeout(() => setShowDeleteDialog(true), 150);
+                }}
+                positionSymbol={position.symbol}
+              />
             </div>
           </div>
         </div>

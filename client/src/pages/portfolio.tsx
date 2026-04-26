@@ -9,13 +9,11 @@ import { PositionDetailModal } from "@/components/ui/position-detail-modal";
 import { PositionTable } from "@/components/ui/position-table";
 import { ClosedPositionTable } from "@/components/ui/closed-position-table";
 
-import { RefreshCw, Search, LayoutGrid, Table2, X, Trash2, Moon, Sun } from "lucide-react";
+import { LayoutGrid, Table2, Search, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { useTheme } from "@/components/ui/theme-provider";
-import { formatTurkishPrice, formatPositionPrice } from "@/lib/format";
 
 export default function Portfolio() {
   const [activeTab, setActiveTab] = useState<'active' | 'closed'>('active');
@@ -25,18 +23,16 @@ export default function Portfolio() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
   const { toast } = useToast();
-  const { theme, toggleTheme } = useTheme();
 
   const { data: positions = [], isLoading: positionsLoading, refetch: refetchPositions } = useQuery<Position[]>({
     queryKey: ['/api/positions'],
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 30000,
   });
 
   const { data: closedPositions = [], isLoading: closedLoading, refetch: refetchClosedPositions } = useQuery<ClosedPosition[]>({
     queryKey: ['/api/closed-positions'],
   });
 
-  // Listen for auto-refresh closed positions event
   useEffect(() => {
     const handleRefreshClosedPositions = () => {
       refetchClosedPositions();
@@ -61,40 +57,11 @@ export default function Portfolio() {
       await fetch('/api/prices/refresh', { method: 'POST' });
       await refetchPositions();
       toast({
-        title: "Fiyatlar güncellendi",
-        description: "Tüm pozisyonların fiyatları başarıyla güncellendi.",
+        description: "Fiyatlar güncellendi",
       });
     } catch (error) {
       toast({
-        title: "Güncelleme hatası",
         description: "Fiyatlar güncellenirken bir hata oluştu.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDeleteClosedPosition = async (positionId: string) => {
-    try {
-      const response = await fetch(`/api/closed-positions/${positionId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Kapalı pozisyon silme başarısız');
-      }
-
-      toast({
-        title: "Pozisyon Silindi",
-        description: "Kapalı pozisyon başarıyla silindi",
-      });
-
-      // Refresh closed positions
-      refetchClosedPositions();
-    } catch (error) {
-      console.error('Delete closed position error:', error);
-      toast({
-        title: "Hata",
-        description: "Kapalı pozisyon silinirken bir hata oluştu",
         variant: "destructive",
       });
     }
@@ -102,47 +69,23 @@ export default function Portfolio() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* iPhone-style Navigation Bar */}
-      <header className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-50">
-        <div className="flex items-center justify-between px-4 h-12">
-          <div className="flex items-center space-x-2">
-            <h1 className="text-lg font-semibold text-foreground">Portföy</h1>
-          </div>
-          <div className="flex items-center space-x-1">
+      {/* iPhone-style Navigation Bar (Borderless & Translucent) */}
+      <header className="bg-background/80 backdrop-blur-xl sticky top-0 z-50 transition-all duration-300">
+        <div className="flex items-center justify-between px-5 h-16">
+          <h1 className="text-2xl font-bold tracking-tight text-text-primary">Portföy</h1>
+          
+          <div className="flex items-center">
             <Button 
               variant="ghost" 
               size="sm" 
-              className="p-3 text-text-secondary hover:text-primary-500 active:scale-95 rounded-full transition-all duration-200"
-              onClick={toggleTheme}
-            >
-              {theme === 'light' 
-                ? <Moon className="w-6 h-6" strokeWidth={2.5} /> 
-                : <Sun className="w-6 h-6" strokeWidth={2.5} />
-              }
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="p-3 text-text-secondary hover:text-primary-500 active:scale-95 rounded-full transition-all duration-200"
-              onClick={handleRefresh}
-            >
-              <RefreshCw className="w-6 h-6" strokeWidth={2.5} />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className={`p-3 rounded-full transition-all duration-200 active:scale-95 ${
-                viewMode !== 'card' 
-                  ? 'text-primary-500 bg-primary-100' 
-                  : 'text-text-secondary hover:bg-subtle'
-              }`}
+              className="w-12 h-12 p-0 flex items-center justify-center rounded-full transition-all duration-200 active:scale-95 hover:bg-subtle"
               onClick={() => setViewMode(viewMode === 'card' ? 'table' : 'card')}
-              title={viewMode === 'card' ? 'Liste Görünümü' : 'Kart Görünümü'}
             >
-              {viewMode === 'card' 
-                ? <LayoutGrid className="w-6 h-6" strokeWidth={2.5} /> 
-                : <Table2 className="w-6 h-6" strokeWidth={2.5} />
-              }
+              {viewMode === 'card' ? (
+                <Table2 className="w-7 h-7 text-text-secondary" strokeWidth={2.5} />
+              ) : (
+                <LayoutGrid className="w-7 h-7 text-text-secondary" strokeWidth={2.5} />
+              )}
             </Button>
           </div>
         </div>
@@ -180,8 +123,6 @@ export default function Portfolio() {
         </div>
       </div>
 
-
-
       {/* iPhone-style Search Bar */}
       <div className="px-4 pb-3">
         <div className="relative">
@@ -198,10 +139,8 @@ export default function Portfolio() {
         </div>
       </div>
 
-
-
       {/* Main Content */}
-      <main className="pb-32">
+      <main className="pb-32 relative">
         {activeTab === 'active' && (
           <>
             {positionsLoading ? (
@@ -244,6 +183,7 @@ export default function Portfolio() {
                         setSelectedPosition(position);
                         setShowDetailModal(true);
                       }}
+                      onCloseDetail={() => setShowDetailModal(false)}
                     />
                   ))
                 ) : (
@@ -254,6 +194,7 @@ export default function Portfolio() {
                       setShowDetailModal(true);
                     }}
                     onRefresh={refetchPositions}
+                    onCloseDetail={() => setShowDetailModal(false)}
                   />
                 )}
               </div>
@@ -262,139 +203,22 @@ export default function Portfolio() {
         )}
 
         {activeTab === 'closed' && (
-          <>
-            {closedLoading ? (
-              <div className="space-y-3">
-                {[...Array(3)].map((_, i) => (
-                  <Skeleton key={i} className="h-40 w-full rounded-lg" />
-                ))}
-              </div>
-            ) : filteredClosedPositions.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-gray-400">
-                    <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17Z"/>
-                  </svg>
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  {searchQuery ? 'Arama sonucu bulunamadı' : 'Henüz kapalı pozisyon yok'}
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400">
-                  {searchQuery ? 'Farklı anahtar kelimeler deneyin' : 'Pozisyonlarınızı kapattığınızda burada görünecek'}
-                </p>
-              </div>
-            ) : (
-              <div>
-                {viewMode === 'card' ? (
-                  <div className="space-y-3">
-                    {filteredClosedPositions.map((position) => (
-                      <div
-                        key={position.id}
-                        className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden mx-4 mb-3"
-                      >
-                        <div className="p-4">
-                          <div className="flex justify-between items-start mb-4">
-                            <div className="flex items-center space-x-3">
-                              <div>
-                                <h3 className="font-semibold text-gray-900 dark:text-white text-base">{position.symbol}</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">{position.name || position.symbol}</p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-xl font-bold text-gray-900 dark:text-white">{formatPositionPrice(parseFloat(position.sellPrice), position.type)}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
-                                {new Date(position.sellDate).toLocaleDateString('tr-TR')}
-                              </p>
-                            </div>
-                          </div>
-                          
-                          <div className="grid grid-cols-3 gap-3 mb-4">
-                            <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{position.type === 'fund' ? 'Pay' : 'Adet'}</p>
-                              <p className="font-semibold text-gray-900 dark:text-white">{parseFloat(position.quantity).toLocaleString('tr-TR')}</p>
-                            </div>
-                            <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Alış</p>
-                              <p className="font-semibold text-gray-900 dark:text-white">{formatPositionPrice(parseFloat(position.buyPrice), position.type)}</p>
-                            </div>
-                            <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Satış</p>
-                              <p className="font-semibold text-gray-900 dark:text-white">{formatPositionPrice(parseFloat(position.sellPrice), position.type)}</p>
-                            </div>
-                          </div>
-                          
-                          {/* iOS-style Gradient K/Z Card */}
-                          <div className={`rounded-xl p-3 mb-4 ${
-                            parseFloat(position.pl) >= 0 
-                              ? 'bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/30 border border-green-100 dark:border-green-800/30'
-                              : 'bg-gradient-to-br from-red-50 to-pink-100 dark:from-red-900/20 dark:to-pink-900/30 border border-red-100 dark:border-red-800/30'
-                          }`}>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">K/Z:</span>
-                              <div className="flex items-center space-x-2">
-                                <div className={`text-base font-bold ${
-                                  parseFloat(position.pl) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                                }`}>
-                                  {parseFloat(position.pl) >= 0 ? '+' : '-'}{formatPositionPrice(Math.abs(parseFloat(position.pl)), position.type)}
-                                </div>
-                                <div className={`text-sm font-medium ${
-                                  parseFloat(position.plPercent) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                                }`}>
-                                  ({parseFloat(position.plPercent) >= 0 ? '+' : '-'}{Math.abs(parseFloat(position.plPercent)).toFixed(2)}%)
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Tarihler ve Sil Butonu */}
-                          <div className="flex justify-between items-center">
-                            <div className="flex space-x-4 text-xs text-gray-500 dark:text-gray-400">
-                              <div>
-                                <span className="font-medium">Açılış:</span>
-                                <br />
-                                {new Date(position.buyDate).toLocaleDateString('tr-TR')}
-                              </div>
-                              <div>
-                                <span className="font-medium">Kapanış:</span>
-                                <br />
-                                {new Date(position.sellDate).toLocaleDateString('tr-TR')}
-                              </div>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 p-2 rounded-lg border border-red-100 dark:border-red-800/30"
-                              onClick={() => handleDeleteClosedPosition(position.id)}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <ClosedPositionTable
-                    closedPositions={filteredClosedPositions}
-                    onRefresh={refetchClosedPositions}
-                  />
-                )}
-              </div>
-            )}
-          </>
+          <div className="px-4">
+             <ClosedPositionTable
+                closedPositions={filteredClosedPositions}
+                onRefresh={refetchClosedPositions}
+              />
+          </div>
         )}
       </main>
+      {/* --- END STEP 2 --- */}
 
-
-
-      {/* Add Position Modal */}
       <AddPositionModal
         open={showAddModal}
         onOpenChange={setShowAddModal}
         onSuccess={refetchPositions}
       />
 
-      {/* Position Detail Modal */}
       <PositionDetailModal
         position={selectedPosition}
         open={showDetailModal}

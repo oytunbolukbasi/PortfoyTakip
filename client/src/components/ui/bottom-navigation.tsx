@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Briefcase, BarChart3, LogOut } from "lucide-react";
+import { Briefcase, BarChart3, User } from "lucide-react";
 import { IoIosAddCircleOutline } from "react-icons/io";
 import { Link, useLocation } from "wouter";
 import AddPositionModal from "@/components/ui/add-position-modal";
-import { useAuth } from "@/lib/auth";
 
 interface BottomNavigationProps {
   activeTab?: string;
@@ -12,7 +11,6 @@ interface BottomNavigationProps {
 export default function BottomNavigation({ activeTab }: BottomNavigationProps) {
   const [location] = useLocation();
   const [showAddModal, setShowAddModal] = useState(false);
-  const { logout } = useAuth();
 
   const isActive = (path: string) => {
     if (path === "/" && location === "/") return true;
@@ -67,13 +65,19 @@ export default function BottomNavigation({ activeTab }: BottomNavigationProps) {
             </div>
           </Link>
 
-          {/* Logout Action */}
-          <button
-            onClick={logout}
-            className="flex flex-col items-center justify-center p-3 transition-all duration-300 active:scale-90 cursor-pointer text-text-tertiary hover:text-error-500"
-          >
-            <LogOut className="w-6 h-6" strokeWidth={1.5} />
-          </button>
+          {/* Profile Tab */}
+          <Link href="/profile">
+            <div className={`flex flex-col items-center justify-center p-3 transition-all duration-300 active:scale-90 cursor-pointer ${
+              isActive("/profile")
+                ? "text-primary-500 scale-110"
+                : "text-text-tertiary hover:text-text-secondary"
+            }`}>
+              <User 
+                className="w-6 h-6" 
+                strokeWidth={isActive("/profile") ? 2.5 : 1.5} 
+              />
+            </div>
+          </Link>
         </div>
       </nav>
 

@@ -332,17 +332,6 @@ export default function Analytics() {
           <div className="flex items-center space-x-2">
             <h1 className="text-lg font-semibold text-foreground">Analiz</h1>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="p-3 text-text-secondary hover:text-primary-500 active:scale-95 rounded-full transition-all duration-200"
-            onClick={toggleTheme}
-          >
-            {theme === 'light' 
-              ? <Moon className="w-6 h-6" strokeWidth={2.5} /> 
-              : <Sun className="w-6 h-6" strokeWidth={2.5} />
-            }
-          </Button>
         </div>
       </header>
 

@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/ui/theme-provider";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import Portfolio from "@/pages/portfolio";
 import Analytics from "@/pages/analytics";
+import Profile from "@/pages/profile";
 import LoginPage from "@/pages/login";
 import NotFound from "@/pages/not-found";
 import BottomNavigation from "@/components/ui/bottom-navigation";
@@ -16,6 +17,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Portfolio} />
       <Route path="/analytics" component={Analytics} />
+      <Route path="/profile" component={Profile} />
       <Route component={NotFound} />
     </Switch>
   );

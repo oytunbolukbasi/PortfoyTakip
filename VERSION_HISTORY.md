@@ -5,6 +5,54 @@
 
 ---
 
+## v2.2 — iOS Native UX & UI Refinement (Nisan 2026)
+
+### Hedef
+Uygulamayı "web" kimliğinden tamamen sıyırarak, Apple standartlarında bir Native PWA (Progressive Web App) deneyimi sunmak.
+
+### Teknik ve Tasarımsal İyileştirmeler
+
+**Bildirim Sistemi (Pill Toast):**
+- **iOS Pill Design**: Web tabanlı geniş toast mesajları yerine, üst-orta (`top-center`) konumlanan, tam yuvarlak (`rounded-full`) ve cam efektli (`backdrop-blur`) "Hap" (Pill) bildirimlere geçildi.
+- **Gesture Support**: Bildirimler yukarı kaydırılarak (`swipe-up`) anında kapatılabilir hale getirildi.
+- **Süre Optimizasyonu**: Kullanıcıyı yormamak adına bildirim süresi 2 saniyeye indirildi.
+
+**Navigasyon ve Header Mimarisi:**
+- **iOS Large Title**: Portföy ve Analiz sayfalarında sol tarafa dayalı, kalın ve büyük başlık hiyerarşisine geçildi.
+- **Borderless Design**: Header altındaki çizgiler (border) kaldırılarak içerik ile başlığın pürüzsüz bütünleşmesi sağlandı.
+- **View Switcher (Smart Toggle)**: Liste ve Tablo görünümleri arasında geçiş yapan tekil, akıllı buton eklendi. İkonlar "mevcut durumu" değil, "tıklanınca gidilecek hedefi" gösterecek şekilde optimize edildi.
+- **Touch Targets**: Tüm etkileşimli butonlar iOS standartlarına (48x48px dokunma alanı) yükseltildi.
+
+**Profil ve Ayarlar Sayfası:**
+- **Yeni Sayfa Mimarisi**: Çıkış yapma ve tema değiştirme gibi fonksiyonlar, iOS Ayarlar uygulamasını referans alan yeni `/profile` sayfasına taşındı.
+- **Ayarlar Üzerinden Refresh**: Deneysel pull-to-refresh mekanizması yerine, Standalone (PWA) modunda %100 kararlılık sağlayan manuel "Fiyatları Güncelle" butonu Profil sayfasına eklendi.
+- **Minimalist Vizyon**: Gereksiz footer metinleri ve amatör detaylar temizlenerek "Sadece Yatırıma Odaklı" bir görünüm elde edildi.
+
+---
+
+## v2.1 — ScraperAPI Optimization & Price Engine Overhaul (Nisan 2026)
+
+### Hedef
+ScraperAPI kota kullanımını minimize etmek, fon fiyatı çekme hızını artırmak ve pozisyon ekleme sürecindeki UX darboğazlarını gidermek.
+
+### Teknik İyileştirmeler
+
+**Fiyat Motoru (Backend):**
+- **ScraperAPI "Lean" Mod**: `render=true` ve `premium=true` parametreleri kaldırıldı (`render=false` yapıldı). Kota maliyeti %90 azaldı, hız 20 kat arttı (~2-3 saniye).
+- **Robust Regex Parsing**: Fintables Next.js stream verisi içinden `"price":` değerini yakalayan gelişmiş regex stratejisi uygulandı. `sell_valor` ve tırnak kaçış karakterlerine duyarlı hale getirildi.
+- **Fail-Safe Pozisyon Ekleme**: Fiyat çekme işlemi başarısız olsa dahi pozisyonun kaydedilmesi sağlandı. Fiyat hatası tüm işlemi iptal etmiyor (Error-Tolerant).
+- **PriceService Restorasyonu**: Silinen `getHistoricalExchangeRate` ve `registerSymbolToGoogleSheets` metodları geri kazandırıldı, `routes.ts` üzerindeki tüm tip hataları giderildi.
+
+**Kullanıcı Deneyimi (Frontend):**
+- **İyimser Güncelleme (Optimistic Update)**: Pozisyon ekleme formunda React Query entegrasyonu güçlendirildi; backend yanıtı beklenmeden UI güncelleniyor.
+- **Detaylı Hata Bildirimleri**: Toast mesajlarına backend'den gelen gerçek hata mesajları (`err.message`) eklendi, böylece debug süreci şeffaflaştı.
+- **AES Fon Desteği**: Ak Portföy Petrol fonu (AES) için isim ve fiyat tanımlamaları yapıldı.
+
+### Temizlik
+- Proje kökündeki tüm geçici test dosyaları (`test-all-methods.ts`, `test-fast.ts`, `test-scraper.ts` vb.) silinerek code debt temizlendi.
+
+---
+
 ## v2.0 — Design System Migration (Nisan 2026)
 
 ### Hedef

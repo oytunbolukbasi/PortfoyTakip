@@ -8,20 +8,16 @@ import { DrawerModal } from './drawer-modal';
 import { EditPositionModal } from './edit-position-modal';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { PositionActionSheet } from './position-action-sheet';
 
 interface PositionTableProps {
   positions: Position[];
   onRowClick: (position: Position) => void;
   onRefresh: () => void;
+  onCloseDetail?: () => void;
 }
 
-export function PositionTable({ positions, onRowClick, onRefresh }: PositionTableProps) {
+export function PositionTable({ positions, onRowClick, onRefresh, onCloseDetail }: PositionTableProps) {
   const [sortField, setSortField] = useState<'symbol' | 'quantity' | 'buyPrice' | 'currentPrice' | 'value' | 'pl' | 'plPercent'>('symbol');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const { toast } = useToast();
@@ -104,6 +100,7 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
   });
   const [sellPrice, setSellPrice] = useState('');
   const [sellDate, setSellDate] = useState(new Date().toISOString().split('T')[0]);
+  const [activeActionPosition, setActiveActionPosition] = useState<Position | null>(null);
 
   const handleClosePosition = async (position: Position, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -341,50 +338,16 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
                     {plPercent >= 0 ? '+' : ''}{formatTurkishPercent(plPercent)}
                   </td>
                   <td className="px-3 py-5 whitespace-nowrap text-center">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => e.stopPropagation()}
-                          className="h-8 w-8 p-0 rounded-full text-text-tertiary hover:text-text-secondary hover:bg-subtle"
-                        >
-                          <MoreHorizontal className="h-6 w-6" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-56">
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowEditModal({ show: true, position });
-                          }}
-                          className="flex items-center gap-3 cursor-pointer py-2.5"
-                        >
-                          <Pencil className="h-5 w-5 text-blue-500" />
-                          <span className="text-sm font-medium">Pozisyonu Düzenle</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleClosePosition(position, e);
-                          }}
-                          className="flex items-center gap-3 cursor-pointer py-2.5"
-                        >
-                          <Check className="h-5 w-5 text-green-500" />
-                          <span className="text-sm font-medium">Pozisyonu Kapat</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeletePosition(position, e);
-                          }}
-                          className="flex items-center gap-3 cursor-pointer py-2.5 text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
-                        >
-                          <Trash2 className="h-5 w-5" />
-                          <span className="text-sm font-medium">Pozisyonu Sil</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <button
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveActionPosition(position);
+                      }}
+                      className="p-2 hover:bg-subtle rounded-lg transition-colors inline-flex items-center justify-center"
+                    >
+                      <MoreHorizontal className="h-6 w-6 text-text-tertiary" />
+                    </button>
                   </td>
                 </tr>
               );
@@ -460,6 +423,31 @@ export function PositionTable({ positions, onRowClick, onRefresh }: PositionTabl
           setShowEditModal({ show: false, position: null });
           onRefresh();
         }}
+      />
+      <PositionActionSheet
+        isOpen={activeActionPosition !== null}
+        onClose={() => setActiveActionPosition(null)}
+        onEdit={() => {
+          onCloseDetail?.();
+          activeActionPosition && setShowEditModal({ show: true, position: activeActionPosition });
+        }}
+        onClosePosition={() => {
+          if (activeActionPosition) {
+            onCloseDetail?.();
+            setShowCloseModal({ show: true, position: activeActionPosition });
+            setSellPrice(activeActionPosition.currentPrice ? parseFloat(activeActionPosition.currentPrice).toFixed(2).replace('.', ',') : '0,00');
+            setSellDate(new Date().toISOString().split('T')[0]);
+          }
+        }}
+        onDelete={() => {
+          if (activeActionPosition) {
+            // Confirm delete is handled by browser for simplicity here or we could add a modal
+            // But let's use the existing handleDeletePosition
+            const e = { stopPropagation: () => {} } as any;
+            handleDeletePosition(activeActionPosition, e);
+          }
+        }}
+        positionSymbol={activeActionPosition?.symbol || ''}
       />
     </div>
   );
