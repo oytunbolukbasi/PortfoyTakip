@@ -10,12 +10,12 @@ import { apiRequest } from "@/lib/queryClient";
 interface ClosedPositionTableProps {
   closedPositions: ClosedPosition[];
   onRefresh: () => void;
+  onDelete: (id: string) => void;
 }
 
-export function ClosedPositionTable({ closedPositions, onRefresh }: ClosedPositionTableProps) {
+export function ClosedPositionTable({ closedPositions, onRefresh, onDelete }: ClosedPositionTableProps) {
   const [sortField, setSortField] = useState<'symbol' | 'quantity' | 'buyPrice' | 'sellPrice' | 'pl' | 'plPercent' | 'sellDate'>('sellDate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  const [deletePosition, setDeletePosition] = useState<ClosedPosition | null>(null);
   const { toast } = useToast();
 
   const handleSort = (field: typeof sortField) => {
@@ -68,24 +68,6 @@ export function ClosedPositionTable({ closedPositions, onRefresh }: ClosedPositi
     if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
     return 0;
   });
-
-  const handleDelete = async (position: ClosedPosition) => {
-    try {
-      await apiRequest('DELETE', `/api/closed-positions/${position.id}`);
-      onRefresh();
-      setDeletePosition(null);
-      toast({
-        title: "Kapalı pozisyon silindi",
-        description: `${position.symbol} kapalı pozisyonu başarıyla silindi.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Silme hatası",
-        description: "Pozisyon silinirken bir hata oluştu.",
-        variant: "destructive",
-      });
-    }
-  };
 
   const SortButton = ({ field, children }: { field: typeof sortField; children: React.ReactNode }) => (
     <Button
@@ -210,7 +192,7 @@ export function ClosedPositionTable({ closedPositions, onRefresh }: ClosedPositi
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setDeletePosition(position);
+                        onDelete(position.id);
                       }}
                       className="h-8 w-8 p-0 text-text-tertiary hover:text-error-500"
                     >
@@ -231,32 +213,6 @@ export function ClosedPositionTable({ closedPositions, onRefresh }: ClosedPositi
           </tbody>
         </table>
       </div>
-
-      {/* Delete Modal */}
-      {deletePosition && (
-        <FullScreenModal 
-          open={true} 
-          onOpenChange={() => setDeletePosition(null)}
-          title="Kapalı Pozisyonu Sil"
-          description={`${deletePosition.symbol} kapalı pozisyonunu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`}
-        >
-          <div className="flex flex-col space-y-2 mt-6">
-            <Button 
-              onClick={() => handleDelete(deletePosition)}
-              className="w-full bg-error-500 text-white hover:opacity-90 py-3"
-            >
-              Evet, Sil
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => setDeletePosition(null)} 
-              className="w-full py-3"
-            >
-              İptal
-            </Button>
-          </div>
-        </FullScreenModal>
-      )}
     </div>
   );
 }

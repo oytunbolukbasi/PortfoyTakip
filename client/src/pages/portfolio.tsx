@@ -9,11 +9,22 @@ import { PositionDetailModal } from "@/components/ui/position-detail-modal";
 import { PositionTable } from "@/components/ui/position-table";
 import { ClosedPositionTable } from "@/components/ui/closed-position-table";
 
-import { LayoutGrid, Table2, Search, RefreshCw } from "lucide-react";
+import { LayoutGrid, Table2, Search, RefreshCw, Trash2, X } from "lucide-react";
+import { Drawer } from "vaul";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+
+// Helper function for price formatting (if not imported)
+const formatPositionPrice = (price: number, type: string) => {
+  return new Intl.NumberFormat('tr-TR', {
+    style: 'currency',
+    currency: 'TRY',
+    minimumFractionDigits: type === 'fund' ? 4 : 2,
+    maximumFractionDigits: type === 'fund' ? 6 : 2,
+  }).format(price);
+};
 
 export default function Portfolio() {
   const [activeTab, setActiveTab] = useState<'active' | 'closed'>('active');
@@ -22,6 +33,8 @@ export default function Portfolio() {
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
+  const [deletingPositionId, setDeletingPositionId] = useState<string | null>(null);
+  const [isDeleteSheetOpen, setIsDeleteSheetOpen] = useState(false);
   const { toast } = useToast();
 
   const { data: positions = [], isLoading: positionsLoading, refetch: refetchPositions } = useQuery<Position[]>({
@@ -67,26 +80,108 @@ export default function Portfolio() {
     }
   };
 
+  const openDeleteConfirmation = (id: string) => {
+    setDeletingPositionId(id);
+    setIsDeleteSheetOpen(true);
+  };
+
+  const confirmDeleteClosedPosition = async () => {
+    if (!deletingPositionId) return;
+
+    try {
+      const response = await fetch(`/api/closed-positions/${deletingPositionId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Kapalı pozisyon silme başarısız');
+      }
+
+      toast({
+        description: "Pozisyon başarıyla silindi",
+      });
+
+      // Refresh closed positions
+      refetchClosedPositions();
+      setIsDeleteSheetOpen(false);
+      setDeletingPositionId(null);
+    } catch (error) {
+      console.error('Delete closed position error:', error);
+      toast({
+        description: "Kapalı pozisyon silinirken bir hata oluştu",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteClosedPosition = async (positionId: string) => {
+    openDeleteConfirmation(positionId);
+  };
+
   return (
     <div className="min-h-screen bg-background">
+      {/* Delete Confirmation Drawer */}
+      <Drawer.Root open={isDeleteSheetOpen} onOpenChange={setIsDeleteSheetOpen}>
+        <Drawer.Portal>
+          <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[100]" />
+          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[101] bg-background rounded-t-[32px] outline-none max-h-[85vh] flex flex-col">
+            <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-border mt-3" />
+            
+            <div className="p-6 pb-10">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <Drawer.Title className="text-xl font-bold text-text-primary mb-2">
+                    Kapalı Pozisyonu Sil
+                  </Drawer.Title>
+                  <Drawer.Description className="text-sm text-text-tertiary">
+                    {filteredClosedPositions.find(p => p.id === deletingPositionId)?.symbol} kapalı pozisyonunu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                  </Drawer.Description>
+                </div>
+                <Drawer.Close className="p-2 text-text-tertiary hover:bg-subtle rounded-full">
+                  <X className="w-5 h-5" />
+                </Drawer.Close>
+              </div>
+
+              <div className="space-y-3">
+                <Button 
+                  className="w-full h-14 rounded-2xl bg-error-500 hover:bg-error-600 text-white font-bold text-lg shadow-sm active:scale-[0.98] transition-all"
+                  onClick={confirmDeleteClosedPosition}
+                >
+                  Evet, Sil
+                </Button>
+                <Drawer.Close asChild>
+                  <Button 
+                    variant="ghost"
+                    className="w-full h-14 rounded-2xl bg-subtle hover:bg-border text-text-primary font-semibold text-lg active:scale-[0.98] transition-all"
+                  >
+                    İptal
+                  </Button>
+                </Drawer.Close>
+              </div>
+            </div>
+          </Drawer.Content>
+        </Drawer.Portal>
+      </Drawer.Root>
+
       {/* iPhone-style Navigation Bar (Borderless & Translucent) */}
       <header className="bg-background/80 backdrop-blur-xl sticky top-0 z-50 transition-all duration-300">
         <div className="flex items-center justify-between px-5 h-16">
           <h1 className="text-2xl font-bold tracking-tight text-text-primary">Portföy</h1>
           
           <div className="flex items-center">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="w-12 h-12 p-0 flex items-center justify-center rounded-full transition-all duration-200 active:scale-95 hover:bg-subtle"
+            <button 
+              type="button"
+              className="w-12 h-12 flex flex-shrink-0 items-center justify-center rounded-full transition-all duration-200 active:scale-95 hover:bg-subtle bg-transparent cursor-pointer outline-none"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
               onClick={() => setViewMode(viewMode === 'card' ? 'table' : 'card')}
+              aria-label="Görünümü Değiştir"
             >
               {viewMode === 'card' ? (
-                <Table2 className="w-7 h-7 text-text-secondary" strokeWidth={2.5} />
+                <Table2 width={28} height={28} className="text-text-secondary" strokeWidth={2.5} />
               ) : (
-                <LayoutGrid className="w-7 h-7 text-text-secondary" strokeWidth={2.5} />
+                <LayoutGrid width={28} height={28} className="text-text-secondary" strokeWidth={2.5} />
               )}
-            </Button>
+            </button>
           </div>
         </div>
       </header>
@@ -203,11 +298,126 @@ export default function Portfolio() {
         )}
 
         {activeTab === 'closed' && (
-          <div className="px-4">
-             <ClosedPositionTable
-                closedPositions={filteredClosedPositions}
-                onRefresh={refetchClosedPositions}
-              />
+          <div className="pb-20">
+            {closedLoading ? (
+              <div className="space-y-3 px-4">
+                {[...Array(3)].map((_, i) => (
+                  <Skeleton key={i} className="h-40 w-full rounded-2xl" />
+                ))}
+              </div>
+            ) : filteredClosedPositions.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-gray-400">
+                    <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17Z"/>
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  {searchQuery ? 'Arama sonucu bulunamadı' : 'Henüz kapalı pozisyon yok'}
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400">
+                  {searchQuery ? 'Farklı anahtar kelimeler deneyin' : 'Pozisyonlarınızı kapattığınızda burada görünecek'}
+                </p>
+              </div>
+            ) : (
+              <div>
+                {viewMode === 'card' ? (
+                  <div className="space-y-3">
+                    {filteredClosedPositions.map((position) => (
+                      <div
+                        key={position.id}
+                        className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden mx-4 mb-3"
+                      >
+                        <div className="p-4">
+                          <div className="flex justify-between items-start mb-4">
+                            <div className="flex items-center space-x-3">
+                              <div>
+                                <h3 className="font-semibold text-text-primary text-base">{position.symbol}</h3>
+                                <p className="text-sm text-text-tertiary">{position.name || position.symbol}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-xl font-bold text-text-primary">{formatPositionPrice(parseFloat(position.sellPrice), position.type)}</p>
+                              <p className="text-sm text-text-tertiary">
+                                {new Date(position.sellDate).toLocaleDateString('tr-TR')}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-3 gap-3 mb-4">
+                            <div className="text-center p-3 bg-subtle rounded-xl">
+                              <p className="text-xs text-text-tertiary mb-1">{position.type === 'fund' ? 'Pay' : 'Adet'}</p>
+                              <p className="font-semibold text-text-primary">{parseFloat(position.quantity).toLocaleString('tr-TR')}</p>
+                            </div>
+                            <div className="text-center p-3 bg-subtle rounded-xl">
+                              <p className="text-xs text-text-tertiary mb-1">Alış</p>
+                              <p className="font-semibold text-text-primary">{formatPositionPrice(parseFloat(position.buyPrice), position.type)}</p>
+                            </div>
+                            <div className="text-center p-3 bg-subtle rounded-xl">
+                              <p className="text-xs text-text-tertiary mb-1">Satış</p>
+                              <p className="font-semibold text-text-primary">{formatPositionPrice(parseFloat(position.sellPrice), position.type)}</p>
+                            </div>
+                          </div>
+                          
+                          {/* iOS-style Gradient K/Z Card */}
+                          <div className={`rounded-xl p-3 mb-4 ${
+                            parseFloat(position.pl) >= 0 
+                              ? 'bg-success-100/50 border border-success-100'
+                              : 'bg-error-100/50 border border-error-100'
+                          }`}>
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-medium text-text-secondary">K/Z:</span>
+                              <div className="flex items-center space-x-2">
+                                <div className={`text-base font-bold ${
+                                  parseFloat(position.pl) >= 0 ? 'text-success-500' : 'text-error-500'
+                                }`}>
+                                  {parseFloat(position.pl) >= 0 ? '+' : '-'}{formatPositionPrice(Math.abs(parseFloat(position.pl)), position.type)}
+                                </div>
+                                <div className={`text-sm font-medium ${
+                                  parseFloat(position.plPercent) >= 0 ? 'text-success-500' : 'text-error-500'
+                                }`}>
+                                  ({parseFloat(position.plPercent) >= 0 ? '+' : '-'}{Math.abs(parseFloat(position.plPercent)).toFixed(2)}%)
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Dates and Delete Button */}
+                          <div className="flex justify-between items-center">
+                            <div className="flex space-x-4 text-xs text-text-tertiary">
+                              <div>
+                                <span className="font-medium">Açılış:</span>
+                                <br />
+                                {new Date(position.buyDate).toLocaleDateString('tr-TR')}
+                              </div>
+                              <div>
+                                <span className="font-medium">Kapanış:</span>
+                                <br />
+                                {new Date(position.sellDate).toLocaleDateString('tr-TR')}
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="bg-error-100 text-error-500 p-2 h-9 w-9 rounded-lg border border-error-100 active:scale-95 transition-all"
+                              onClick={() => handleDeleteClosedPosition(position.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <ClosedPositionTable
+                    closedPositions={filteredClosedPositions}
+                    onRefresh={refetchClosedPositions}
+                    onDelete={openDeleteConfirmation}
+                  />
+                )}
+              </div>
+            )}
           </div>
         )}
       </main>

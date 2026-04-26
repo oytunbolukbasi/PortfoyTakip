@@ -1,18 +1,63 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Position, ClosedPosition, AiChatHistory } from "@shared/schema";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CalendarDays, TrendingUp, TrendingDown, DollarSign, Percent, BarChart3, Moon, Sun, Send, Loader2, History, ChevronRight, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import { 
+  CalendarDays, 
+  TrendingUp, 
+  TrendingDown, 
+  DollarSign, 
+  Percent, 
+  BarChart3, 
+  Moon, 
+  Sun, 
+  Send, 
+  Loader2, 
+  History, 
+  ChevronRight, 
+  Trash2, 
+  ChevronDown, 
+  ChevronUp,
+  Search,
+  Filter,
+  ArrowUpRight,
+  ArrowDownRight,
+  Wallet,
+  Activity,
+  Info,
+  MessageSquare,
+  Sparkles,
+  X
+} from "lucide-react";
 import { useTheme } from "@/components/ui/theme-provider";
 import { formatTurkishPrice, formatTurkishPercent } from "@/lib/format";
 import { LuSparkles } from "react-icons/lu";
 import { Drawer } from "vaul";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+import { tr } from "date-fns/locale";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip as RechartsTooltip,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Legend,
+  AreaChart,
+  Area,
+} from "recharts";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -325,16 +370,15 @@ export default function Analytics() {
   const isLoading = positionsLoading || closedLoading;
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
-      <header className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-40">
-        <div className="flex items-center justify-between px-4 h-12">
-          <div className="flex items-center space-x-2">
-            <h1 className="text-lg font-semibold text-foreground">Analiz</h1>
-          </div>
+    <div className="min-h-screen bg-background">
+      {/* iPhone-style Navigation Bar (Borderless & Translucent) */}
+      <header className="bg-background/80 backdrop-blur-xl sticky top-0 z-50 transition-all duration-300">
+        <div className="flex items-center justify-between px-5 h-16">
+          <h1 className="text-2xl font-bold tracking-tight text-text-primary">Analiz</h1>
         </div>
       </header>
 
+      <main className="p-4 pb-24 space-y-6">
       {/* Time Range Selector */}
       <div className="px-4 py-4">
         <div className="bg-subtle/50 p-1 rounded-[14px] flex items-center mb-4 shadow-sm border border-border">
@@ -374,32 +418,56 @@ export default function Analytics() {
 
         {timeRange === 'custom' && (
           <div className="bg-subtle p-4 rounded-xl space-y-4">
-            <div className="flex justify-center items-center space-x-6">
-              <div className="space-y-2 flex-1 max-w-[140px]">
-                <Label htmlFor="startDate" className="text-xs font-medium text-text-secondary text-center block">Başlangıç Tarihi</Label>
-                <Input
-                  id="startDate"
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full text-xs text-center"
-                  max={endDate || undefined}
-                />
+            <div className="flex items-center justify-between gap-2 w-full">
+              {/* Başlangıç Tarihi */}
+              <div className="flex flex-col flex-1">
+                <Label className="text-[11px] font-medium text-text-secondary text-center mb-1.5">Başlangıç</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={`h-11 w-full justify-center text-[13px] font-medium bg-card rounded-xl border-border shadow-sm ${!startDate && "text-muted-foreground"}`}
+                    >
+                      {startDate ? format(new Date(startDate), "d MMM yyyy", { locale: tr }) : "Tarih Seç"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 z-[100]" align="center">
+                    <Calendar
+                      mode="single"
+                      selected={startDate ? new Date(startDate) : undefined}
+                      onSelect={(date) => setStartDate(date ? format(date, 'yyyy-MM-dd') : '')}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
-              <div className="flex items-center pt-6">
+
+              {/* Ayırıcı */}
+              <div className="flex flex-col justify-center pt-5 flex-shrink-0">
                 <span className="text-text-tertiary text-sm">-</span>
               </div>
-              <div className="space-y-2 flex-1 max-w-[140px]">
-                <Label htmlFor="endDate" className="text-xs font-medium text-text-secondary text-center block">Bitiş Tarihi</Label>
-                <Input
-                  id="endDate"
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full text-xs text-center"
-                  min={startDate || undefined}
-                  max={new Date().toISOString().split('T')[0]}
-                />
+
+              {/* Bitiş Tarihi */}
+              <div className="flex flex-col flex-1">
+                <Label className="text-[11px] font-medium text-text-secondary text-center mb-1.5">Bitiş</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={`h-11 w-full justify-center text-[13px] font-medium bg-card rounded-xl border-border shadow-sm ${!endDate && "text-muted-foreground"}`}
+                    >
+                      {endDate ? format(new Date(endDate), "d MMM yyyy", { locale: tr }) : "Tarih Seç"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 z-[100]" align="center">
+                    <Calendar
+                      mode="single"
+                      selected={endDate ? new Date(endDate) : undefined}
+                      onSelect={(date) => setEndDate(date ? format(date, 'yyyy-MM-dd') : '')}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
 
@@ -1089,6 +1157,7 @@ export default function Analytics() {
           </Drawer.Content>
         </Drawer.Portal>
       </Drawer.Root>
+      </main>
     </div>
   );
 }

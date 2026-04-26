@@ -30,10 +30,10 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* iOS Style Header */}
-      <header className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-40">
-        <div className="flex items-center px-4 h-12">
-          <h1 className="text-lg font-semibold text-foreground">Ayarlar</h1>
+      {/* iPhone-style Navigation Bar (Borderless & Translucent) */}
+      <header className="bg-background/80 backdrop-blur-xl sticky top-0 z-50 transition-all duration-300">
+        <div className="flex items-center justify-between px-5 h-16">
+          <h1 className="text-2xl font-bold tracking-tight text-text-primary">Ayarlar</h1>
         </div>
       </header>
 
@@ -100,7 +100,7 @@ export default function Profile() {
 
         {/* Minimalist Footer */}
         <div className="pt-12 pb-8 flex flex-col items-center">
-          <span className="text-[10px] font-medium text-text-tertiary tracking-widest opacity-50 uppercase">Versiyon 2.2.0</span>
+          <span className="text-[10px] font-medium text-text-tertiary tracking-widest opacity-50 uppercase">Versiyon 2.3.0</span>
         </div>
       </main>
     </div>

@@ -5,6 +5,27 @@
 
 ---
 
+## v2.3 — Global UI Consistency & Modern DatePicker (Nisan 2026)
+
+### Hedef
+Uygulama genelinde tasarım dilini birleştirerek (Consistency) "iOS Native" deneyimini en üst seviyeye taşımak ve PWA ortamındaki UI bug'larını tamamen temizlemek.
+
+### Teknik ve Tasarımsal İyileştirmeler
+
+**Modern DatePicker (Shadcn UI):**
+- **iOS PWA Optimization**: Mobil tarayıcılarda sorun çıkaran native `<input type="date">` yapısı terk edildi. Yerine Shadcn `Popover` ve `Calendar` (react-day-picker) ile modern, iOS tarzı bir tarih seçici entegre edildi.
+- **Turkish Localization**: Tarih formatları "10 Nis 2026" (d MMM yyyy) şeklinde Türkçe olarak optimize edildi.
+
+**Global UI Consistency (Header Refinement):**
+- **iOS Large Titles Everywhere**: "Analiz" ve "Ayarlar" sayfaları, "Portföy" sayfasıyla birebir aynı olan ferah, çizgisiz ve büyük başlıklı iOS header tasarımına geçirildi.
+- **Translucent Navigation**: Tüm ana ekranlarda `backdrop-blur-xl` efekti standart hale getirilerek, içeriklerin header altından akması sağlandı.
+- **Border-Free Design**: Sayfalar arasındaki ayrımı belirleyen tüm `border-b` çizgileri kaldırılarak saf minimalist vizyona ulaşıldı.
+
+**Closed Positions UX Final:**
+- **Vaul Confirmation**: Silme işlemleri için native confirm pencereleri yerine ekranın altından kayarak açılan şık onay kartları (Drawer) tüm görünüm modlarına uygulandı.
+
+---
+
 ## v2.2 — iOS Native UX & UI Refinement (Nisan 2026)
 
 ### Hedef

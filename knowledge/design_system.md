@@ -1,11 +1,10 @@
 # Portfolio Tracker — Design System
 
 > **Durum:** ✅ Uygulandı (Nisan 2026)
-> **Versiyon:** 1.0
-> **Prensip:** Minimal · Fresh · Trustworthy
+> **Versiyon:** 2.3
+> **Prensip:** Minimal · Fresh · Trustworthy · Native Experience
 
-Bu doküman, uygulamanın token tabanlı renk sisteminin **tek kaynak gerçeği (single source of truth)**'dir.
-Yeni bir bileşen eklenirken veya mevcut bileşen güncellenirken bu dokümandaki kurallara uyulması zorunludur.
+Bu doküman, uygulamanın token tabanlı renk sisteminin ve **iOS Native Tasarım Standartları**'nın tek kaynak gerçeğidir.
 
 ## 0. Genel Kısıtlar ve Çalışma Kuralları
 
@@ -21,6 +20,32 @@ Bu migration boyunca aşağıdaki kurallar **kesinlikle** uygulanır:
 | ❌ Yapılmayacak | Hardcoded hex renk (`#3F6F73`) bileşen içinde kullanılmaz |
 | ❌ Yapılmayacak | Login / matematik / hesaplama / navigasyon mantığı değiştirilmez |
 | ❌ Yapılmayacak | Yeni bileşen oluşturulmaz |
+
+---
+
+## 0.1 iOS Native UI Standartları (v2.3)
+
+Uygulamanın ana vizyonu olan "Native Experience", aşağıdaki temel tasarım kurallarına dayanır:
+
+### 1. Header & Navigation (Large Titles)
+- **Hiyerarşi**: Her ana sayfa (Portföy, Analiz, Ayarlar) sol tarafa yaslı, kalın ve büyük bir başlık (`text-2xl font-bold`) ile başlar.
+- **Translucency**: Header'lar `bg-background/80` ve `backdrop-blur-xl` kullanarak içerikle pürüzsüz bir etkileşime girer.
+- **Borderless**: Sayfa içeriği ile header arasında hiçbir `border-b` veya çizgi bulunmaz. Ayrım sadece blur efekti ile sağlanır.
+- **Height**: Standart header yüksekliği `h-16` olarak sabitlenmiştir.
+
+### 2. Form Elements (DatePicker)
+- **Modern Picker**: Native HTML date inputları kullanılmaz. Yerine Shadcn `Popover` ve `Calendar` ikilisi kullanılır.
+- **Format**: Tarih gösterimleri kullanıcı dostu Türkçe formatında (`d MMM yyyy`) olmalıdır.
+- **Touch Areas**: Dokunmatik elemanlar (butonlar, seçim alanları) en az `h-11` yüksekliğinde ve `rounded-xl` yapısında olmalıdır.
+
+### 3. Etkileşim ve Onay (Confirmation)
+- **Vaul Drawers**: Silme veya kritik onay işlemleri için ekranın altından kayarak açılan (Bottom Sheet) `Vaul` bileşenleri kullanılır. 
+- **Destructive Actions**: Silme butonları `bg-error-500` renginde ve belirgin olmalıdır.
+- **Haptic Feedback**: Etkileşimli butonlarda `active:scale-95` animasyonu ile fiziksel geri bildirim hissi verilmelidir.
+
+### 4. Bildirimler (Pill Toast)
+- **Pill Design**: Toast bildirimleri üst-orta (`top-center`) konumda, tam yuvarlak (`rounded-full`) ve minimalist "Hap" (Pill) formundadır.
+- **Swipe Support**: Kullanıcı bildirimleri yukarı kaydırarak manuel olarak kapatabilmelidir.
 
 ---
 
